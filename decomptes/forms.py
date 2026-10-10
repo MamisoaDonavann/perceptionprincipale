@@ -35,9 +35,10 @@ class DecompteForm(forms.Form):
         max_value=2200,
         initial=date.today().year,
     )
-    mois = forms.ChoiceField(
+    mois = forms.TypedChoiceField(
         label="Mois",
         choices=MOIS_CHOICES,
+        coerce=int,
         initial=date.today().month,
     )
 
