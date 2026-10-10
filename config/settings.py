@@ -56,10 +56,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # Applications du projet (à décommenter après création)
-     'core',
-     'accounts',
-     'audit',
+    # Applications du projet
+    'core',
+    'accounts',
+    'audit',
+    'agents',
 ]
 
 
