@@ -27,12 +27,14 @@ class JournalAudit(models.Model):
     ACTION_MODIFICATION = 'MODIFICATION'
     ACTION_ANNULATION = 'ANNULATION'
     ACTION_VALIDATION = 'VALIDATION'
+    ACTION_EXPORT = 'EXPORT'
 
     ACTIONS_CHOICES = [
         (ACTION_CREATION, 'Création'),
         (ACTION_MODIFICATION, 'Modification'),
         (ACTION_ANNULATION, 'Annulation'),
         (ACTION_VALIDATION, 'Validation'),
+        (ACTION_EXPORT, 'Export'),
     ]
 
     id_utilisateur = models.ForeignKey(
