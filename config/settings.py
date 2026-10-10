@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     'tarifs',
     'gardes',
     'decomptes',
+    'paiements',
 
 ]
 
