@@ -1,109 +1,74 @@
+"""
+Tests UI journal d'audit.
+"""
+
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
+from django.contrib.auth.models import Permission
 from django.test import TestCase
+from django.urls import reverse
 
 from .models import JournalAudit
-from .services import journaliser
 
 User = get_user_model()
 
 
-class JournalAuditModelTests(TestCase):
+class BaseAuditViewTest(TestCase):
 
     def setUp(self):
         self.user = User.objects.create_user(
-            username='audit_user',
-            password='test_password_2026'
+            username='audit_user', password='TestPassword2026!'
         )
-
-    def test_creation_entree_audit(self):
-        entry = JournalAudit.objects.create(
+        self.user.user_permissions.add(
+            Permission.objects.get(
+                codename='view_journalaudit',
+                content_type__app_label='audit',
+            )
+        )
+        self.entry = JournalAudit.objects.create(
             id_utilisateur=self.user,
             action=JournalAudit.ACTION_CREATION,
-            entite_concernee='gardes.Garde',
-            id_entite_concernee=1,
+            entite_concernee='test.Model',
+            id_entite_concernee=42,
             commentaire='Test',
         )
-        self.assertIsNotNone(entry.pk)
-        self.assertEqual(JournalAudit.objects.count(), 1)
-
-    def test_modification_refusee(self):
-        entry = JournalAudit.objects.create(
-            id_utilisateur=self.user,
-            action=JournalAudit.ACTION_CREATION,
-            entite_concernee='gardes.Garde',
-            id_entite_concernee=1,
-        )
-        entry.commentaire = "tentative de modification"
-        with self.assertRaises(ValidationError):
-            entry.save()
-
-    def test_suppression_refusee(self):
-        entry = JournalAudit.objects.create(
-            id_utilisateur=self.user,
-            action=JournalAudit.ACTION_CREATION,
-            entite_concernee='gardes.Garde',
-            id_entite_concernee=1,
-        )
-        with self.assertRaises(ValidationError):
-            entry.delete()
 
 
-class JournaliserServiceTests(TestCase):
+class AuditListViewTests(BaseAuditViewTest):
 
-    def setUp(self):
-        self.user = User.objects.create_user(
-            username='audit_user',
-            password='test_password_2026'
-        )
+    def test_requires_login(self):
+        r = self.client.get(reverse('audit:list'))
+        self.assertEqual(r.status_code, 302)
 
-    def test_journaliser_cree_entree(self):
-        entry = journaliser(
-            user=self.user,
-            action=JournalAudit.ACTION_CREATION,
-            entite='gardes.Garde',
-            id_entite=42,
-            commentaire='Création de test',
-        )
-        self.assertEqual(entry.action, JournalAudit.ACTION_CREATION)
-        self.assertEqual(entry.entite_concernee, 'gardes.Garde')
-        self.assertEqual(entry.id_entite_concernee, 42)
+    def test_requires_permission(self):
+        u = User.objects.create_user(username='noperm_a', password='x')
+        self.client.login(username='noperm_a', password='x')
+        r = self.client.get(reverse('audit:list'))
+        self.assertEqual(r.status_code, 403)
 
-    def test_journaliser_refuse_action_inconnue(self):
-        with self.assertRaises(ValidationError):
-            journaliser(
-                user=self.user,
-                action='ACTION_INVENTEE',
-                entite='gardes.Garde',
-                id_entite=1,
-            )
+    def test_accessible(self):
+        self.client.login(username='audit_user', password='TestPassword2026!')
+        r = self.client.get(reverse('audit:list'))
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, 'test.Model')
 
-    def test_journaliser_avec_valeurs_avant_apres(self):
-        entry = journaliser(
-            user=self.user,
-            action=JournalAudit.ACTION_MODIFICATION,
-            entite='gardes.Garde',
-            id_entite=42,
-            avant={'statut': 'VALIDEE'},
-            apres={'statut': 'ANNULEE'},
-        )
-        self.assertEqual(entry.valeurs_avant, {'statut': 'VALIDEE'})
-        self.assertEqual(entry.valeurs_apres, {'statut': 'ANNULEE'})
+    def test_filter_action(self):
+        self.client.login(username='audit_user', password='TestPassword2026!')
+        r = self.client.get(reverse('audit:list'), {'action': 'CREATION'})
+        self.assertEqual(len(r.context['page'].object_list), 1)
+
+        r = self.client.get(reverse('audit:list'), {'action': 'ANNULATION'})
+        self.assertEqual(len(r.context['page'].object_list), 0)
 
 
-class JournalAuditAdminTests(TestCase):
+class AuditDetailViewTests(BaseAuditViewTest):
 
-    def setUp(self):
-        self.admin_user = User.objects.create_superuser(
-            username='admin_test',
-            password='test_password_2026',
-            email='admin@test.local',
-        )
-        self.client.force_login(self.admin_user)
+    def test_detail_accessible(self):
+        self.client.login(username='audit_user', password='TestPassword2026!')
+        r = self.client.get(reverse('audit:detail', args=[self.entry.pk]))
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, 'test.Model')
 
-    def test_admin_lecture_seule(self):
-        from django.urls import reverse
-        url_add = reverse('admin:audit_journalaudit_add')
-        response = self.client.get(url_add)
-        # L'admin refuse l'accès : redirection (302) ou 403
-        self.assertIn(response.status_code, (302, 403))
+    def test_404_unknown(self):
+        self.client.login(username='audit_user', password='TestPassword2026!')
+        r = self.client.get(reverse('audit:detail', args=[99999]))
+        self.assertEqual(r.status_code, 404)

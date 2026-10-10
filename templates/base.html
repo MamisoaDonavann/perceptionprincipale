@@ -65,7 +65,12 @@
             <li><span class="disabled">Paiements <span class="badge">Bientôt</span></span></li>
 
             <li class="sidebar__section">Administration</li>
-            <li><span class="disabled">Journal d'audit <span class="badge">Bientôt</span></span></li>
+            <li>
+                <a href="{% url 'audit:list' %}"
+                   class="{% if request.resolver_match.app_name == 'audit' %}active{% endif %}">
+                    Journal d'audit
+                </a>
+            </li>
             {% if user.is_staff %}
             <li><a href="/admin/" target="_blank">Admin Django</a></li>
             {% endif %}

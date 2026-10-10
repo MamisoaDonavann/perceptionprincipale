@@ -17,6 +17,7 @@ urlpatterns = [
     path('gardes/', include('gardes.urls')),
     path('decomptes/', include('decomptes.urls')),
     path('paiements/', include('paiements.urls')),
+    path('audit/', include('audit.urls')),
     path('', include('core.urls')),
 ]
 
