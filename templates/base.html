@@ -50,7 +50,12 @@
                     Gardes
                 </a>
             </li>
-            <li><span class="disabled">Décomptes <span class="badge">Bientôt</span></span></li>
+            <li>
+                <a href="{% url 'decomptes:list' %}"
+                   class="{% if request.resolver_match.app_name == 'decomptes' %}active{% endif %}">
+                    Décomptes
+                </a>
+            </li>
             <li><span class="disabled">Ordres de paiement <span class="badge">Bientôt</span></span></li>
             <li><span class="disabled">Paiements <span class="badge">Bientôt</span></span></li>
 

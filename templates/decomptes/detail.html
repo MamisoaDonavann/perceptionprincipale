@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Décompte {{ decompte.mois|stringformat:"02d" }}/{{ decompte.annee }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header__titles">
+        <h1 class="page-title">
+            Décompte {{ decompte.mois|stringformat:"02d" }}/{{ decompte.annee }}
+        </h1>
+        <p class="page-subtitle">
+            {{ decompte.agent.matricule }} — {{ decompte.agent.nom }} {{ decompte.agent.prenoms }}
+        </p>
+    </div>
+    <div>
+        {% if decompte.statut == 'BROUILLON' and perms.decomptes.change_decompte %}
+            <a href="{% url 'decomptes:valider' decompte.pk %}" class="btn-create">Valider le décompte</a>
+        {% endif %}
+        <a href="{% url 'decomptes:list' %}" class="btn-secondary">Retour</a>
+    </div>
+</div>
+
+{% if decompte.nombre_gardes_non_conformes_exclues > 0 %}
+<div class="info-box info-box--warning">
+    <strong>Attention :</strong>
+    {{ decompte.nombre_gardes_non_conformes_exclues }} garde(s) non conforme(s)
+    ont été exclues du calcul. Elles doivent être examinées séparément.
+</div>
+{% endif %}
+
+{% if decompte.statut == 'VALIDE' %}
+<div class="info-box info-box--success">
+    Décompte validé le {{ decompte.date_validation|date:"d/m/Y H:i" }}
+    par {{ decompte.id_utilisateur_validateur.username }}.
+</div>
+{% endif %}
+
+<div class="cards">
+    <div class="card card--info">
+        <div class="card__label">Montant total</div>
+        <div class="card__value amount">{{ decompte.montant_total }} Ar</div>
+    </div>
+    <div class="card card--info">
+        <div class="card__label">Gardes retenues</div>
+        <div class="card__value">{{ decompte.nombre_gardes_retunes }}</div>
+    </div>
+    <div class="card card--warning">
+        <div class="card__label">Gardes non conformes exclues</div>
+        <div class="card__value">{{ decompte.nombre_gardes_non_conformes_exclues }}</div>
+    </div>
+</div>
+
+<div class="detail-card">
+    <h2 class="detail-card__title">Lignes du décompte ({{ lignes|length }})</h2>
+    {% if lignes %}
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Garde source</th>
+                <th>Début</th>
+                <th>Durée (min)</th>
+                <th>Partiels</th>
+                <th>Montant partiel</th>
+                <th>Montant ligne</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for l in lignes %}
+            <tr>
+                <td>
+                    <a href="{% url 'gardes:detail' l.garde.pk %}">
+                        Garde #{{ l.garde.pk }}
+                    </a>
+                </td>
+                <td>{{ l.garde.date_heure_debut|date:"d/m/Y H:i" }}</td>
+                <td>{{ l.duree_minutes_snapshot }}</td>
+                <td>{{ l.nombre_partiels_snapshot }}</td>
+                <td class="amount">{{ l.montant_partiel_snapshot }} Ar</td>
+                <td class="amount"><strong>{{ l.montant_ligne }} Ar</strong></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="5" style="text-align:right;"><strong>Total</strong></td>
+                <td class="amount"><strong>{{ decompte.montant_total }} Ar</strong></td>
+            </tr>
+        </tfoot>
+    </table>
+    {% else %}
+    <p class="empty-state__hint">Aucune ligne (aucune garde conforme sur la période).</p>
+    {% endif %}
+</div>
+
+<div class="detail-card">
+    <h2 class="detail-card__title">Traçabilité</h2>
+    <dl class="detail-list">
+        <dt>Créé par</dt>
+        <dd>{{ decompte.id_utilisateur_createur.get_full_name|default:decompte.id_utilisateur_createur.username }}</dd>
+        <dt>Créé le</dt><dd>{{ decompte.date_creation|date:"d/m/Y H:i" }}</dd>
+        {% if decompte.id_utilisateur_validateur %}
+        <dt>Validé par</dt><dd>{{ decompte.id_utilisateur_validateur.username }}</dd>
+        <dt>Validé le</dt><dd>{{ decompte.date_validation|date:"d/m/Y H:i" }}</dd>
+        {% endif %}
+    </dl>
+</div>
+{% endblock %}

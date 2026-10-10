@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Valider le décompte — Perception Marovoay{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header__titles">
+        <h1 class="page-title">Valider le décompte</h1>
+        <p class="page-subtitle">
+            {{ decompte.agent.nom }} — {{ decompte.mois|stringformat:"02d" }}/{{ decompte.annee }}
+        </p>
+    </div>
+    <div>
+        <a href="{% url 'decomptes:detail' decompte.pk %}" class="btn-secondary">Retour</a>
+    </div>
+</div>
+
+<div class="info-box info-box--warning">
+    La validation rend le décompte <strong>immuable</strong>.
+    Son montant total de <strong>{{ decompte.montant_total }} Ar</strong>
+    sera utilisé pour les ordres de paiement.
+</div>
+
+<form method="post" class="form-card">
+    {% csrf_token %}
+    <p>Confirmez-vous la validation de ce décompte ?</p>
+    <div class="form-actions">
+        <button type="submit" class="btn-create">Valider définitivement</button>
+        <a href="{% url 'decomptes:detail' decompte.pk %}" class="btn-secondary">Annuler</a>
+    </div>
+</form>
+{% endblock %}

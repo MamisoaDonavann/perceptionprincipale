@@ -13,5 +13,6 @@ urlpatterns = [
     path('tarifs/', include('tarifs.urls')),
     path('missions/', include('missions.urls')),
     path('gardes/', include('gardes.urls')),
+    path('decomptes/', include('decomptes.urls')),
     path('', include('core.urls')),
 ]
