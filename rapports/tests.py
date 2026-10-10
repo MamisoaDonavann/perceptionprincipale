@@ -41,6 +41,13 @@ class BaseRapportTest(TestCase):
             password='TestPassword2026!',
             email='admin@test.local',
         )
+        # Second superuser pour valider les OP créés par self.user
+        # (le créateur ne peut pas valider son propre OP)
+        self.validateur = User.objects.create_superuser(
+            username='validateur_test',
+            password='TestPassword2026!',
+            email='validateur@test.local',
+        )
         self.agent = Agent.objects.create(
             matricule='AG-R-001', nom='Rakoto', prenoms='Jean'
         )
@@ -118,7 +125,7 @@ class ListePaiementPdfViewTests(BaseRapportTest):
         from paiements.services import creer_ordre_paiement, valider_ordre_paiement
         d = self._decompte_valide()
         op, _ = creer_ordre_paiement(self.agent, 2026, [d], self.user)
-        return valider_ordre_paiement(op, self.user)
+        return valider_ordre_paiement(op, self.validateur)
 
     def test_pdf_generated(self):
         op = self._op_valide()
