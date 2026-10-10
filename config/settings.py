@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     'agents',
     'missions',
     'tarifs',
+    
 ]
 
 
