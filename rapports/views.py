@@ -22,9 +22,16 @@ from paiements.models import OrdrePaiement
 from .permissions import verifier_permission
 from .services import (
     generer_etat_decompte_pdf,
+    generer_etat_gardes_excel,
+    generer_etat_gardes_pdf,
     generer_historique_agent_excel,
     generer_historique_agent_pdf,
+    generer_liste_op_excel,
+    generer_liste_op_pdf,
     generer_liste_paiement_pdf,
+    generer_rapport_mensuel_pdf,
+    generer_rapport_periode_excel,
+    generer_rapport_periode_pdf,
 )
 
 
@@ -205,4 +212,298 @@ def historique_agent_excel(request, pk):
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     )
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
+
+
+# ===================================================================
+# Rapport 4 — État détaillé des gardes
+# ===================================================================
+
+def _filtres_gardes(request):
+    """Extrait les filtres GET pour l'état des gardes."""
+    from agents.models import Agent
+    from missions.models import Mission
+
+    date_debut = _parse_date(request.GET.get('date_debut'), 'de début')
+    date_fin = _parse_date(request.GET.get('date_fin'), 'de fin')
+
+    agent = None
+    if request.GET.get('agent'):
+        try:
+            agent = Agent.objects.get(pk=int(request.GET['agent']))
+        except (ValueError, Agent.DoesNotExist):
+            pass
+
+    mission = None
+    if request.GET.get('mission'):
+        try:
+            mission = Mission.objects.get(pk=int(request.GET['mission']))
+        except (ValueError, Mission.DoesNotExist):
+            pass
+
+    conforme_raw = request.GET.get('conforme', '').strip()
+    conforme = None
+    if conforme_raw == '1':
+        conforme = True
+    elif conforme_raw == '0':
+        conforme = False
+
+    return {
+        'date_debut': date_debut,
+        'date_fin': date_fin,
+        'agent': agent,
+        'mission': mission,
+        'conforme': conforme,
+    }
+
+
+@login_required
+def filtres_gardes(request):
+    """Formulaire de filtres pour l'état des gardes."""
+    verifier_permission(request.user, 'gardes.view_garde')
+    from agents.models import Agent
+    from missions.models import Mission
+    return render(request, 'rapports/filtres_gardes.html', {
+        'agents': Agent.objects.filter(actif=True).order_by('nom', 'prenoms'),
+        'missions': Mission.objects.order_by('-date_debut')[:100],
+        'filtres': _filtres_gardes(request),
+    })
+
+
+@login_required
+def etat_gardes_pdf(request):
+    verifier_permission(request.user, 'gardes.view_garde')
+    try:
+        f = _filtres_gardes(request)
+        buffer = generer_etat_gardes_pdf(
+            f['date_debut'], f['date_fin'],
+            f['agent'], f['mission'], f['conforme'],
+        )
+    except ValidationError as e:
+        for msg in e.messages:
+            messages.error(request, msg)
+        return redirect(reverse('rapports:index'))
+
+    journaliser(
+        user=request.user, action=JournalAudit.ACTION_EXPORT,
+        entite='gardes.Garde', id_entite=0,
+        apres={
+            'type': 'etat_gardes_pdf',
+            'date_debut': f['date_debut'].isoformat() if f['date_debut'] else None,
+            'date_fin': f['date_fin'].isoformat() if f['date_fin'] else None,
+            'agent_id': f['agent'].pk if f['agent'] else None,
+            'mission_id': f['mission'].pk if f['mission'] else None,
+            'conforme': f['conforme'],
+        },
+        commentaire="Export PDF état des gardes",
+    )
+
+    response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="etat_gardes.pdf"'
+    return response
+
+
+@login_required
+def etat_gardes_excel(request):
+    verifier_permission(request.user, 'gardes.view_garde')
+    try:
+        f = _filtres_gardes(request)
+        buffer = generer_etat_gardes_excel(
+            f['date_debut'], f['date_fin'],
+            f['agent'], f['mission'], f['conforme'],
+        )
+    except ValidationError as e:
+        for msg in e.messages:
+            messages.error(request, msg)
+        return redirect(reverse('rapports:index'))
+
+    journaliser(
+        user=request.user, action=JournalAudit.ACTION_EXPORT,
+        entite='gardes.Garde', id_entite=0,
+        apres={'type': 'etat_gardes_excel'},
+        commentaire="Export Excel état des gardes",
+    )
+
+    response = HttpResponse(
+        buffer.getvalue(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+    response['Content-Disposition'] = 'attachment; filename="etat_gardes.xlsx"'
+    return response
+
+
+# ===================================================================
+# Rapport 5 — Liste des OP
+# ===================================================================
+
+def _filtres_op(request):
+    date_debut = _parse_date(request.GET.get('date_debut'), 'de début')
+    date_fin = _parse_date(request.GET.get('date_fin'), 'de fin')
+    statut = request.GET.get('statut', '').strip()
+    if statut not in dict(OrdrePaiement.STATUTS_CHOICES):
+        statut = None
+    return {'date_debut': date_debut, 'date_fin': date_fin, 'statut': statut}
+
+
+@login_required
+def filtres_op(request):
+    verifier_permission(request.user, 'paiements.consulter_ordre_paiement')
+    return render(request, 'rapports/filtres_op.html', {
+        'statuts_choices': OrdrePaiement.STATUTS_CHOICES,
+        'filtres': _filtres_op(request),
+    })
+
+
+@login_required
+def liste_op_pdf(request):
+    verifier_permission(request.user, 'paiements.consulter_ordre_paiement')
+    try:
+        f = _filtres_op(request)
+        buffer = generer_liste_op_pdf(f['date_debut'], f['date_fin'], f['statut'])
+    except ValidationError as e:
+        for msg in e.messages:
+            messages.error(request, msg)
+        return redirect(reverse('rapports:index'))
+
+    journaliser(
+        user=request.user, action=JournalAudit.ACTION_EXPORT,
+        entite='paiements.OrdrePaiement', id_entite=0,
+        apres={'type': 'liste_op_pdf', **{k: (v.isoformat() if hasattr(v, 'isoformat') else v) for k, v in f.items()}},
+        commentaire="Export PDF liste des OP",
+    )
+
+    response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="liste_op.pdf"'
+    return response
+
+
+@login_required
+def liste_op_excel(request):
+    verifier_permission(request.user, 'paiements.consulter_ordre_paiement')
+    try:
+        f = _filtres_op(request)
+        buffer = generer_liste_op_excel(f['date_debut'], f['date_fin'], f['statut'])
+    except ValidationError as e:
+        for msg in e.messages:
+            messages.error(request, msg)
+        return redirect(reverse('rapports:index'))
+
+    journaliser(
+        user=request.user, action=JournalAudit.ACTION_EXPORT,
+        entite='paiements.OrdrePaiement', id_entite=0,
+        apres={'type': 'liste_op_excel'},
+        commentaire="Export Excel liste des OP",
+    )
+
+    response = HttpResponse(
+        buffer.getvalue(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+    response['Content-Disposition'] = 'attachment; filename="liste_op.xlsx"'
+    return response
+
+
+# ===================================================================
+# Rapport 6 — Rapport mensuel
+# ===================================================================
+
+@login_required
+def rapport_mensuel_pdf(request, annee, mois):
+    verifier_permission(request.user, 'paiements.consulter_ordre_paiement')
+    if not (1900 <= annee <= 2200) or not (1 <= mois <= 12):
+        messages.error(request, "Année ou mois invalide.")
+        return redirect(reverse('rapports:index'))
+
+    buffer = generer_rapport_mensuel_pdf(annee, mois)
+
+    journaliser(
+        user=request.user, action=JournalAudit.ACTION_EXPORT,
+        entite='rapports.RapportMensuel', id_entite=0,
+        apres={'type': 'rapport_mensuel_pdf', 'annee': annee, 'mois': mois},
+        commentaire=f"Export PDF rapport mensuel {mois:02d}/{annee}",
+    )
+
+    response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="rapport_{annee}_{mois:02d}.pdf"'
+    return response
+
+
+# ===================================================================
+# Rapport 7 — Rapport sur période
+# ===================================================================
+
+def _filtres_periode(request):
+    date_debut = _parse_date(request.GET.get('date_debut'), 'de début')
+    date_fin = _parse_date(request.GET.get('date_fin'), 'de fin')
+    if date_debut is None:
+        date_debut = date.today().replace(day=1)
+    if date_fin is None:
+        date_fin = date.today()
+    if date_debut > date_fin:
+        raise ValidationError("La date de début doit être antérieure ou égale à la date de fin.")
+    return {'date_debut': date_debut, 'date_fin': date_fin}
+
+
+@login_required
+def filtres_periode(request):
+    verifier_permission(request.user, 'paiements.consulter_ordre_paiement')
+    try:
+        f = _filtres_periode(request)
+    except ValidationError as e:
+        for msg in e.messages:
+            messages.error(request, msg)
+        f = {'date_debut': None, 'date_fin': None}
+    return render(request, 'rapports/filtres_periode.html', {'filtres': f})
+
+
+@login_required
+def rapport_periode_pdf(request):
+    verifier_permission(request.user, 'paiements.consulter_ordre_paiement')
+    try:
+        f = _filtres_periode(request)
+        buffer = generer_rapport_periode_pdf(f['date_debut'], f['date_fin'])
+    except ValidationError as e:
+        for msg in e.messages:
+            messages.error(request, msg)
+        return redirect(reverse('rapports:index'))
+
+    journaliser(
+        user=request.user, action=JournalAudit.ACTION_EXPORT,
+        entite='rapports.RapportPeriode', id_entite=0,
+        apres={
+            'type': 'rapport_periode_pdf',
+            'date_debut': f['date_debut'].isoformat(),
+            'date_fin': f['date_fin'].isoformat(),
+        },
+        commentaire=f"Export PDF rapport période {f['date_debut']} → {f['date_fin']}",
+    )
+
+    response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="rapport_periode.pdf"'
+    return response
+
+
+@login_required
+def rapport_periode_excel(request):
+    verifier_permission(request.user, 'paiements.consulter_ordre_paiement')
+    try:
+        f = _filtres_periode(request)
+        buffer = generer_rapport_periode_excel(f['date_debut'], f['date_fin'])
+    except ValidationError as e:
+        for msg in e.messages:
+            messages.error(request, msg)
+        return redirect(reverse('rapports:index'))
+
+    journaliser(
+        user=request.user, action=JournalAudit.ACTION_EXPORT,
+        entite='rapports.RapportPeriode', id_entite=0,
+        apres={'type': 'rapport_periode_excel'},
+        commentaire=f"Export Excel rapport période {f['date_debut']} → {f['date_fin']}",
+    )
+
+    response = HttpResponse(
+        buffer.getvalue(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+    response['Content-Disposition'] = 'attachment; filename="rapport_periode.xlsx"'
     return response

@@ -1,0 +1,82 @@
+{% extends "rapports/pdf/base_pdf.html" %}
+
+{% block titre %}Rapport sur période{% endblock %}
+{% block titre_rapport %}Rapport sur période{% endblock %}
+{% block sous_titre %}
+    <div class="entete__sous-titre">
+        Du {{ date_debut|date:"d/m/Y" }} au {{ date_fin|date:"d/m/Y" }}
+    </div>
+{% endblock %}
+
+{% block contenu %}
+
+<h2 class="section">Synthèse globale</h2>
+<table class="data">
+    <thead>
+        <tr>
+            <th>Indicateur</th>
+            <th class="amount">Valeur</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr><td>Nombre de gardes validées</td><td class="amount">{{ nb_gardes }}</td></tr>
+        <tr><td>Nombre de décomptes validés</td><td class="amount">{{ nb_decomptes }}</td></tr>
+        <tr><td>Nombre d'ordres de paiement créés</td><td class="amount">{{ nb_ops }}</td></tr>
+        <tr><td>Nombre de paiements enregistrés</td><td class="amount">{{ nb_paiements }}</td></tr>
+        <tr><td>Total des décomptes validés</td><td class="amount">{{ total_decomptes }} Ar</td></tr>
+        <tr><td>Total des OP créés</td><td class="amount">{{ total_ops }} Ar</td></tr>
+        <tr><td>Total des paiements enregistrés</td><td class="amount">{{ total_paiements }} Ar</td></tr>
+    </tbody>
+</table>
+
+<h2 class="section">Décomptes validés ({{ nb_decomptes }})</h2>
+<table class="data">
+    <thead>
+        <tr>
+            <th>Agent</th>
+            <th>Période</th>
+            <th class="text-right">Gardes</th>
+            <th class="amount">Montant</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for d in decomptes %}
+        <tr>
+            <td>{{ d.agent.matricule }} — {{ d.agent.nom }}</td>
+            <td>{{ d.mois|stringformat:"02d" }}/{{ d.annee }}</td>
+            <td class="text-right">{{ d.nombre_gardes_retunes }}</td>
+            <td class="amount">{{ d.montant_total }} Ar</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="text-center">Aucun décompte sur la période.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h2 class="section">Ordres de paiement ({{ nb_ops }})</h2>
+<table class="data">
+    <thead>
+        <tr>
+            <th>N° OP</th>
+            <th>Agent</th>
+            <th class="amount">Montant total</th>
+            <th class="amount">Net payé</th>
+            <th class="text-center">Statut</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for op in ops %}
+        <tr>
+            <td>{{ op.numero_op }}</td>
+            <td>{{ op.agent_beneficiaire.nom }}</td>
+            <td class="amount">{{ op.montant_total }} Ar</td>
+            <td class="amount">{{ op.montant_net_paye }} Ar</td>
+            <td class="text-center">{{ op.get_statut_display }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-center">Aucun OP sur la période.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

@@ -200,3 +200,105 @@ class ServicesGenerateursTests(BaseRapportTest):
     def test_excel_historique_bytes(self):
         buf = generer_historique_agent_excel(self.agent)
         self.assertTrue(buf.getvalue().startswith(b'PK'))
+
+
+# ===================================================================
+# Tests UI 3.11 — 4 rapports restants
+# ===================================================================
+
+class EtatGardesViewTests(BaseRapportTest):
+
+    def test_filtres_requires_permission(self):
+        u = User.objects.create_user(username='no_g', password='x')
+        self.client.login(username='no_g', password='x')
+        r = self.client.get(reverse('rapports:filtres_gardes'))
+        self.assertEqual(r.status_code, 403)
+
+    def test_pdf_generated(self):
+        self._garde(6)
+        self.client.login(username='admin_test', password='TestPassword2026!')
+        r = self.client.get(reverse('rapports:etat_gardes_pdf'))
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r['Content-Type'], 'application/pdf')
+        self.assertTrue(r.content.startswith(b'%PDF'))
+
+    def test_excel_generated(self):
+        self._garde(6)
+        self.client.login(username='admin_test', password='TestPassword2026!')
+        r = self.client.get(reverse('rapports:etat_gardes_excel'))
+        self.assertEqual(r.status_code, 200)
+        self.assertIn('spreadsheetml', r['Content-Type'])
+        self.assertTrue(r.content.startswith(b'PK'))
+
+
+class ListeOpViewTests(BaseRapportTest):
+
+    def _op_valide(self):
+        from paiements.services import creer_ordre_paiement, valider_ordre_paiement
+        d = self._decompte_valide()
+        op, _ = creer_ordre_paiement(self.agent, 2026, [d], self.user)
+        return valider_ordre_paiement(op, self.validateur)
+
+    def test_pdf_generated(self):
+        self._op_valide()
+        self.client.login(username='admin_test', password='TestPassword2026!')
+        r = self.client.get(reverse('rapports:liste_op_pdf'))
+        self.assertEqual(r.status_code, 200)
+        self.assertTrue(r.content.startswith(b'%PDF'))
+
+    def test_excel_generated(self):
+        self._op_valide()
+        self.client.login(username='admin_test', password='TestPassword2026!')
+        r = self.client.get(reverse('rapports:liste_op_excel'))
+        self.assertEqual(r.status_code, 200)
+        self.assertTrue(r.content.startswith(b'PK'))
+
+
+class RapportMensuelViewTests(BaseRapportTest):
+
+    def test_pdf_generated(self):
+        self._decompte_valide()
+        self.client.login(username='admin_test', password='TestPassword2026!')
+        r = self.client.get(
+            reverse('rapports:rapport_mensuel_pdf', args=[2026, 6])
+        )
+        self.assertEqual(r.status_code, 200)
+        self.assertTrue(r.content.startswith(b'%PDF'))
+
+    def test_mois_invalide_redirige(self):
+        self.client.login(username='admin_test', password='TestPassword2026!')
+        r = self.client.get(
+            reverse('rapports:rapport_mensuel_pdf', args=[2026, 13])
+        )
+        self.assertEqual(r.status_code, 302)
+
+
+class RapportPeriodeViewTests(BaseRapportTest):
+
+    def test_pdf_generated(self):
+        self._decompte_valide()
+        self.client.login(username='admin_test', password='TestPassword2026!')
+        r = self.client.get(reverse('rapports:rapport_periode_pdf'), {
+            'date_debut': '2026-01-01',
+            'date_fin': '2026-12-31',
+        })
+        self.assertEqual(r.status_code, 200)
+        self.assertTrue(r.content.startswith(b'%PDF'))
+
+    def test_excel_generated(self):
+        self._decompte_valide()
+        self.client.login(username='admin_test', password='TestPassword2026!')
+        r = self.client.get(reverse('rapports:rapport_periode_excel'), {
+            'date_debut': '2026-01-01',
+            'date_fin': '2026-12-31',
+        })
+        self.assertEqual(r.status_code, 200)
+        self.assertTrue(r.content.startswith(b'PK'))
+
+    def test_dates_inversees_redirige(self):
+        self.client.login(username='admin_test', password='TestPassword2026!')
+        r = self.client.get(reverse('rapports:rapport_periode_pdf'), {
+            'date_debut': '2026-12-31',
+            'date_fin': '2026-01-01',
+        })
+        self.assertEqual(r.status_code, 302)

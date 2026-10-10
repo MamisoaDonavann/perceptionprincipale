@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Liste des OP — Rapports{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="page-header__titles">
+        <h1 class="page-title">Liste des ordres de paiement</h1>
+        <p class="page-subtitle">Filtrez puis exportez en PDF ou Excel.</p>
+    </div>
+    <div><a href="{% url 'rapports:index' %}" class="btn-secondary">Retour</a></div>
+</div>
+
+<form method="get" class="form-card">
+    <div class="form-grid">
+        <div class="form-group">
+            <label>Date de début</label>
+            <input type="date" name="date_debut" class="form-input"
+                   value="{{ filtres.date_debut|date:'Y-m-d' }}">
+        </div>
+        <div class="form-group">
+            <label>Date de fin</label>
+            <input type="date" name="date_fin" class="form-input"
+                   value="{{ filtres.date_fin|date:'Y-m-d' }}">
+        </div>
+        <div class="form-group">
+            <label>Statut</label>
+            <select name="statut" class="form-select">
+                <option value="">Tous</option>
+                {% for code, label in statuts_choices %}
+                <option value="{{ code }}" {% if filtres.statut == code %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <div class="form-actions">
+        <button type="submit" formaction="{% url 'rapports:liste_op_pdf' %}" class="btn-create">Télécharger PDF</button>
+        <button type="submit" formaction="{% url 'rapports:liste_op_excel' %}" class="btn-create">Télécharger Excel</button>
+        <a href="{% url 'rapports:index' %}" class="btn-secondary">Annuler</a>
+    </div>
+</form>
+{% endblock %}

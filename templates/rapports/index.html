@@ -50,5 +50,77 @@
             <a href="{% url 'agents:list' %}" class="btn-secondary">Voir les agents</a>
         </p>
     </div>
+
+    <div class="card card--info">
+        <div class="card__label">État détaillé des gardes</div>
+        <p class="card__hint">
+            Liste filtrable des gardes sur une période, par agent, mission ou conformité.
+        </p>
+        <p class="card__hint">
+            <a href="{% url 'rapports:filtres_gardes' %}" class="btn-secondary">Configurer</a>
+        </p>
+    </div>
+
+    <div class="card card--info">
+        <div class="card__label">Liste des OP</div>
+        <p class="card__hint">
+            Liste filtrable des ordres de paiement par période et statut.
+        </p>
+        <p class="card__hint">
+            <a href="{% url 'rapports:filtres_op' %}" class="btn-secondary">Configurer</a>
+        </p>
+    </div>
+
+    <div class="card card--info">
+        <div class="card__label">Rapport mensuel</div>
+        <p class="card__hint">
+            Synthèse mensuelle des décomptes validés et paiements enregistrés.
+        </p>
+        <p class="card__hint">
+            Utilisez le formulaire ci-dessous pour choisir le mois.
+        </p>
+    </div>
+
+    <div class="card card--info">
+        <div class="card__label">Rapport sur période</div>
+        <p class="card__hint">
+            Synthèse globale sur une période libre (gardes, décomptes, OP, paiements).
+        </p>
+        <p class="card__hint">
+            <a href="{% url 'rapports:filtres_periode' %}" class="btn-secondary">Configurer</a>
+        </p>
+    </div>
+</div>
+
+<div class="detail-card" style="margin-top: 20px;">
+    <h2 class="detail-card__title">Rapport mensuel rapide</h2>
+    <form method="get" action="{% url 'rapports:index' %}" onsubmit="event.preventDefault(); window.location.href='/rapports/mensuel/'+this.annee.value+'/'+this.mois.value+'/pdf/';">
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Année</label>
+                <input type="number" name="annee" class="form-input" min="1900" max="2200" required>
+            </div>
+            <div class="form-group">
+                <label>Mois</label>
+                <select name="mois" class="form-select" required>
+                    <option value="1">Janvier</option>
+                    <option value="2">Février</option>
+                    <option value="3">Mars</option>
+                    <option value="4">Avril</option>
+                    <option value="5">Mai</option>
+                    <option value="6">Juin</option>
+                    <option value="7">Juillet</option>
+                    <option value="8">Août</option>
+                    <option value="9">Septembre</option>
+                    <option value="10">Octobre</option>
+                    <option value="11">Novembre</option>
+                    <option value="12">Décembre</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn-create">Télécharger le rapport mensuel PDF</button>
+        </div>
+    </form>
 </div>
 {% endblock %}

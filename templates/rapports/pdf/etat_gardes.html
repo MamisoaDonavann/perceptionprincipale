@@ -1,0 +1,75 @@
+{% extends "rapports/pdf/base_pdf.html" %}
+
+{% block titre %}État détaillé des gardes{% endblock %}
+{% block titre_rapport %}État détaillé des gardes{% endblock %}
+{% block sous_titre %}
+    <div class="entete__sous-titre">
+        {% if date_debut or date_fin %}
+            Période :
+            {{ date_debut|date:"d/m/Y"|default:"—" }} → {{ date_fin|date:"d/m/Y"|default:"—" }}
+        {% else %}
+            Toutes les gardes
+        {% endif %}
+        — {{ total }} enregistrement{{ total|pluralize }}
+    </div>
+{% endblock %}
+
+{% block contenu %}
+
+{% if agent_filtre or mission_filtre or conforme_filtre is not None %}
+<div class="bloc-info">
+    {% if agent_filtre %}
+    <div class="bloc-info__ligne">
+        <div class="bloc-info__label">Agent</div>
+        <div class="bloc-info__valeur">{{ agent_filtre.matricule }} — {{ agent_filtre.nom }} {{ agent_filtre.prenoms }}</div>
+    </div>
+    {% endif %}
+    {% if mission_filtre %}
+    <div class="bloc-info__ligne">
+        <div class="bloc-info__label">Mission</div>
+        <div class="bloc-info__valeur">{{ mission_filtre.libelle }}</div>
+    </div>
+    {% endif %}
+    {% if conforme_filtre is not None %}
+    <div class="bloc-info__ligne">
+        <div class="bloc-info__label">Conformité</div>
+        <div class="bloc-info__valeur">{% if conforme_filtre %}Conformes{% else %}Non conformes{% endif %}</div>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<table class="data">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Agent</th>
+            <th>Mission</th>
+            <th>Début</th>
+            <th>Fin</th>
+            <th class="text-right">Durée</th>
+            <th class="text-right">Partiels</th>
+            <th class="text-center">Conf.</th>
+            <th class="text-center">Statut</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for g in gardes %}
+        <tr>
+            <td>#{{ g.pk }}</td>
+            <td>{{ g.agent.matricule }} — {{ g.agent.nom }}</td>
+            <td>{{ g.mission.libelle|default:"—" }}</td>
+            <td>{{ g.date_heure_debut|date:"d/m/Y H:i" }}</td>
+            <td>{{ g.date_heure_fin|date:"d/m/Y H:i" }}</td>
+            <td class="text-right">{{ g.duree_minutes }} min</td>
+            <td class="text-right">{{ g.nombre_partiels|default:"—" }}</td>
+            <td class="text-center">{% if g.conforme %}Oui{% else %}Non{% endif %}</td>
+            <td class="text-center">{{ g.get_statut_display }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="9" class="text-center">Aucune garde trouvée.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

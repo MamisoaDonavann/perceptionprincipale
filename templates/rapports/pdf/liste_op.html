@@ -1,0 +1,57 @@
+{% extends "rapports/pdf/base_pdf.html" %}
+
+{% block titre %}Liste des ordres de paiement{% endblock %}
+{% block titre_rapport %}Liste des ordres de paiement{% endblock %}
+{% block sous_titre %}
+    <div class="entete__sous-titre">
+        {% if date_debut or date_fin %}
+            Période :
+            {{ date_debut|date:"d/m/Y"|default:"—" }} → {{ date_fin|date:"d/m/Y"|default:"—" }}
+        {% else %}
+            Tous les OP
+        {% endif %}
+        {% if statut_filtre %} — Statut : {{ statut_filtre }}{% endif %}
+        — {{ total }} enregistrement{{ total|pluralize }}
+    </div>
+{% endblock %}
+
+{% block contenu %}
+
+<table class="data">
+    <thead>
+        <tr>
+            <th>N° OP</th>
+            <th>Agent bénéficiaire</th>
+            <th>Créé le</th>
+            <th class="amount">Montant total</th>
+            <th class="amount">Net payé</th>
+            <th class="text-center">Statut</th>
+            <th class="text-center">Clôturé</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for op in ops %}
+        <tr>
+            <td>{{ op.numero_op }}</td>
+            <td>{{ op.agent_beneficiaire.matricule }} — {{ op.agent_beneficiaire.nom }}</td>
+            <td>{{ op.date_creation|date:"d/m/Y" }}</td>
+            <td class="amount">{{ op.montant_total }} Ar</td>
+            <td class="amount">{{ op.montant_net_paye }} Ar</td>
+            <td class="text-center">{{ op.get_statut_display }}</td>
+            <td class="text-center">{% if op.cloture_administrative %}Oui{% else %}Non{% endif %}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center">Aucun OP trouvé.</td></tr>
+        {% endfor %}
+    </tbody>
+    <tfoot>
+        <tr>
+            <td colspan="3" class="amount"><strong>Total</strong></td>
+            <td class="amount"><strong>{{ total_montant }} Ar</strong></td>
+            <td class="amount"><strong>{{ total_paye }} Ar</strong></td>
+            <td colspan="2"></td>
+        </tr>
+    </tfoot>
+</table>
+
+{% endblock %}
