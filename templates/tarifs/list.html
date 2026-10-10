@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Tarifs — Perception Marovoay{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header__titles">
+        <h1 class="page-title">Tarifs</h1>
+        <p class="page-subtitle">
+            {{ total }} tarif{{ total|pluralize }} enregistré{{ total|pluralize }}.
+        </p>
+    </div>
+    {% if perms.tarifs.add_tarif %}
+    <a href="{% url 'tarifs:create' %}" class="btn-create">+ Nouveau tarif</a>
+    {% endif %}
+</div>
+
+<form method="get" class="filters">
+    <div class="filters__group">
+        <label class="filters__label" for="actif">Activation</label>
+        <select id="actif" name="actif">
+            <option value="">Tous</option>
+            <option value="1" {% if actif == '1' %}selected{% endif %}>Actifs</option>
+            <option value="0" {% if actif == '0' %}selected{% endif %}>Inactifs</option>
+        </select>
+    </div>
+
+    <div class="filters__actions">
+        <button type="submit" class="btn-create">Filtrer</button>
+        <a href="{% url 'tarifs:list' %}" class="btn-secondary">Réinitialiser</a>
+    </div>
+</form>
+
+{% if page.object_list %}
+<div class="table-wrapper">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Montant / partiel</th>
+                <th>Début validité</th>
+                <th>Fin validité</th>
+                <th>Statut</th>
+                <th>Créé par</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tarif in page.object_list %}
+            <tr>
+                <td class="amount">{{ tarif.montant_partiel }} Ar</td>
+                <td>{{ tarif.date_debut_validite|date:"d/m/Y" }}</td>
+                <td>
+                    {% if tarif.date_fin_validite %}
+                        {{ tarif.date_fin_validite|date:"d/m/Y" }}
+                    {% else %}
+                        <em>en cours</em>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if tarif.actif %}
+                        <span class="tag tag--actif">Actif</span>
+                    {% else %}
+                        <span class="tag tag--inactif">Inactif</span>
+                    {% endif %}
+                </td>
+                <td>{{ tarif.id_utilisateur_createur.username }}</td>
+                <td>
+                    <a href="{% url 'tarifs:detail' tarif.pk %}" class="btn-action">Voir</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if page.has_other_pages %}
+<div class="pagination">
+    {% if page.has_previous %}
+        <a href="?page={{ page.previous_page_number }}&actif={{ actif }}">← Précédent</a>
+    {% else %}
+        <span class="disabled">← Précédent</span>
+    {% endif %}
+    <span class="current">{{ page.number }} / {{ page.paginator.num_pages }}</span>
+    {% if page.has_next %}
+        <a href="?page={{ page.next_page_number }}&actif={{ actif }}">Suivant →</a>
+    {% else %}
+        <span class="disabled">Suivant →</span>
+    {% endif %}
+</div>
+<p class="pagination__info">{{ total }} résultat{{ total|pluralize }}</p>
+{% endif %}
+
+{% else %}
+<div class="table-wrapper">
+    <div class="empty-state">
+        <p class="empty-state__title">Aucun tarif trouvé</p>
+        <p class="empty-state__hint">
+            {% if actif %}
+                Modifiez le filtre ou réinitialisez la recherche.
+            {% else %}
+                Commencez par créer un nouveau tarif.
+            {% endif %}
+        </p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

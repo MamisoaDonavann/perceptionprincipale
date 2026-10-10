@@ -31,7 +31,12 @@
                 </a>
             </li>
             <li><span class="disabled">Missions <span class="badge">Bientôt</span></span></li>
-            <li><span class="disabled">Tarifs <span class="badge">Bientôt</span></span></li>
+            <li>
+                <a href="{% url 'tarifs:list' %}"
+                   class="{% if request.resolver_match.app_name == 'tarifs' %}active{% endif %}">
+                    Tarifs
+                </a>
+            </li>
 
             <li class="sidebar__section">Opérations</li>
             <li><span class="disabled">Gardes <span class="badge">Bientôt</span></span></li>

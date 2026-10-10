@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Tarif #{{ tarif.pk }} — Perception Marovoay{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header__titles">
+        <h1 class="page-title">Tarif {{ tarif.montant_partiel }} Ar / partiel</h1>
+        <p class="page-subtitle">
+            Du {{ tarif.date_debut_validite|date:"d/m/Y" }}
+            {% if tarif.date_fin_validite %}
+                au {{ tarif.date_fin_validite|date:"d/m/Y" }}
+            {% else %}
+                — en cours
+            {% endif %}
+        </p>
+    </div>
+    <div>
+        {% if perms.tarifs.change_tarif %}
+            {% if utilisable %}
+                <a href="{% url 'tarifs:update' tarif.pk %}" class="btn-create">Modifier</a>
+            {% endif %}
+            <form method="post" action="{% url 'tarifs:toggle_actif' tarif.pk %}" style="display:inline;">
+                {% csrf_token %}
+                {% if tarif.actif %}
+                    <button type="submit" class="btn-secondary">Désactiver</button>
+                {% else %}
+                    <button type="submit" class="btn-create">Activer</button>
+                {% endif %}
+            </form>
+        {% endif %}
+        <a href="{% url 'tarifs:list' %}" class="btn-secondary">Retour</a>
+    </div>
+</div>
+
+{% if not utilisable %}
+<div class="info-box info-box--warning">
+    Ce tarif est utilisé par {{ nb_gardes }} garde{{ nb_gardes|pluralize }}.
+    Il ne peut plus être modifié. Créez un nouveau tarif pour modifier le montant.
+</div>
+{% endif %}
+
+{% if tarif.motif_modification %}
+<div class="info-box info-box--info">
+    <strong>Motif de modification :</strong> {{ tarif.motif_modification }}
+</div>
+{% endif %}
+
+<div class="detail-grid">
+
+    <div>
+        <div class="detail-card">
+            <h2 class="detail-card__title">Caractéristiques</h2>
+            <dl class="detail-list">
+                <dt>Montant / partiel</dt>
+                <dd class="amount">{{ tarif.montant_partiel }} Ar</dd>
+                <dt>Début de validité</dt>
+                <dd>{{ tarif.date_debut_validite|date:"d/m/Y" }}</dd>
+                <dt>Fin de validité</dt>
+                <dd>
+                    {% if tarif.date_fin_validite %}
+                        {{ tarif.date_fin_validite|date:"d/m/Y" }}
+                    {% else %}
+                        <em>en cours</em>
+                    {% endif %}
+                </dd>
+                <dt>Statut</dt>
+                <dd>
+                    {% if tarif.actif %}
+                        <span class="tag tag--actif">Actif</span>
+                    {% else %}
+                        <span class="tag tag--inactif">Inactif</span>
+                    {% endif %}
+                </dd>
+            </dl>
+        </div>
+
+        <div class="detail-card">
+            <h2 class="detail-card__title">Gardes utilisant ce tarif ({{ nb_gardes }})</h2>
+            {% if gardes_liees %}
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Agent</th>
+                        <th>Début</th>
+                        <th>Partiels</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for g in gardes_liees %}
+                    <tr>
+                        <td>{{ g.agent.matricule }} — {{ g.agent.nom }}</td>
+                        <td>{{ g.date_heure_debut|date:"d/m/Y H:i" }}</td>
+                        <td>{{ g.nombre_partiels|default:"—" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="empty-state__hint">Aucune garde n'utilise ce tarif.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div>
+        <div class="detail-card">
+            <h2 class="detail-card__title">Traçabilité</h2>
+            <dl class="detail-list">
+                <dt>Créé par</dt>
+                <dd>{{ tarif.id_utilisateur_createur.get_full_name|default:tarif.id_utilisateur_createur.username }}</dd>
+                <dt>Créé le</dt>
+                <dd>{{ tarif.date_creation|date:"d/m/Y H:i" }}</dd>
+            </dl>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

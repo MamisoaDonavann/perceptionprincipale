@@ -703,3 +703,49 @@ table.data-table tr:hover td { background: var(--bleu-clair); }
 .detail-list { display: grid; grid-template-columns: 180px 1fr; gap: 10px 20px; font-size: 14px; }
 .detail-list dt { color: var(--gris); font-weight: 500; }
 .detail-list dd { margin: 0; color: var(--gris-fonce); }
+
+/* ============================================================
+   Lot UI 3.3 — Boutons d'action et badges supplémentaires
+   ============================================================ */
+
+.btn-action {
+    display: inline-block;
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: var(--radius);
+    text-decoration: none;
+    border: 1px solid var(--gris-clair);
+    background: var(--blanc);
+    color: var(--gris-fonce);
+    cursor: pointer;
+    transition: all .15s;
+}
+
+.btn-action:hover { background: var(--fond); text-decoration: none; }
+.btn-action--primary { background: var(--bleu); color: var(--blanc); border-color: var(--bleu); }
+.btn-action--primary:hover { background: var(--bleu-fonce); color: var(--blanc); }
+.btn-action--danger { color: var(--rouge); border-color: #fecaca; }
+.btn-action--danger:hover { background: #fef2f2; }
+.btn-action--success { color: var(--vert); border-color: #a7f3d0; }
+.btn-action--success:hover { background: #ecfdf5; }
+
+.tag--inactif   { background: #f1f5f9; color: var(--gris); }
+.tag--actif     { background: #ecfdf5; color: #065f46; }
+
+.amount {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+}
+
+.info-box {
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    margin-bottom: 16px;
+    border-left: 4px solid;
+}
+
+.info-box--warning { background: #fffbeb; border-color: var(--orange); color: #92400e; }
+.info-box--info    { background: var(--bleu-clair); border-color: var(--bleu); color: var(--bleu-fonce); }
+.info-box--success { background: #ecfdf5; border-color: var(--vert); color: #065f46; }
