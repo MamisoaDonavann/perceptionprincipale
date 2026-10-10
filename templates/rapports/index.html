@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Rapports — Perception Marovoay{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header__titles">
+        <h1 class="page-title">Rapports</h1>
+        <p class="page-subtitle">
+            Génération des états administratifs et financiers.
+        </p>
+    </div>
+</div>
+
+<div class="info-box info-box--info">
+    Les rapports sont générés en mémoire et téléchargés directement.
+    Chaque export est tracé dans le journal d'audit.
+</div>
+
+<div class="cards">
+    <div class="card card--info">
+        <div class="card__label">État de décompte</div>
+        <p class="card__hint">
+            Depuis la fiche d'un décompte validé, un bouton
+            « Télécharger le PDF » permet de générer l'état officiel.
+        </p>
+        <p class="card__hint">
+            <a href="{% url 'decomptes:list' %}" class="btn-secondary">Voir les décomptes</a>
+        </p>
+    </div>
+
+    <div class="card card--info">
+        <div class="card__label">Liste de paiement</div>
+        <p class="card__hint">
+            Depuis la fiche d'un OP validé ou payé, un bouton
+            « Imprimer la liste » génère la liste avec la colonne signature.
+        </p>
+        <p class="card__hint">
+            <a href="{% url 'paiements:list' %}" class="btn-secondary">Voir les OP</a>
+        </p>
+    </div>
+
+    <div class="card card--info">
+        <div class="card__label">Historique agent</div>
+        <p class="card__hint">
+            Depuis la fiche d'un agent, des boutons « PDF » et « Excel »
+            génèrent l'historique complet (gardes, décomptes, OP, paiements).
+        </p>
+        <p class="card__hint">
+            <a href="{% url 'agents:list' %}" class="btn-secondary">Voir les agents</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

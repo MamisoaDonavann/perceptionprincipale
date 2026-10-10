@@ -11,6 +11,12 @@
         </p>
     </div>
     <div>
+        {% if op.statut == 'VALIDE' or op.statut == 'PAYE' %}
+            <a href="{% url 'rapports:liste_paiement_pdf' op.pk %}"
+               class="btn-create" target="_blank">
+                Imprimer la liste
+            </a>
+        {% endif %}
         <a href="{% url 'paiements:list' %}" class="btn-secondary">Retour</a>
     </div>
 </div>

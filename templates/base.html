@@ -64,6 +64,14 @@
             </li>
             <li><span class="disabled">Paiements <span class="badge">Bientôt</span></span></li>
 
+            <li class="sidebar__section">Rapports</li>
+            <li>
+                <a href="{% url 'rapports:index' %}"
+                   class="{% if request.resolver_match.app_name == 'rapports' %}active{% endif %}">
+                    Rapports
+                </a>
+            </li>
+
             <li class="sidebar__section">Administration</li>
             <li>
                 <a href="{% url 'audit:list' %}"

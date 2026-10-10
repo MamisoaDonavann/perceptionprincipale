@@ -1,0 +1,142 @@
+{% extends "rapports/pdf/base_pdf.html" %}
+
+{% block titre %}Historique — {{ agent.matricule }}{% endblock %}
+{% block titre_rapport %}Historique de l'agent{% endblock %}
+{% block sous_titre %}
+    <div class="entete__sous-titre">
+        Période : {{ debut|date:"d/m/Y" }} → {{ fin|date:"d/m/Y" }}
+    </div>
+{% endblock %}
+
+{% block contenu %}
+
+<div class="bloc-info">
+    <div class="bloc-info__ligne">
+        <div class="bloc-info__label">Matricule</div>
+        <div class="bloc-info__valeur">{{ agent.matricule }}</div>
+    </div>
+    <div class="bloc-info__ligne">
+        <div class="bloc-info__label">Nom et prénoms</div>
+        <div class="bloc-info__valeur">{{ agent.nom }} {{ agent.prenoms }}</div>
+    </div>
+    <div class="bloc-info__ligne">
+        <div class="bloc-info__label">Grade</div>
+        <div class="bloc-info__valeur">{{ agent.grade|default:"—" }}</div>
+    </div>
+    <div class="bloc-info__ligne">
+        <div class="bloc-info__label">Statut</div>
+        <div class="bloc-info__valeur">{{ agent.get_statut_agent_display }}</div>
+    </div>
+</div>
+
+<h2 class="section">Gardes ({{ gardes|length }})</h2>
+<table class="data">
+    <thead>
+        <tr>
+            <th>Début</th>
+            <th>Fin</th>
+            <th class="text-right">Durée (min)</th>
+            <th class="text-right">Partiels</th>
+            <th class="text-center">Conforme</th>
+            <th class="text-center">Statut</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for g in gardes %}
+        <tr>
+            <td>{{ g.date_heure_debut|date:"d/m/Y H:i" }}</td>
+            <td>{{ g.date_heure_fin|date:"d/m/Y H:i" }}</td>
+            <td class="text-right">{{ g.duree_minutes }}</td>
+            <td class="text-right">{{ g.nombre_partiels|default:"—" }}</td>
+            <td class="text-center">{% if g.conforme %}Oui{% else %}Non{% endif %}</td>
+            <td class="text-center">{{ g.get_statut_display }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center">Aucune garde sur la période.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h2 class="section">Décomptes ({{ decomptes|length }})</h2>
+<table class="data">
+    <thead>
+        <tr>
+            <th>Période</th>
+            <th class="text-right">Gardes retenues</th>
+            <th class="text-right">Non conformes exclues</th>
+            <th class="amount">Montant total</th>
+            <th class="text-center">Statut</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for d in decomptes %}
+        <tr>
+            <td>{{ d.mois|stringformat:"02d" }}/{{ d.annee }}</td>
+            <td class="text-right">{{ d.nombre_gardes_retunes }}</td>
+            <td class="text-right">{{ d.nombre_gardes_non_conformes_exclues }}</td>
+            <td class="amount">{{ d.montant_total }} Ar</td>
+            <td class="text-center">{{ d.get_statut_display }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-center">Aucun décompte sur la période.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h2 class="section">Ordres de paiement ({{ ordres|length }})</h2>
+<table class="data">
+    <thead>
+        <tr>
+            <th>N° OP</th>
+            <th>Créé le</th>
+            <th class="amount">Montant total</th>
+            <th class="amount">Net payé</th>
+            <th class="text-center">Statut</th>
+            <th class="text-center">Clôturé</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for op in ordres %}
+        <tr>
+            <td>{{ op.numero_op }}</td>
+            <td>{{ op.date_creation|date:"d/m/Y" }}</td>
+            <td class="amount">{{ op.montant_total }} Ar</td>
+            <td class="amount">{{ op.montant_net_paye }} Ar</td>
+            <td class="text-center">{{ op.get_statut_display }}</td>
+            <td class="text-center">{% if op.cloture_administrative %}Oui{% else %}Non{% endif %}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center">Aucun OP sur la période.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h2 class="section">Paiements ({{ paiements|length }})</h2>
+<table class="data">
+    <thead>
+        <tr>
+            <th>N° OP</th>
+            <th>Date paiement</th>
+            <th>Mode</th>
+            <th>Référence</th>
+            <th class="amount">Montant</th>
+            <th class="text-center">Statut</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for p in paiements %}
+        <tr>
+            <td>{{ p.ordre_paiement.numero_op }}</td>
+            <td>{{ p.date_paiement|date:"d/m/Y H:i" }}</td>
+            <td>{{ p.get_mode_paiement_display }}</td>
+            <td>{{ p.reference|default:"—" }}</td>
+            <td class="amount">{{ p.montant }} Ar</td>
+            <td class="text-center">{{ p.get_statut_display }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center">Aucun paiement sur la période.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

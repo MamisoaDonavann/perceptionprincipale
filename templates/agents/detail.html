@@ -9,10 +9,18 @@
         <p class="page-subtitle">Matricule {{ agent.matricule }}</p>
     </div>
     <div>
+        <a href="{% url 'rapports:historique_agent_pdf' agent.pk %}"
+           class="btn-create" target="_blank">
+            Historique PDF
+        </a>
+        <a href="{% url 'rapports:historique_agent_excel' agent.pk %}"
+           class="btn-create" target="_blank">
+            Historique Excel
+        </a>
         {% if perms.agents.change_agent %}
-        <a href="{% url 'agents:update' agent.pk %}" class="btn-create">Modifier</a>
+        <a href="{% url 'agents:update' agent.pk %}" class="btn-secondary">Modifier</a>
         {% endif %}
-        <a href="{% url 'agents:list' %}" class="btn-secondary">Retour à la liste</a>
+        <a href="{% url 'agents:list' %}" class="btn-secondary">Retour</a>
     </div>
 </div>
 

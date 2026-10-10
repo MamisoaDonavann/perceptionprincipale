@@ -13,6 +13,12 @@
         </p>
     </div>
     <div>
+        {% if decompte.statut == 'VALIDE' %}
+            <a href="{% url 'rapports:etat_decompte_pdf' decompte.pk %}"
+               class="btn-create" target="_blank">
+                Télécharger le PDF
+            </a>
+        {% endif %}
         {% if decompte.statut == 'BROUILLON' and perms.decomptes.change_decompte %}
             <a href="{% url 'decomptes:valider' decompte.pk %}" class="btn-create">Valider le décompte</a>
         {% endif %}
