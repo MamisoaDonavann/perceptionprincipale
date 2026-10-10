@@ -24,7 +24,12 @@
             </li>
 
             <li class="sidebar__section">Référentiels</li>
-            <li><span class="disabled">Agents <span class="badge">Bientôt</span></span></li>
+            <li>
+                <a href="{% url 'agents:list' %}"
+                   class="{% if request.resolver_match.app_name == 'agents' %}active{% endif %}">
+                    Agents
+                </a>
+            </li>
             <li><span class="disabled">Missions <span class="badge">Bientôt</span></span></li>
             <li><span class="disabled">Tarifs <span class="badge">Bientôt</span></span></li>
 

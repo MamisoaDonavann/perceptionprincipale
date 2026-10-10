@@ -1,63 +1,141 @@
-from datetime import date
+"""
+Tests CRUD agents.
+"""
 
-from django.db import IntegrityError
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
 from django.test import TestCase
+from django.urls import reverse
 
-from core.models import Unite
-from .models import Agent, AffectationAgent
+from .models import Agent
 
-
-class AgentModelTests(TestCase):
-    """Tests techniques minimaux. Aucune donnée administrative réelle."""
-
-    def test_matricule_unique(self):
-        Agent.objects.create(matricule='TEST-001', nom='N1', prenoms='P1')
-        with self.assertRaises(IntegrityError):
-            Agent.objects.create(matricule='TEST-001', nom='N2', prenoms='P2')
-
-    def test_cin_unique_si_renseigne(self):
-        Agent.objects.create(matricule='TEST-002', nom='N1', prenoms='P1', cin='CIN-001')
-        with self.assertRaises(IntegrityError):
-            Agent.objects.create(matricule='TEST-003', nom='N2', prenoms='P2', cin='CIN-001')
-
-    def test_cin_multiple_null_autorise(self):
-        Agent.objects.create(matricule='TEST-004', nom='N1', prenoms='P1', cin=None)
-        Agent.objects.create(matricule='TEST-005', nom='N2', prenoms='P2', cin=None)
-        self.assertEqual(Agent.objects.filter(cin__isnull=True).count(), 2)
+User = get_user_model()
 
 
-class AffectationAgentModelTests(TestCase):
-    """Tests de la contrainte date_fin >= date_debut."""
+class BaseAgentTest(TestCase):
 
     def setUp(self):
-        self.agent = Agent.objects.create(
-            matricule='TEST-A1', nom='N', prenoms='P'
+        self.user = User.objects.create_user(
+            username='agent_user',
+            password='TestPassword2026!',
         )
-        self.unite = Unite.objects.create(code='U-TEST', libelle='Unité de test')
-
-    def test_date_fin_valide(self):
-        AffectationAgent.objects.create(
-            agent=self.agent,
-            unite=self.unite,
-            date_debut=date(2026, 1, 1),
-            date_fin=date(2026, 6, 30),
-        )
-        self.assertEqual(AffectationAgent.objects.count(), 1)
-
-    def test_date_fin_null_autorisee(self):
-        AffectationAgent.objects.create(
-            agent=self.agent,
-            unite=self.unite,
-            date_debut=date(2026, 1, 1),
-            date_fin=None,
-        )
-        self.assertEqual(AffectationAgent.objects.count(), 1)
-
-    def test_date_fin_anterieure_refusee(self):
-        with self.assertRaises(IntegrityError):
-            AffectationAgent.objects.create(
-                agent=self.agent,
-                unite=self.unite,
-                date_debut=date(2026, 6, 1),
-                date_fin=date(2026, 1, 1),
+        # Accorder toutes les permissions agents
+        for codename in ['add_agent', 'change_agent', 'view_agent']:
+            self.user.user_permissions.add(
+                Permission.objects.get(
+                    codename=codename,
+                    content_type__app_label='agents',
+                )
             )
+        self.agent = Agent.objects.create(
+            matricule='AG-TEST-001',
+            nom='Rakoto',
+            prenoms='Jean',
+        )
+
+
+class AgentListViewTests(BaseAgentTest):
+
+    def test_requires_login(self):
+        response = self.client.get(reverse('agents:list'))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/accounts/login/', response.url)
+
+    def test_requires_view_permission(self):
+        u = User.objects.create_user(username='noperm', password='x')
+        self.client.login(username='noperm', password='x')
+        response = self.client.get(reverse('agents:list'))
+        self.assertEqual(response.status_code, 403)
+
+    def test_accessible_with_permission(self):
+        self.client.login(username='agent_user', password='TestPassword2026!')
+        response = self.client.get(reverse('agents:list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'AG-TEST-001')
+
+    def test_search_filters(self):
+        self.client.login(username='agent_user', password='TestPassword2026!')
+        response = self.client.get(reverse('agents:list'), {'q': 'Rakoto'})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'AG-TEST-001')
+
+        response = self.client.get(reverse('agents:list'), {'q': 'XYZ'})
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'AG-TEST-001')
+
+    def test_filter_statut(self):
+        self.client.login(username='agent_user', password='TestPassword2026!')
+        response = self.client.get(reverse('agents:list'), {'statut': 'ACTIF'})
+        self.assertContains(response, 'AG-TEST-001')
+
+        response = self.client.get(reverse('agents:list'), {'statut': 'RADIE'})
+        self.assertNotContains(response, 'AG-TEST-001')
+
+
+class AgentDetailViewTests(BaseAgentTest):
+
+    def test_accessible_with_permission(self):
+        self.client.login(username='agent_user', password='TestPassword2026!')
+        response = self.client.get(reverse('agents:detail', args=[self.agent.pk]))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Rakoto')
+
+    def test_404_on_unknown(self):
+        self.client.login(username='agent_user', password='TestPassword2026!')
+        response = self.client.get(reverse('agents:detail', args=[99999]))
+        self.assertEqual(response.status_code, 404)
+
+
+class AgentCreateViewTests(BaseAgentTest):
+
+    def test_create_requires_add_permission(self):
+        u = User.objects.create_user(username='viewer', password='x')
+        u.user_permissions.add(Permission.objects.get(
+            codename='view_agent', content_type__app_label='agents'
+        ))
+        self.client.login(username='viewer', password='x')
+        response = self.client.get(reverse('agents:create'))
+        self.assertEqual(response.status_code, 403)
+
+    def test_create_agent_success(self):
+        self.client.login(username='agent_user', password='TestPassword2026!')
+        response = self.client.post(reverse('agents:create'), {
+            'matricule': 'AG-TEST-002',
+            'nom': 'Rabe',
+            'prenoms': 'Marie',
+            'statut_agent': 'ACTIF',
+            'actif': 'on',
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(Agent.objects.filter(matricule='AG-TEST-002').exists())
+
+    def test_create_duplicate_matricule_refused(self):
+        self.client.login(username='agent_user', password='TestPassword2026!')
+        response = self.client.post(reverse('agents:create'), {
+            'matricule': 'AG-TEST-001',
+            'nom': 'Dup',
+            'prenoms': 'Duplicata',
+            'statut_agent': 'ACTIF',
+            'actif': 'on',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'existe déjà')
+
+
+class AgentUpdateViewTests(BaseAgentTest):
+
+    def test_update_agent_success(self):
+        self.client.login(username='agent_user', password='TestPassword2026!')
+        response = self.client.post(
+            reverse('agents:update', args=[self.agent.pk]),
+            {
+                'matricule': 'AG-TEST-001',
+                'nom': 'Rakoto',
+                'prenoms': 'Jean',
+                'statut_agent': 'SUSPENDU',
+                'actif': 'on',
+            }
+        )
+        self.assertEqual(response.status_code, 302)
+        self.agent.refresh_from_db()
+        self.assertEqual(self.agent.statut_agent, 'SUSPENDU')

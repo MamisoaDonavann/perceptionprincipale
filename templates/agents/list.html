@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Agents — Perception Marovoay{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header__titles">
+        <h1 class="page-title">Agents</h1>
+        <p class="page-subtitle">
+            {{ total }} agent{{ total|pluralize }} enregistré{{ total|pluralize }}.
+        </p>
+    </div>
+    {% if perms.agents.add_agent %}
+    <a href="{% url 'agents:create' %}" class="btn-create">+ Nouvel agent</a>
+    {% endif %}
+</div>
+
+<form method="get" class="filters">
+    <div class="filters__group">
+        <label class="filters__label" for="q">Recherche</label>
+        <input type="text" id="q" name="q" value="{{ q }}"
+               placeholder="Matricule, nom, prénoms, CIN">
+    </div>
+
+    <div class="filters__group">
+        <label class="filters__label" for="statut">Statut</label>
+        <select id="statut" name="statut">
+            <option value="">Tous</option>
+            {% for code, label in statuts_choices %}
+                <option value="{{ code }}" {% if statut == code %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="filters__group">
+        <label class="filters__label" for="actif">Activation</label>
+        <select id="actif" name="actif">
+            <option value="">Tous</option>
+            <option value="1" {% if actif == '1' %}selected{% endif %}>Actifs</option>
+            <option value="0" {% if actif == '0' %}selected{% endif %}>Inactifs</option>
+        </select>
+    </div>
+
+    <div class="filters__actions">
+        <button type="submit" class="btn-create">Filtrer</button>
+        <a href="{% url 'agents:list' %}" class="btn-secondary">Réinitialiser</a>
+    </div>
+</form>
+
+{% if page.object_list %}
+<div class="table-wrapper">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Matricule</th>
+                <th>Nom</th>
+                <th>Prénoms</th>
+                <th>Grade</th>
+                <th>Statut</th>
+                <th>Activation</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for agent in page.object_list %}
+            <tr>
+                <td><strong>{{ agent.matricule }}</strong></td>
+                <td>{{ agent.nom }}</td>
+                <td>{{ agent.prenoms }}</td>
+                <td>{{ agent.grade|default:"—" }}</td>
+                <td>
+                    {% if agent.statut_agent == 'ACTIF' %}
+                        <span class="tag tag--actif">{{ agent.get_statut_agent_display }}</span>
+                    {% elif agent.statut_agent == 'SUSPENDU' %}
+                        <span class="tag tag--suspendu">{{ agent.get_statut_agent_display }}</span>
+                    {% elif agent.statut_agent == 'RADIE' %}
+                        <span class="tag tag--radie">{{ agent.get_statut_agent_display }}</span>
+                    {% else %}
+                        <span class="tag">{{ agent.get_statut_agent_display }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if agent.actif %}
+                        <span class="tag tag--actif">Oui</span>
+                    {% else %}
+                        <span class="tag tag--inactif">Non</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'agents:detail' agent.pk %}" class="btn-secondary">Voir</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if page.has_other_pages %}
+<div class="pagination">
+    {% if page.has_previous %}
+        <a href="?page={{ page.previous_page_number }}&q={{ q }}&statut={{ statut }}&actif={{ actif }}">← Précédent</a>
+    {% else %}
+        <span class="disabled">← Précédent</span>
+    {% endif %}
+
+    <span class="current">{{ page.number }} / {{ page.paginator.num_pages }}</span>
+
+    {% if page.has_next %}
+        <a href="?page={{ page.next_page_number }}&q={{ q }}&statut={{ statut }}&actif={{ actif }}">Suivant →</a>
+    {% else %}
+        <span class="disabled">Suivant →</span>
+    {% endif %}
+</div>
+<p class="pagination__info">{{ total }} résultat{{ total|pluralize }}</p>
+{% endif %}
+
+{% else %}
+<div class="table-wrapper">
+    <div class="empty-state">
+        <p class="empty-state__title">Aucun agent trouvé</p>
+        <p class="empty-state__hint">
+            {% if q or statut or actif %}
+                Modifiez les filtres ou réinitialisez la recherche.
+            {% else %}
+                Commencez par créer un nouvel agent.
+            {% endif %}
+        </p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
