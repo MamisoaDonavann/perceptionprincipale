@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}{{ titre }} — Perception Marovoay{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header__titles">
+        <h1 class="page-title">{{ titre }}</h1>
+        <p class="page-subtitle">
+            {% if mode == 'creation' %}Création d'une nouvelle mission.
+            {% else %}Modification de la mission.{% endif %}
+        </p>
+    </div>
+    <div>
+        <a href="{% url 'missions:list' %}" class="btn-secondary">Retour</a>
+        {% if mission %}
+            <a href="{% url 'missions:detail' mission.pk %}" class="btn-secondary">Voir la fiche</a>
+        {% endif %}
+    </div>
+</div>
+
+<form method="post" class="form-card" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+        <div class="login-error">
+            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="form-grid">
+        {% for field in form %}
+            <div class="form-group {% if field.name in 'description,observation' %}form-grid__full{% endif %}">
+                <label for="{{ field.id_for_label }}">
+                    {{ field.label }}
+                    {% if field.field.required %}<span class="required">*</span>{% endif %}
+                </label>
+                {{ field }}
+                {% if field.help_text %}<span class="help">{{ field.help_text }}</span>{% endif %}
+                {% if field.errors %}
+                    <div class="errors"><ul>
+                        {% for error in field.errors %}<li>{{ error }}</li>{% endfor %}
+                    </ul></div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn-create">
+            {% if mode == 'creation' %}Créer la mission{% else %}Enregistrer{% endif %}
+        </button>
+        <a href="{% url 'missions:list' %}" class="btn-secondary">Annuler</a>
+    </div>
+</form>
+{% endblock %}

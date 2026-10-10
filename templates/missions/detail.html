@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}{{ mission.libelle }} — Mission{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header__titles">
+        <h1 class="page-title">{{ mission.libelle }}</h1>
+        <p class="page-subtitle">
+            {% if mission.numero_officiel %}
+                N° {{ mission.numero_officiel }} —
+            {% endif %}
+            du {{ mission.date_debut|date:"d/m/Y H:i" }}
+            au {{ mission.date_fin|date:"d/m/Y H:i" }}
+        </p>
+    </div>
+    <div>
+        {% if perms.missions.change_mission %}
+            <a href="{% url 'missions:update' mission.pk %}" class="btn-create">Modifier</a>
+        {% endif %}
+        <a href="{% url 'missions:list' %}" class="btn-secondary">Retour</a>
+    </div>
+</div>
+
+<div class="detail-grid">
+
+    <div>
+        <div class="detail-card">
+            <h2 class="detail-card__title">Informations</h2>
+            <dl class="detail-list">
+                <dt>Numéro officiel</dt><dd>{{ mission.numero_officiel|default:"—" }}</dd>
+                <dt>Libellé</dt><dd>{{ mission.libelle }}</dd>
+                <dt>Lieu</dt><dd>{{ mission.lieu|default:"—" }}</dd>
+                <dt>Statut</dt><dd>{{ mission.get_statut_display }}</dd>
+                <dt>Début</dt><dd>{{ mission.date_debut|date:"d/m/Y H:i" }}</dd>
+                <dt>Fin</dt><dd>{{ mission.date_fin|date:"d/m/Y H:i" }}</dd>
+                <dt>Description</dt><dd>{{ mission.description|default:"—" }}</dd>
+                <dt>Observation</dt><dd>{{ mission.observation|default:"—" }}</dd>
+            </dl>
+        </div>
+
+        <div class="detail-card">
+            <h2 class="detail-card__title">
+                Participants ({{ participations|length }})
+            </h2>
+            {% if participations %}
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Matricule</th>
+                        <th>Nom</th>
+                        <th>Début participation</th>
+                        <th>Fin participation</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in participations %}
+                    <tr>
+                        <td>{{ p.agent.matricule }}</td>
+                        <td>{{ p.agent.nom }} {{ p.agent.prenoms }}</td>
+                        <td>{{ p.date_debut_participation|date:"d/m/Y H:i" }}</td>
+                        <td>{{ p.date_fin_participation|date:"d/m/Y H:i" }}</td>
+                        <td>
+                            {% if perms.missions.change_participationmission %}
+                            <form method="post"
+                                  action="{% url 'missions:participation_delete' mission.pk p.pk %}"
+                                  style="display:inline;"
+                                  onsubmit="return confirm('Retirer ce participant ?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-action btn-action--danger">Retirer</button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="empty-state__hint">Aucun participant pour cette mission.</p>
+            {% endif %}
+        </div>
+
+        {% if perms.missions.add_participationmission %}
+        <div class="detail-card">
+            <h2 class="detail-card__title">Ajouter un participant</h2>
+            <form method="post" action="{% url 'missions:participation_create' mission.pk %}">
+                {% csrf_token %}
+                <div class="form-grid">
+                    {% for field in form %}
+                        <div class="form-group {% if field.name == 'observation' %}form-grid__full{% endif %}">
+                            <label for="{{ field.id_for_label }}">
+                                {{ field.label }}
+                                {% if field.field.required %}<span class="required">*</span>{% endif %}
+                            </label>
+                            {{ field }}
+                            {% if field.errors %}
+                                <div class="errors">
+                                    <ul>
+                                        {% for error in field.errors %}<li>{{ error }}</li>{% endfor %}
+                                    </ul>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-create">Ajouter</button>
+                </div>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+
+    <div>
+        <div class="detail-card">
+            <h2 class="detail-card__title">Traçabilité</h2>
+            <dl class="detail-list">
+                <dt>Créée le</dt><dd>{{ mission.date_creation|date:"d/m/Y H:i" }}</dd>
+                <dt>Modifiée le</dt><dd>{{ mission.date_maj|date:"d/m/Y H:i" }}</dd>
+            </dl>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

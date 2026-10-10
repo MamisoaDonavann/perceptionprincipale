@@ -30,7 +30,12 @@
                     Agents
                 </a>
             </li>
-            <li><span class="disabled">Missions <span class="badge">Bientôt</span></span></li>
+            <li>
+                <a href="{% url 'missions:list' %}"
+                   class="{% if request.resolver_match.app_name == 'missions' %}active{% endif %}">
+                    Missions
+                </a>
+            </li>
             <li>
                 <a href="{% url 'tarifs:list' %}"
                    class="{% if request.resolver_match.app_name == 'tarifs' %}active{% endif %}">
