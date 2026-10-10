@@ -56,7 +56,12 @@
                     Décomptes
                 </a>
             </li>
-            <li><span class="disabled">Ordres de paiement <span class="badge">Bientôt</span></span></li>
+            <li>
+                <a href="{% url 'paiements:list' %}"
+                   class="{% if request.resolver_match.app_name == 'paiements' %}active{% endif %}">
+                    Ordres de paiement
+                </a>
+            </li>
             <li><span class="disabled">Paiements <span class="badge">Bientôt</span></span></li>
 
             <li class="sidebar__section">Administration</li>

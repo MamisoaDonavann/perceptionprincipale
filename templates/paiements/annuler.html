@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Annuler l'OP {{ op.numero_op }}{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="page-header__titles">
+        <h1 class="page-title">Annuler l'OP</h1>
+        <p class="page-subtitle">{{ op.numero_op }} — {{ op.montant_total }} Ar</p>
+    </div>
+    <div><a href="{% url 'paiements:detail' op.pk %}" class="btn-secondary">Retour</a></div>
+</div>
+
+<div class="info-box info-box--warning">
+    L'annulation est définitive. Aucun paiement actif ne doit exister.
+    Les réservations des décomptes seront libérées.
+</div>
+
+<form method="post" class="form-card">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="{{ form.motif.id_for_label }}">Motif d'annulation <span class="required">*</span></label>
+        {{ form.motif }}
+    </div>
+    <div class="form-actions">
+        <button type="submit" class="btn-create">Confirmer l'annulation</button>
+        <a href="{% url 'paiements:detail' op.pk %}" class="btn-secondary">Retour</a>
+    </div>
+</form>
+{% endblock %}

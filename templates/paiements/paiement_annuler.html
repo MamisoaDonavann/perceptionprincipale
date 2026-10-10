@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Annuler un paiement{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="page-header__titles">
+        <h1 class="page-title">Annuler un paiement</h1>
+        <p class="page-subtitle">{{ paiement.montant }} Ar du {{ paiement.date_paiement|date:"d/m/Y H:i" }}</p>
+    </div>
+    <div><a href="{% url 'paiements:detail' op.pk %}" class="btn-secondary">Retour</a></div>
+</div>
+<form method="post" class="form-card">
+    {% csrf_token %}
+    <div class="form-group">
+        <label>Motif <span class="required">*</span></label>
+        {{ form.motif }}
+    </div>
+    <div class="form-actions">
+        <button type="submit" class="btn-create">Confirmer</button>
+        <a href="{% url 'paiements:detail' op.pk %}" class="btn-secondary">Annuler</a>
+    </div>
+</form>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Confirmer la réception{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="page-header__titles">
+        <h1 class="page-title">Confirmation de réception</h1>
+        <p class="page-subtitle">Paiement {{ paiement.montant }} Ar — {{ op.numero_op }}</p>
+    </div>
+    <div><a href="{% url 'paiements:detail' op.pk %}" class="btn-secondary">Retour</a></div>
+</div>
+
+<div class="info-box info-box--info">
+    L'utilisateur ayant enregistré le paiement ne peut pas confirmer sa réception lui-même.
+    Un justificatif signé est obligatoire.
+</div>
+
+<form method="post" enctype="multipart/form-data" class="form-card">
+    {% csrf_token %}
+    <div class="form-grid">
+        {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="required">*</span>{% endif %}</label>
+                {{ field }}
+                {% if field.help_text %}<span class="help">{{ field.help_text }}</span>{% endif %}
+                {% if field.errors %}<div class="errors"><ul>{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+            </div>
+        {% endfor %}
+    </div>
+    <div class="form-actions">
+        <button type="submit" class="btn-create">Confirmer</button>
+        <a href="{% url 'paiements:detail' op.pk %}" class="btn-secondary">Annuler</a>
+    </div>
+</form>
+{% endblock %}

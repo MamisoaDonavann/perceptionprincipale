@@ -14,6 +14,7 @@ from django.contrib.auth.models import Permission
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError, transaction
 from django.test import TestCase, TransactionTestCase
+from django.urls import reverse
 from django.utils import timezone
 
 from agents.models import Agent
@@ -366,3 +367,75 @@ class ConcurrenceTests(TransactionTestCase):
         Deux threads tentent de réserver le même décompte.
         """
         pass
+
+
+# ===================================================================
+# Tests UI 3.7
+# ===================================================================
+
+class OPListViewTests(BasePaiementTest):
+
+    def test_requires_login(self):
+        r = self.client.get(reverse('paiements:list'))
+        self.assertEqual(r.status_code, 302)
+
+    def test_requires_permission(self):
+        u = User.objects.create_user(username='noperm_op', password='x')
+        self.client.login(username='noperm_op', password='x')
+        r = self.client.get(reverse('paiements:list'))
+        self.assertEqual(r.status_code, 403)
+
+    def test_accessible(self):
+        self.client.login(username='op_user', password='pwd2026_test')
+        r = self.client.get(reverse('paiements:list'))
+        self.assertEqual(r.status_code, 200)
+
+
+class OPCreateViewTests(BasePaiementTest):
+
+    def test_create_op_with_valid_decompte(self):
+        d = self._creer_decompte_valide()
+        self.client.login(username='op_user', password='pwd2026_test')
+        r = self.client.post(reverse('paiements:create'), {
+            'agent': self.agent.pk,
+            'annee': 2026,
+            'decomptes': [d.pk],
+            'observation': '',
+        }, follow=True)
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(OrdrePaiement.objects.count(), 1)
+        op = OrdrePaiement.objects.first()
+        self.assertEqual(op.statut, 'BROUILLON')
+        self.assertEqual(op.montant_total, d.montant_total)
+
+
+class OPValiderViewTests(BasePaiementTest):
+
+    def test_valider_par_autre_user(self):
+        d = self._creer_decompte_valide()
+        op, _ = creer_ordre_paiement(self.agent, 2026, [d], self.user)
+        self.client.login(username='op_user2', password='pwd2026_test')
+        r = self.client.post(reverse('paiements:valider', args=[op.pk]))
+        self.assertEqual(r.status_code, 302)
+        op.refresh_from_db()
+        self.assertEqual(op.statut, 'VALIDE')
+
+
+class PaiementViewTests(BasePaiementTest):
+
+    def test_enregistrer_paiement_ui(self):
+        d = self._creer_decompte_valide()
+        op, _ = creer_ordre_paiement(self.agent, 2026, [d], self.user)
+        valider_ordre_paiement(op, self.user2)
+        op.refresh_from_db()
+
+        self.client.login(username='op_user', password='pwd2026_test')
+        r = self.client.post(reverse('paiements:paiement_create', args=[op.pk]), {
+            'montant': '5000.00',
+            'mode_paiement': 'ESPECES',
+            'date_paiement': '2026-06-15T10:00',
+            'reference': 'REF-001',
+        })
+        self.assertEqual(r.status_code, 302)
+        op.refresh_from_db()
+        self.assertEqual(op.montant_net_paye, Decimal('5000.00'))

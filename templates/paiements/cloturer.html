@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Clôturer l'OP {{ op.numero_op }}{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="page-header__titles">
+        <h1 class="page-title">Clôture administrative</h1>
+        <p class="page-subtitle">{{ op.numero_op }}</p>
+    </div>
+    <div><a href="{% url 'paiements:detail' op.pk %}" class="btn-secondary">Retour</a></div>
+</div>
+
+<div class="info-box info-box--warning">
+    La clôture exige que tous les paiements actifs aient une confirmation de réception active.
+    Action <strong>irréversible</strong> par les opérations ordinaires.
+</div>
+
+<form method="post" class="form-card">
+    {% csrf_token %}
+    <p>Confirmez-vous la clôture administrative de cet OP ?</p>
+    <div class="form-actions">
+        <button type="submit" class="btn-create">Clôturer</button>
+        <a href="{% url 'paiements:detail' op.pk %}" class="btn-secondary">Annuler</a>
+    </div>
+</form>
+{% endblock %}
