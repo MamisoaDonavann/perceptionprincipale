@@ -36,6 +36,16 @@ class BaseGardeViewTest(TestCase):
                     codename=codename, content_type__app_label='gardes'
                 )
             )
+        # Permission custom annuler_garde (créée normalement par setup_groups)
+        from django.contrib.contenttypes.models import ContentType
+        from gardes.models import Garde
+        ct = ContentType.objects.get_for_model(Garde)
+        perm_annuler, _ = Permission.objects.get_or_create(
+            content_type=ct,
+            codename='annuler_garde',
+            defaults={'name': "Peut annuler une garde"},
+        )
+        self.user.user_permissions.add(perm_annuler)
         self.agent = Agent.objects.create(
             matricule='AG-G-001', nom='Rakoto', prenoms='Jean'
         )

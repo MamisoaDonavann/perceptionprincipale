@@ -141,7 +141,7 @@ def garde_create(request):
 
 
 @login_required
-@permission_required('gardes.change_garde', raise_exception=True)
+@permission_required('gardes.annuler_garde', raise_exception=True)
 def garde_annuler(request, pk):
     """
     Annulation d'une garde via le service `annuler_garde`.
