@@ -1,0 +1,74 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Perception Marovoay{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+<div class="app">
+
+    {# ---------- SIDEBAR ---------- #}
+    <aside class="sidebar">
+        <div class="sidebar__logo">
+            PERCEPTION<br>MAROVOAY
+            <small>Gestion des paiements</small>
+        </div>
+        <ul class="sidebar__nav">
+            <li>
+                <a href="{% url 'dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    Tableau de bord
+                </a>
+            </li>
+
+            <li class="sidebar__section">Référentiels</li>
+            <li><span class="disabled">Agents <span class="badge">Bientôt</span></span></li>
+            <li><span class="disabled">Missions <span class="badge">Bientôt</span></span></li>
+            <li><span class="disabled">Tarifs <span class="badge">Bientôt</span></span></li>
+
+            <li class="sidebar__section">Opérations</li>
+            <li><span class="disabled">Gardes <span class="badge">Bientôt</span></span></li>
+            <li><span class="disabled">Décomptes <span class="badge">Bientôt</span></span></li>
+            <li><span class="disabled">Ordres de paiement <span class="badge">Bientôt</span></span></li>
+            <li><span class="disabled">Paiements <span class="badge">Bientôt</span></span></li>
+
+            <li class="sidebar__section">Administration</li>
+            <li><span class="disabled">Journal d'audit <span class="badge">Bientôt</span></span></li>
+            {% if user.is_staff %}
+            <li><a href="/admin/" target="_blank">Admin Django</a></li>
+            {% endif %}
+        </ul>
+    </aside>
+
+    {# ---------- HEADER ---------- #}
+    <header class="header">
+        <div class="header__brand">PERCEPTION MAROVOAY</div>
+        <div class="header__user">
+            <span class="header__user-name">
+                {{ user.get_full_name|default:user.username }}
+            </span>
+            <form method="post" action="{% url 'logout' %}" class="header__logout-form">
+                {% csrf_token %}
+                <button type="submit" class="btn-logout">Déconnexion</button>
+            </form>
+        </div>
+    </header>
+
+    {# ---------- CONTENT ---------- #}
+    <main class="content">
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li class="message {{ message.tags }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+</div>
+</body>
+</html>

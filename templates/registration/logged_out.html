@@ -1,0 +1,19 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Déconnexion — Perception Marovoay</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+<div class="logged-out-wrapper">
+    <div class="logged-out-card">
+        <h1>Déconnexion réussie</h1>
+        <p>Vous avez été déconnecté de l'application.</p>
+        <a href="{% url 'login' %}" class="btn-link">Se reconnecter</a>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Tableau de bord — Perception Marovoay{% endblock %}
+
+{% block content %}
+<h1 class="page-title">Tableau de bord</h1>
+<p class="page-subtitle">
+    Bienvenue, {{ user.get_full_name|default:user.username }}.
+    Vue synthétique de l'activité de la Perception.
+</p>
+
+<div class="cards">
+    <div class="card card--info">
+        <div class="card__label">Agents actifs</div>
+        <div class="card__value">{{ stats.agents_actifs }}</div>
+        <div class="card__hint">Agents enregistrés et actifs</div>
+    </div>
+
+    <div class="card card--info">
+        <div class="card__label">Missions</div>
+        <div class="card__value">{{ stats.missions }}</div>
+        <div class="card__hint">Missions enregistrées</div>
+    </div>
+
+    <div class="card card--info">
+        <div class="card__label">Gardes validées</div>
+        <div class="card__value">{{ stats.gardes_validees }}</div>
+        <div class="card__hint">Gardes au statut VALIDEE</div>
+    </div>
+
+    <div class="card card--success">
+        <div class="card__label">Décomptes validés</div>
+        <div class="card__value">{{ stats.decomptes_valides }}</div>
+        <div class="card__hint">Décomptes au statut VALIDE</div>
+    </div>
+
+    <div class="card card--warning">
+        <div class="card__label">Ordres en cours</div>
+        <div class="card__value">{{ stats.ordres_en_cours }}</div>
+        <div class="card__hint">BROUILLON ou VALIDE</div>
+    </div>
+
+    <div class="card card--success">
+        <div class="card__label">Ordres payés</div>
+        <div class="card__value">{{ stats.ordres_payes }}</div>
+        <div class="card__hint">Ordres au statut PAYE</div>
+    </div>
+
+    <div class="card card--info">
+        <div class="card__label">Paiements enregistrés</div>
+        <div class="card__value">{{ stats.paiements_enregistres }}</div>
+        <div class="card__hint">Paiements actifs (non annulés)</div>
+    </div>
+</div>
+
+{% if stats.total_donnees == 0 %}
+<div class="card">
+    <div class="card__label">Information</div>
+    <div class="card__hint">
+        Aucune donnée n'est encore enregistrée dans la base.
+        Les compteurs afficheront les valeurs réelles dès que des
+        enregistrements seront créés.
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
