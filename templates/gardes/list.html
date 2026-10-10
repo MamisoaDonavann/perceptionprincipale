@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}Gardes — Perception Marovoay{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header__titles">
+        <h1 class="page-title">Gardes</h1>
+        <p class="page-subtitle">
+            {{ total }} garde{{ total|pluralize }} enregistrée{{ total|pluralize }}.
+        </p>
+    </div>
+    {% if perms.gardes.add_garde %}
+    <a href="{% url 'gardes:create' %}" class="btn-create">+ Nouvelle garde</a>
+    {% endif %}
+</div>
+
+<form method="get" class="filters">
+    <div class="filters__group">
+        <label class="filters__label" for="q">Recherche</label>
+        <input type="text" id="q" name="q" value="{{ q }}"
+               placeholder="Matricule, nom, mission">
+    </div>
+
+    <div class="filters__group">
+        <label class="filters__label" for="statut">Statut</label>
+        <select id="statut" name="statut">
+            <option value="">Tous</option>
+            {% for code, label in statuts_choices %}
+                <option value="{{ code }}" {% if statut == code %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="filters__group">
+        <label class="filters__label" for="conforme">Conformité</label>
+        <select id="conforme" name="conforme">
+            <option value="">Toutes</option>
+            <option value="1" {% if conforme == '1' %}selected{% endif %}>Conformes</option>
+            <option value="0" {% if conforme == '0' %}selected{% endif %}>Non conformes</option>
+        </select>
+    </div>
+
+    <div class="filters__actions">
+        <button type="submit" class="btn-create">Filtrer</button>
+        <a href="{% url 'gardes:list' %}" class="btn-secondary">Réinitialiser</a>
+    </div>
+</form>
+
+{% if page.object_list %}
+<div class="table-wrapper">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Agent</th>
+                <th>Mission</th>
+                <th>Début</th>
+                <th>Fin</th>
+                <th>Partiels</th>
+                <th>Conforme</th>
+                <th>Statut</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for g in page.object_list %}
+            <tr>
+                <td>{{ g.agent.matricule }} — {{ g.agent.nom }}</td>
+                <td>{{ g.mission.libelle|default:"—" }}</td>
+                <td>{{ g.date_heure_debut|date:"d/m/Y H:i" }}</td>
+                <td>{{ g.date_heure_fin|date:"d/m/Y H:i" }}</td>
+                <td>{{ g.nombre_partiels|default:"—" }}</td>
+                <td>
+                    {% if g.conforme %}
+                        <span class="tag tag--actif">Oui</span>
+                    {% else %}
+                        <span class="tag tag--radie">Non</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if g.statut == 'VALIDEE' %}
+                        <span class="tag tag--actif">{{ g.get_statut_display }}</span>
+                    {% else %}
+                        <span class="tag tag--radie">{{ g.get_statut_display }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'gardes:detail' g.pk %}" class="btn-action">Voir</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if page.has_other_pages %}
+<div class="pagination">
+    {% if page.has_previous %}
+        <a href="?page={{ page.previous_page_number }}&q={{ q }}&statut={{ statut }}&conforme={{ conforme }}">← Précédent</a>
+    {% else %}
+        <span class="disabled">← Précédent</span>
+    {% endif %}
+    <span class="current">{{ page.number }} / {{ page.paginator.num_pages }}</span>
+    {% if page.has_next %}
+        <a href="?page={{ page.next_page_number }}&q={{ q }}&statut={{ statut }}&conforme={{ conforme }}">Suivant →</a>
+    {% else %}
+        <span class="disabled">Suivant →</span>
+    {% endif %}
+</div>
+<p class="pagination__info">{{ total }} résultat{{ total|pluralize }}</p>
+{% endif %}
+
+{% else %}
+<div class="table-wrapper">
+    <div class="empty-state">
+        <p class="empty-state__title">Aucune garde trouvée</p>
+        <p class="empty-state__hint">
+            {% if q or statut or conforme %}
+                Modifiez les filtres.
+            {% else %}
+                Commencez par créer une garde.
+            {% endif %}
+        </p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

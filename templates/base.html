@@ -44,7 +44,12 @@
             </li>
 
             <li class="sidebar__section">Opérations</li>
-            <li><span class="disabled">Gardes <span class="badge">Bientôt</span></span></li>
+            <li>
+                <a href="{% url 'gardes:list' %}"
+                   class="{% if request.resolver_match.app_name == 'gardes' %}active{% endif %}">
+                    Gardes
+                </a>
+            </li>
             <li><span class="disabled">Décomptes <span class="badge">Bientôt</span></span></li>
             <li><span class="disabled">Ordres de paiement <span class="badge">Bientôt</span></span></li>
             <li><span class="disabled">Paiements <span class="badge">Bientôt</span></span></li>

@@ -12,5 +12,6 @@ urlpatterns = [
     path('agents/', include('agents.urls')),
     path('tarifs/', include('tarifs.urls')),
     path('missions/', include('missions.urls')),
+    path('gardes/', include('gardes.urls')),
     path('', include('core.urls')),
 ]

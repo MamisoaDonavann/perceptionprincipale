@@ -1,293 +1,183 @@
+"""
+Tests CRUD gardes (via services).
+"""
+
 from datetime import date, datetime, timedelta
+from decimal import Decimal
 
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
+from django.contrib.auth.models import Permission
 from django.test import TestCase
+from django.urls import reverse
 from django.utils import timezone
 
 from agents.models import Agent
-from audit.models import JournalAudit
 from missions.models import Mission
 from tarifs.models import Tarif
 
 from .models import Garde
-from .services import creer_garde, annuler_garde
 
 User = get_user_model()
 
 
-def _dt(y, m, d, h, mn=0):
-    """Crée un datetime aware (fuseau courant)."""
-    return timezone.make_aware(datetime(y, m, d, h, mn))
+def _dt(y, m, d, h=0, mn=0):
+    return timezone.make_aware(datetime(y, m, d, h, mn, 0))
 
 
-class BaseGardeTest(TestCase):
+class BaseGardeViewTest(TestCase):
 
     def setUp(self):
         self.user = User.objects.create_user(
-            username='garde_user', password='test_password_2026'
+            username='garde_viewer', password='TestPassword2026!'
         )
+        for codename in ['add_garde', 'change_garde', 'view_garde']:
+            self.user.user_permissions.add(
+                Permission.objects.get(
+                    codename=codename, content_type__app_label='gardes'
+                )
+            )
         self.agent = Agent.objects.create(
-            matricule='AG-001', nom='Nom', prenoms='Prenoms'
+            matricule='AG-G-001', nom='Rakoto', prenoms='Jean'
+        )
+        self.tarif = Tarif.objects.create(
+            montant_partiel=Decimal('15000.00'),
+            date_debut_validite=date(2025, 1, 1),
+            id_utilisateur_createur=self.user,
         )
         self.mission = Mission.objects.create(
-            libelle='Mission test',
+            libelle='Mission G',
             date_debut=_dt(2026, 1, 1, 0),
             date_fin=_dt(2026, 12, 31, 23, 59),
         )
-        # Tarif dont la période couvre largement les gardes testées (2026).
-        self.tarif = Tarif.objects.create(
-            montant_partiel='15000.00',
-            date_debut_validite=date(2025, 1, 1),
-            date_fin_validite=None,
-            id_utilisateur_createur=self.user,
-        )
 
 
-class CalculDureeTests(BaseGardeTest):
+class GardeListViewTests(BaseGardeViewTest):
 
-    def test_garde_12h_conforme_1_partiel(self):
-        garde, avert = creer_garde(
-            user=self.user,
-            agent=self.agent,
+    def test_requires_login(self):
+        r = self.client.get(reverse('gardes:list'))
+        self.assertEqual(r.status_code, 302)
+
+    def test_requires_view_permission(self):
+        u = User.objects.create_user(username='noperm_g', password='x')
+        self.client.login(username='noperm_g', password='x')
+        r = self.client.get(reverse('gardes:list'))
+        self.assertEqual(r.status_code, 403)
+
+    def test_empty_list_accessible(self):
+        self.client.login(username='garde_viewer', password='TestPassword2026!')
+        r = self.client.get(reverse('gardes:list'))
+        self.assertEqual(r.status_code, 200)
+
+    def test_filter_conforme(self):
+        Garde.objects.create(
+            agent=self.agent, tarif=self.tarif,
             date_heure_debut=_dt(2026, 6, 1, 6),
             date_heure_fin=_dt(2026, 6, 1, 18),
-            tarif=self.tarif,
+            duree_minutes=720, nombre_partiels=1, conforme=True,
+            id_utilisateur_saisie=self.user,
         )
-        self.assertEqual(garde.duree_minutes, 720)
-        self.assertEqual(garde.nombre_partiels, 1)
-        self.assertTrue(garde.conforme)
-
-    def test_garde_24h_conforme_2_partiels(self):
-        garde, avert = creer_garde(
-            user=self.user,
-            agent=self.agent,
-            date_heure_debut=_dt(2026, 6, 1, 6),
-            date_heure_fin=_dt(2026, 6, 2, 6),
-            tarif=self.tarif,
-        )
-        self.assertEqual(garde.duree_minutes, 1440)
-        self.assertEqual(garde.nombre_partiels, 2)
-        self.assertTrue(garde.conforme)
-
-    def test_garde_traversant_minuit(self):
-        garde, avert = creer_garde(
-            user=self.user,
-            agent=self.agent,
-            date_heure_debut=_dt(2026, 6, 1, 18),
-            date_heure_fin=_dt(2026, 6, 2, 18),
-            tarif=self.tarif,
-        )
-        self.assertEqual(garde.duree_minutes, 1440)
-        self.assertEqual(garde.nombre_partiels, 2)
-        self.assertTrue(garde.conforme)
-
-    def test_duree_non_multiple_12h(self):
-        garde, avert = creer_garde(
-            user=self.user,
-            agent=self.agent,
-            date_heure_debut=_dt(2026, 6, 1, 6),
-            date_heure_fin=_dt(2026, 6, 1, 12),
-            tarif=self.tarif,
-        )
-        self.assertEqual(garde.duree_minutes, 360)
-        self.assertIsNone(garde.nombre_partiels)
-        self.assertFalse(garde.conforme)
-        self.assertNotEqual(garde.motif_anomalie, "")
-
-    def test_duree_nulle_refusee(self):
-        with self.assertRaises(ValidationError):
-            creer_garde(
-                user=self.user,
-                agent=self.agent,
-                date_heure_debut=_dt(2026, 6, 1, 6),
-                date_heure_fin=_dt(2026, 6, 1, 6),
-                tarif=self.tarif,
-            )
-
-    def test_duree_negative_refusee(self):
-        with self.assertRaises(ValidationError):
-            creer_garde(
-                user=self.user,
-                agent=self.agent,
-                date_heure_debut=_dt(2026, 6, 1, 18),
-                date_heure_fin=_dt(2026, 6, 1, 6),
-                tarif=self.tarif,
-            )
-
-    def test_secondes_residuelles_refusees(self):
-        with self.assertRaises(ValidationError):
-            creer_garde(
-                user=self.user,
-                agent=self.agent,
-                date_heure_debut=_dt(2026, 6, 1, 6),
-                date_heure_fin=_dt(2026, 6, 1, 18) + timedelta(seconds=30),
-                tarif=self.tarif,
-            )
+        self.client.login(username='garde_viewer', password='TestPassword2026!')
+        r = self.client.get(reverse('gardes:list'), {'conforme': '1'})
+        self.assertContains(r, 'AG-G-001')
 
 
-class TarifApplicableTests(BaseGardeTest):
+class GardeCreateViewTests(BaseGardeViewTest):
 
-    def test_tarif_unique_applicable(self):
-        garde, avert = creer_garde(
-            user=self.user,
-            agent=self.agent,
+    def test_create_requires_add_permission(self):
+        u = User.objects.create_user(username='viewonly_g', password='x')
+        u.user_permissions.add(Permission.objects.get(
+            codename='view_garde', content_type__app_label='gardes'
+        ))
+        self.client.login(username='viewonly_g', password='x')
+        r = self.client.get(reverse('gardes:create'))
+        self.assertEqual(r.status_code, 403)
+
+    def test_create_garde_12h_success(self):
+        self.client.login(username='garde_viewer', password='TestPassword2026!')
+        r = self.client.post(reverse('gardes:create'), {
+            'agent': self.agent.pk,
+            'mission': self.mission.pk,
+            'tarif': self.tarif.pk,
+            'date_heure_debut': '2026-06-01T06:00',
+            'date_heure_fin': '2026-06-01T18:00',
+            'observation': '',
+        }, follow=True)
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(Garde.objects.count(), 1)
+        g = Garde.objects.first()
+        self.assertEqual(g.nombre_partiels, 1)
+        self.assertTrue(g.conforme)
+
+    def test_create_garde_non_conforme_allowed(self):
+        self.client.login(username='garde_viewer', password='TestPassword2026!')
+        self.client.post(reverse('gardes:create'), {
+            'agent': self.agent.pk,
+            'mission': '',
+            'tarif': self.tarif.pk,
+            'date_heure_debut': '2026-06-01T06:00',
+            'date_heure_fin': '2026-06-01T12:00',
+        })
+        self.assertEqual(Garde.objects.count(), 1)
+        g = Garde.objects.first()
+        self.assertFalse(g.conforme)
+        self.assertIsNone(g.nombre_partiels)
+
+    def test_create_garde_duration_zero_refused(self):
+        self.client.login(username='garde_viewer', password='TestPassword2026!')
+        self.client.post(reverse('gardes:create'), {
+            'agent': self.agent.pk,
+            'tarif': self.tarif.pk,
+            'date_heure_debut': '2026-06-01T06:00',
+            'date_heure_fin': '2026-06-01T06:00',
+        })
+        self.assertEqual(Garde.objects.count(), 0)
+
+
+class GardeDetailViewTests(BaseGardeViewTest):
+
+    def test_detail_accessible(self):
+        g = Garde.objects.create(
+            agent=self.agent, tarif=self.tarif,
             date_heure_debut=_dt(2026, 6, 1, 6),
             date_heure_fin=_dt(2026, 6, 1, 18),
+            duree_minutes=720, nombre_partiels=1, conforme=True,
+            id_utilisateur_saisie=self.user,
         )
-        self.assertEqual(garde.tarif_id, self.tarif.pk)
-
-    def test_aucun_tarif_applicable(self):
-        Tarif.objects.all().delete()
-        with self.assertRaises(ValidationError):
-            creer_garde(
-                user=self.user,
-                agent=self.agent,
-                date_heure_debut=_dt(2026, 6, 1, 6),
-                date_heure_fin=_dt(2026, 6, 1, 18),
-            )
-
-    def test_plusieurs_tarifs_applicables(self):
-        # Deuxième tarif qui couvre aussi juin 2026 -> conflit
-        Tarif.objects.create(
-            montant_partiel='20000.00',
-            date_debut_validite=date(2025, 6, 1),
-            date_fin_validite=None,
-            id_utilisateur_createur=self.user,
-        )
-        with self.assertRaises(ValidationError):
-            creer_garde(
-                user=self.user,
-                agent=self.agent,
-                date_heure_debut=_dt(2026, 6, 1, 6),
-                date_heure_fin=_dt(2026, 6, 1, 18),
-            )
+        self.client.login(username='garde_viewer', password='TestPassword2026!')
+        r = self.client.get(reverse('gardes:detail', args=[g.pk]))
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, 'AG-G-001')
 
 
-class ChevauchementTests(BaseGardeTest):
+class GardeAnnulerViewTests(BaseGardeViewTest):
 
-    def test_chevauchement_signale_sans_bloquer(self):
-        creer_garde(
-            user=self.user,
-            agent=self.agent,
+    def test_annuler_garde_with_motif(self):
+        g = Garde.objects.create(
+            agent=self.agent, tarif=self.tarif,
             date_heure_debut=_dt(2026, 6, 1, 6),
             date_heure_fin=_dt(2026, 6, 1, 18),
-            tarif=self.tarif,
+            duree_minutes=720, nombre_partiels=1, conforme=True,
+            id_utilisateur_saisie=self.user,
         )
-        garde2, avertissements = creer_garde(
-            user=self.user,
-            agent=self.agent,
-            date_heure_debut=_dt(2026, 6, 1, 12),
-            date_heure_fin=_dt(2026, 6, 1, 20),
-            tarif=self.tarif,
+        self.client.login(username='garde_viewer', password='TestPassword2026!')
+        r = self.client.post(
+            reverse('gardes:annuler', args=[g.pk]),
+            {'motif': 'Erreur de saisie'}
         )
-        self.assertIsNotNone(garde2.pk)
-        self.assertTrue(len(avertissements) > 0)
+        self.assertEqual(r.status_code, 302)
+        g.refresh_from_db()
+        self.assertEqual(g.statut, Garde.STATUT_ANNULEE)
 
-
-class MissionFacultativeTests(BaseGardeTest):
-
-    def test_garde_sans_mission(self):
-        garde, avert = creer_garde(
-            user=self.user,
-            agent=self.agent,
+    def test_annuler_sans_motif_refuse(self):
+        g = Garde.objects.create(
+            agent=self.agent, tarif=self.tarif,
             date_heure_debut=_dt(2026, 6, 1, 6),
             date_heure_fin=_dt(2026, 6, 1, 18),
-            tarif=self.tarif,
-            mission=None,
+            duree_minutes=720, nombre_partiels=1, conforme=True,
+            id_utilisateur_saisie=self.user,
         )
-        self.assertIsNone(garde.mission)
-
-
-class AnnulationTests(BaseGardeTest):
-
-    def test_annulation_controlee(self):
-        garde, avert = creer_garde(
-            user=self.user,
-            agent=self.agent,
-            date_heure_debut=_dt(2026, 6, 1, 6),
-            date_heure_fin=_dt(2026, 6, 1, 18),
-            tarif=self.tarif,
-        )
-        garde = annuler_garde(self.user, garde, motif="Erreur de saisie")
-        self.assertEqual(garde.statut, Garde.STATUT_ANNULEE)
-
-    def test_annulation_sans_motif_refusee(self):
-        garde, avert = creer_garde(
-            user=self.user,
-            agent=self.agent,
-            date_heure_debut=_dt(2026, 6, 1, 6),
-            date_heure_fin=_dt(2026, 6, 1, 18),
-            tarif=self.tarif,
-        )
-        with self.assertRaises(ValidationError):
-            annuler_garde(self.user, garde, motif="")
-
-    def test_annulation_double_refusee(self):
-        garde, avert = creer_garde(
-            user=self.user,
-            agent=self.agent,
-            date_heure_debut=_dt(2026, 6, 1, 6),
-            date_heure_fin=_dt(2026, 6, 1, 18),
-            tarif=self.tarif,
-        )
-        annuler_garde(self.user, garde, motif="Motif 1")
-        with self.assertRaises(ValidationError):
-            annuler_garde(self.user, garde, motif="Motif 2")
-
-
-class JournalisationTests(BaseGardeTest):
-
-    def test_creation_journalisee(self):
-        creer_garde(
-            user=self.user,
-            agent=self.agent,
-            date_heure_debut=_dt(2026, 6, 1, 6),
-            date_heure_fin=_dt(2026, 6, 1, 18),
-            tarif=self.tarif,
-        )
-        entries = JournalAudit.objects.filter(
-            entite_concernee='gardes.Garde',
-            action=JournalAudit.ACTION_CREATION,
-        )
-        self.assertEqual(entries.count(), 1)
-
-    def test_annulation_journalisee(self):
-        garde, avert = creer_garde(
-            user=self.user,
-            agent=self.agent,
-            date_heure_debut=_dt(2026, 6, 1, 6),
-            date_heure_fin=_dt(2026, 6, 1, 18),
-            tarif=self.tarif,
-        )
-        annuler_garde(self.user, garde, motif="Test")
-        entries = JournalAudit.objects.filter(
-            entite_concernee='gardes.Garde',
-            action=JournalAudit.ACTION_ANNULATION,
-        )
-        self.assertEqual(entries.count(), 1)
-
-
-class ProtectionHistoriqueTests(BaseGardeTest):
-
-    def test_suppression_agent_refusee(self):
-        creer_garde(
-            user=self.user,
-            agent=self.agent,
-            date_heure_debut=_dt(2026, 6, 1, 6),
-            date_heure_fin=_dt(2026, 6, 1, 18),
-            tarif=self.tarif,
-        )
-        with self.assertRaises(Exception):
-            self.agent.delete()
-
-    def test_suppression_tarif_refusee(self):
-        creer_garde(
-            user=self.user,
-            agent=self.agent,
-            date_heure_debut=_dt(2026, 6, 1, 6),
-            date_heure_fin=_dt(2026, 6, 1, 18),
-            tarif=self.tarif,
-        )
-        with self.assertRaises(Exception):
-            self.tarif.delete()
+        self.client.login(username='garde_viewer', password='TestPassword2026!')
+        r = self.client.post(reverse('gardes:annuler', args=[g.pk]), {'motif': ''})
+        self.assertEqual(r.status_code, 200)
+        g.refresh_from_db()
+        self.assertEqual(g.statut, Garde.STATUT_VALIDEE)

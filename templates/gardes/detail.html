@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Garde #{{ garde.pk }} — Perception Marovoay{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header__titles">
+        <h1 class="page-title">
+            Garde — {{ garde.agent.nom }} {{ garde.agent.prenoms }}
+        </h1>
+        <p class="page-subtitle">
+            Du {{ garde.date_heure_debut|date:"d/m/Y H:i" }}
+            au {{ garde.date_heure_fin|date:"d/m/Y H:i" }}
+        </p>
+    </div>
+    <div>
+        {% if garde.statut == 'VALIDEE' and perms.gardes.change_garde %}
+            <a href="{% url 'gardes:annuler' garde.pk %}" class="btn-secondary">Annuler la garde</a>
+        {% endif %}
+        <a href="{% url 'gardes:list' %}" class="btn-secondary">Retour</a>
+    </div>
+</div>
+
+{% if not garde.conforme %}
+<div class="info-box info-box--warning">
+    <strong>Garde non conforme :</strong> {{ garde.motif_anomalie }}.
+    Cette garde sera exclue des décomptes tant qu'elle n'est pas corrigée.
+</div>
+{% endif %}
+
+{% if garde.statut == 'ANNULEE' %}
+<div class="info-box info-box--warning">
+    <strong>Garde annulée.</strong> Conservée pour traçabilité.
+</div>
+{% endif %}
+
+<div class="detail-grid">
+    <div>
+        <div class="detail-card">
+            <h2 class="detail-card__title">Agent et mission</h2>
+            <dl class="detail-list">
+                <dt>Agent</dt>
+                <dd>
+                    <a href="{% url 'agents:detail' garde.agent.pk %}">
+                        {{ garde.agent.matricule }} — {{ garde.agent.nom }} {{ garde.agent.prenoms }}
+                    </a>
+                </dd>
+                <dt>Mission</dt>
+                <dd>
+                    {% if garde.mission %}
+                        <a href="{% url 'missions:detail' garde.mission.pk %}">
+                            {{ garde.mission.libelle }}
+                        </a>
+                    {% else %}—{% endif %}
+                </dd>
+            </dl>
+        </div>
+
+        <div class="detail-card">
+            <h2 class="detail-card__title">Période et calculs</h2>
+            <dl class="detail-list">
+                <dt>Début</dt><dd>{{ garde.date_heure_debut|date:"d/m/Y H:i" }}</dd>
+                <dt>Fin</dt><dd>{{ garde.date_heure_fin|date:"d/m/Y H:i" }}</dd>
+                <dt>Durée</dt><dd>{{ garde.duree_minutes }} minutes</dd>
+                <dt>Nombre de partiels</dt><dd>{{ garde.nombre_partiels|default:"—" }}</dd>
+                <dt>Conforme</dt>
+                <dd>
+                    {% if garde.conforme %}
+                        <span class="tag tag--actif">Oui</span>
+                    {% else %}
+                        <span class="tag tag--radie">Non</span>
+                    {% endif %}
+                </dd>
+                {% if garde.motif_anomalie %}
+                    <dt>Motif anomalie</dt><dd>{{ garde.motif_anomalie }}</dd>
+                {% endif %}
+            </dl>
+        </div>
+
+        <div class="detail-card">
+            <h2 class="detail-card__title">Tarif appliqué</h2>
+            <dl class="detail-list">
+                <dt>Tarif</dt>
+                <dd>
+                    {% if garde.tarif %}
+                        <a href="{% url 'tarifs:detail' garde.tarif.pk %}">
+                            {{ garde.tarif.montant_partiel }} Ar / partiel
+                        </a>
+                    {% else %}—{% endif %}
+                </dd>
+                <dt>Observation</dt><dd>{{ garde.observation|default:"—" }}</dd>
+            </dl>
+        </div>
+    </div>
+
+    <div>
+        <div class="detail-card">
+            <h2 class="detail-card__title">Statut</h2>
+            <dl class="detail-list">
+                <dt>Statut</dt>
+                <dd>
+                    {% if garde.statut == 'VALIDEE' %}
+                        <span class="tag tag--actif">{{ garde.get_statut_display }}</span>
+                    {% else %}
+                        <span class="tag tag--radie">{{ garde.get_statut_display }}</span>
+                    {% endif %}
+                </dd>
+            </dl>
+        </div>
+
+        <div class="detail-card">
+            <h2 class="detail-card__title">Traçabilité</h2>
+            <dl class="detail-list">
+                <dt>Saisie par</dt>
+                <dd>{{ garde.id_utilisateur_saisie.get_full_name|default:garde.id_utilisateur_saisie.username }}</dd>
+                <dt>Saisie le</dt><dd>{{ garde.date_saisie|date:"d/m/Y H:i" }}</dd>
+                <dt>Modifiée le</dt><dd>{{ garde.date_maj|date:"d/m/Y H:i" }}</dd>
+            </dl>
+        </div>
+    </div>
+</div>
+{% endblock %}

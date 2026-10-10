@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Annuler la garde #{{ garde.pk }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header__titles">
+        <h1 class="page-title">Annuler la garde</h1>
+        <p class="page-subtitle">
+            {{ garde.agent.nom }} {{ garde.agent.prenoms }} —
+            {{ garde.date_heure_debut|date:"d/m/Y H:i" }}
+        </p>
+    </div>
+    <div>
+        <a href="{% url 'gardes:detail' garde.pk %}" class="btn-secondary">Retour</a>
+    </div>
+</div>
+
+<div class="info-box info-box--warning">
+    L'annulation d'une garde est <strong>définitive</strong>.
+    La garde sera conservée pour traçabilité mais exclue des décomptes.
+</div>
+
+<form method="post" class="form-card" novalidate>
+    {% csrf_token %}
+    {% for field in form %}
+        <div class="form-group">
+            <label for="{{ field.id_for_label }}">
+                {{ field.label }}
+                {% if field.field.required %}<span class="required">*</span>{% endif %}
+            </label>
+            {{ field }}
+            {% if field.errors %}
+                <div class="errors"><ul>
+                    {% for error in field.errors %}<li>{{ error }}</li>{% endfor %}
+                </ul></div>
+            {% endif %}
+        </div>
+    {% endfor %}
+
+    <div class="form-actions">
+        <button type="submit" class="btn-create">Confirmer l'annulation</button>
+        <a href="{% url 'gardes:detail' garde.pk %}" class="btn-secondary">Annuler</a>
+    </div>
+</form>
+{% endblock %}
