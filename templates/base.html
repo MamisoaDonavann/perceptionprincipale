@@ -10,108 +10,206 @@
 <body>
 <div class="app">
 
-    {# ---------- SIDEBAR ---------- #}
+    {# ================= SIDEBAR ================= #}
     <aside class="sidebar">
-        <div class="sidebar__logo">
-            PERCEPTION<br>MAROVOAY
-            <small>Gestion des paiements</small>
-        </div>
-        <ul class="sidebar__nav">
-            <li>
-                <a href="{% url 'dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-                    Tableau de bord
-                </a>
-            </li>
+        <a href="{% url 'dashboard' %}" class="sidebar__logo">
+            <span class="sidebar__logo-mark">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M12 2 4 6v6c0 5 3.5 9.5 8 10 4.5-.5 8-5 8-10V6l-8-4z"/>
+                    <path d="m9 12 2 2 4-4"/>
+                </svg>
+            </span>
+            <span class="sidebar__logo-text">
+                PERCEPTION<br>MAROVOAY
+                <small>Gestion des paiements</small>
+            </span>
+        </a>
 
-            <li class="sidebar__section">Référentiels</li>
-            <li>
-                <a href="{% url 'agents:list' %}"
-                   class="{% if request.resolver_match.app_name == 'agents' %}active{% endif %}">
-                    Agents
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'missions:list' %}"
-                   class="{% if request.resolver_match.app_name == 'missions' %}active{% endif %}">
-                    Missions
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'tarifs:list' %}"
-                   class="{% if request.resolver_match.app_name == 'tarifs' %}active{% endif %}">
-                    Tarifs
-                </a>
-            </li>
+        <nav class="sidebar__nav" aria-label="Navigation principale">
 
-            <li class="sidebar__section">Opérations</li>
-            <li>
-                <a href="{% url 'gardes:list' %}"
-                   class="{% if request.resolver_match.app_name == 'gardes' %}active{% endif %}">
-                    Gardes
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'decomptes:list' %}"
-                   class="{% if request.resolver_match.app_name == 'decomptes' %}active{% endif %}">
-                    Décomptes
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'paiements:list' %}"
-                   class="{% if request.resolver_match.app_name == 'paiements' %}active{% endif %}">
-                    Ordres de paiement
-                </a>
-            </li>
-            <li><span class="disabled">Paiements <span class="badge">Bientôt</span></span></li>
+            <a href="{% url 'dashboard' %}"
+               class="sidebar__link {% if request.resolver_match.url_name == 'dashboard' %}sidebar__link--active{% endif %}">
+                <svg class="sidebar__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                    <polyline points="9 22 9 12 15 12 15 22"/>
+                </svg>
+                <span>Tableau de bord</span>
+            </a>
 
-            <li class="sidebar__section">Rapports</li>
-            <li>
-                <a href="{% url 'rapports:index' %}"
-                   class="{% if request.resolver_match.app_name == 'rapports' %}active{% endif %}">
-                    Rapports
-                </a>
-            </li>
+            <div class="sidebar__section">Référentiels</div>
 
-            <li class="sidebar__section">Administration</li>
-            <li>
-                <a href="{% url 'audit:list' %}"
-                   class="{% if request.resolver_match.app_name == 'audit' %}active{% endif %}">
-                    Journal d'audit
-                </a>
-            </li>
+            <a href="{% url 'agents:list' %}"
+               class="sidebar__link {% if request.resolver_match.app_name == 'agents' %}sidebar__link--active{% endif %}">
+                <svg class="sidebar__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                <span>Agents</span>
+            </a>
+
+            <a href="{% url 'missions:list' %}"
+               class="sidebar__link {% if request.resolver_match.app_name == 'missions' %}sidebar__link--active{% endif %}">
+                <svg class="sidebar__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="9" y1="13" x2="15" y2="13"/>
+                    <line x1="9" y1="17" x2="15" y2="17"/>
+                </svg>
+                <span>Missions</span>
+            </a>
+
+            <a href="{% url 'tarifs:list' %}"
+               class="sidebar__link {% if request.resolver_match.app_name == 'tarifs' %}sidebar__link--active{% endif %}">
+                <svg class="sidebar__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="12" y1="1" x2="12" y2="23"/>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+                <span>Tarifs</span>
+            </a>
+
+            <div class="sidebar__section">Opérations</div>
+
+            <a href="{% url 'gardes:list' %}"
+               class="sidebar__link {% if request.resolver_match.app_name == 'gardes' %}sidebar__link--active{% endif %}">
+                <svg class="sidebar__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M12 2 4 6v6c0 5 3.5 9.5 8 10 4.5-.5 8-5 8-10V6l-8-4z"/>
+                </svg>
+                <span>Gardes</span>
+            </a>
+
+            <a href="{% url 'decomptes:list' %}"
+               class="sidebar__link {% if request.resolver_match.app_name == 'decomptes' %}sidebar__link--active{% endif %}">
+                <svg class="sidebar__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M3 3v18h18"/>
+                    <path d="m19 9-5 5-4-4-3 3"/>
+                </svg>
+                <span>Décomptes</span>
+            </a>
+
+            <a href="{% url 'paiements:list' %}"
+               class="sidebar__link {% if request.resolver_match.app_name == 'paiements' %}sidebar__link--active{% endif %}">
+                <svg class="sidebar__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="2" y="5" width="20" height="14" rx="2"/>
+                    <line x1="2" y1="10" x2="22" y2="10"/>
+                </svg>
+                <span>Ordres de paiement</span>
+            </a>
+
+            <div class="sidebar__section">Rapports</div>
+
+            <a href="{% url 'rapports:index' %}"
+               class="sidebar__link {% if request.resolver_match.app_name == 'rapports' %}sidebar__link--active{% endif %}">
+                <svg class="sidebar__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                </svg>
+                <span>Rapports</span>
+            </a>
+
+            <div class="sidebar__section">Administration</div>
+
+            <a href="{% url 'audit:list' %}"
+               class="sidebar__link {% if request.resolver_match.app_name == 'audit' %}sidebar__link--active{% endif %}">
+                <svg class="sidebar__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                </svg>
+                <span>Journal d'audit</span>
+            </a>
+
             {% if user.is_staff %}
-            <li><a href="/admin/" target="_blank">Admin Django</a></li>
+            <a href="/admin/" target="_blank" class="sidebar__link">
+                <svg class="sidebar__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                </svg>
+                <span>Admin Django</span>
+            </a>
             {% endif %}
-        </ul>
+
+        </nav>
     </aside>
 
-    {# ---------- HEADER ---------- #}
+    {# ================= HEADER ================= #}
     <header class="header">
-        <div class="header__brand">PERCEPTION MAROVOAY</div>
-        <div class="header__user">
-            <span class="header__user-name">
-                {{ user.get_full_name|default:user.username }}
-            </span>
-            <form method="post" action="{% url 'logout' %}" class="header__logout-form">
-                {% csrf_token %}
-                <button type="submit" class="btn-logout">Déconnexion</button>
-            </form>
+        <nav class="breadcrumb" aria-label="Fil d'Ariane">
+            {% for item in breadcrumb_items %}
+                {% if item.url %}
+                    <a href="{{ item.url }}" class="breadcrumb__link">{{ item.label }}</a>
+                {% else %}
+                    <span class="breadcrumb__current">{{ item.label }}</span>
+                {% endif %}
+                {% if not forloop.last %}
+                    <span class="breadcrumb__sep" aria-hidden="true">/</span>
+                {% endif %}
+            {% endfor %}
+        </nav>
+
+        <div class="header__actions">
+            <details class="user-menu">
+                <summary class="user-menu__summary">
+                    <span class="user-menu__avatar">
+                        {{ user.get_short_name|default:user.username|slice:":1"|upper }}
+                    </span>
+                    <span class="user-menu__name">
+                        {{ user.get_full_name|default:user.username }}
+                    </span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                </summary>
+                <div class="user-menu__dropdown">
+                    <div class="user-menu__header">
+                        <div class="user-menu__fullname">
+                            {{ user.get_full_name|default:user.username }}
+                        </div>
+                        <div class="user-menu__meta">
+                            {% if user.is_superuser %}Superutilisateur
+                            {% elif user.groups.all %}{{ user.groups.all.0.name }}
+                            {% else %}Utilisateur{% endif %}
+                        </div>
+                    </div>
+                    <form method="post" action="{% url 'logout' %}" class="user-menu__logout">
+                        {% csrf_token %}
+                        <button type="submit" class="user-menu__logout-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                                <polyline points="16 17 21 12 16 7"/>
+                                <line x1="21" y1="12" x2="9" y2="12"/>
+                            </svg>
+                            Déconnexion
+                        </button>
+                    </form>
+                </div>
+            </details>
         </div>
     </header>
 
-    {# ---------- CONTENT ---------- #}
+    {# ================= CONTENU ================= #}
     <main class="content">
         {% if messages %}
-            <ul class="messages">
+            <div class="toasts" role="status" aria-live="polite">
                 {% for message in messages %}
-                    <li class="message {{ message.tags }}">{{ message }}</li>
+                    <div class="toast toast--{{ message.tags }}" data-autodismiss="{{ message.tags }}">
+                        <span class="toast__message">{{ message }}</span>
+                        <button type="button" class="toast__close" aria-label="Fermer">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </button>
+                    </div>
                 {% endfor %}
-            </ul>
+            </div>
         {% endif %}
 
         {% block content %}{% endblock %}
     </main>
 
 </div>
+<script src="{% static 'js/app.js' %}"></script>
 </body>
 </html>
