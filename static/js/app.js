@@ -41,17 +41,6 @@
     }
 
     // ---------------------------------------------
-    // 2. Confirmation sur form[data-confirm]
-    // ---------------------------------------------
-    document.querySelectorAll('form[data-confirm]').forEach(function (form) {
-        form.addEventListener('submit', function (e) {
-            if (!window.confirm(form.getAttribute('data-confirm'))) {
-                e.preventDefault();
-            }
-        });
-    });
-
-    // ---------------------------------------------
     // 3. Loading state sur boutons de soumission
     // ---------------------------------------------
     document.querySelectorAll('form').forEach(function (form) {

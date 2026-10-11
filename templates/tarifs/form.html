@@ -30,7 +30,13 @@
 </div>
 {% endif %}
 
-<form method="post" class="form-card" novalidate>
+<form method="post" class="form-card" novalidate
+      {% if mode == 'modification' %}
+      data-confirm="Les modifications seront enregistrées sur le tarif. Cette action est traçable dans le journal d'audit."
+      data-confirm-title="Enregistrer les modifications ?"
+      data-confirm-label="Enregistrer"
+      data-confirm-variant="info"
+      {% endif %}>
     {% csrf_token %}
 
     {% if form.non_field_errors %}
