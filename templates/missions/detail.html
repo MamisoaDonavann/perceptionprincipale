@@ -66,7 +66,10 @@
                             <form method="post"
                                   action="{% url 'missions:participation_delete' mission.pk p.pk %}"
                                   style="display:inline;"
-                                  onsubmit="return confirm('Retirer ce participant ?');">
+                                  data-confirm="Le participant sera retiré de cette mission. Cette action est réversible en le rajoutant."
+                                  data-confirm-title="Retirer ce participant ?"
+                                  data-confirm-label="Retirer"
+                                  data-confirm-variant="danger">
                                 {% csrf_token %}
                                 <button type="submit" class="btn-action btn-action--danger">Retirer</button>
                             </form>

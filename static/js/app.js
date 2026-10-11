@@ -96,4 +96,95 @@
         });
     });
 
+
+
+    // ---------------------------------------------
+    // 6. Modale de confirmation SaaS
+    // ---------------------------------------------
+    var modal = document.getElementById('confirm-modal');
+    var modalTitle = document.getElementById('confirm-modal-title');
+    var modalMessage = document.getElementById('confirm-modal-message');
+    var modalIcon = document.getElementById('confirm-modal-icon');
+    var modalOk = document.getElementById('confirm-modal-ok');
+    var modalCancel = document.getElementById('confirm-modal-cancel');
+
+    var pendingForm = null;
+    var lastFocused = null;
+
+    function openModal(form, options) {
+        if (!modal) return;
+        pendingForm = form;
+        lastFocused = document.activeElement;
+
+        modalTitle.textContent = options.title || 'Confirmer l\'action';
+        modalMessage.textContent = options.message || 'Voulez-vous vraiment continuer ?';
+        modalOk.textContent = options.label || 'Confirmer';
+
+        // Variante d'icône
+        var variant = options.variant || 'warning';
+        modalIcon.className = 'modal__icon modal__icon--' + variant;
+
+        // Style du bouton OK selon variante
+        modalOk.className = 'btn-create';
+        if (variant === 'danger') {
+            modalOk.classList.add('btn-create--danger');
+        }
+
+        modal.hidden = false;
+        document.body.style.overflow = 'hidden';
+
+        // Focus sur Annuler par défaut (action sûre)
+        setTimeout(function () { modalCancel.focus(); }, 50);
+    }
+
+    function closeModal() {
+        if (!modal) return;
+        modal.hidden = true;
+        document.body.style.overflow = '';
+        pendingForm = null;
+        if (lastFocused && lastFocused.focus) lastFocused.focus();
+    }
+
+    // Intercepte la soumission des formulaires [data-confirm]
+    document.querySelectorAll('form[data-confirm]').forEach(function (form) {
+        form.addEventListener('submit', function (e) {
+            if (form.dataset.modalConfirmed === '1') {
+                // Déjà confirmé : laisser passer
+                delete form.dataset.modalConfirmed;
+                return;
+            }
+            e.preventDefault();
+            openModal(form, {
+                title: form.dataset.confirmTitle || 'Confirmer l\'action',
+                message: form.dataset.confirm || 'Voulez-vous vraiment continuer ?',
+                label: form.dataset.confirmLabel || 'Confirmer',
+                variant: form.dataset.confirmVariant || 'warning'
+            });
+        });
+    });
+
+    if (modalOk) {
+        modalOk.addEventListener('click', function () {
+            if (pendingForm) {
+                pendingForm.dataset.modalConfirmed = '1';
+                pendingForm.submit();
+            }
+            closeModal();
+        });
+    }
+
+    if (modalCancel) {
+        modalCancel.addEventListener('click', closeModal);
+    }
+
+    if (modal) {
+        modal.addEventListener('click', function (e) {
+            if (e.target === modal) closeModal();
+        });
+    }
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && modal && !modal.hidden) closeModal();
+    });
+
 })();
