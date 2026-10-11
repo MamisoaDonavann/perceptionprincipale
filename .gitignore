@@ -72,3 +72,9 @@ staticfiles/
 # Logs Nginx / Gunicorn
 *.access.log
 *.error.log
+
+# Certificats SSL locaux
+certs/
+*.pem
+*.crt
+*.key
