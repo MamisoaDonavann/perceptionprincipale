@@ -20,6 +20,27 @@
         {% if perms.agents.change_agent %}
         <a href="{% url 'agents:update' agent.pk %}" class="btn-secondary">Modifier</a>
         {% endif %}
+
+        {% if perms.agents.change_agent %}
+            {% if agent.actif %}
+                <form method="post"
+                      action="{% url 'agents:toggle_actif' agent.pk %}"
+                      style="display:inline;"
+                      onsubmit="return confirm('Désactiver cet agent ? Il ne pourra plus être saisi dans de nouvelles gardes, mais son historique est conservé.');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-secondary">Désactiver</button>
+                </form>
+            {% elif agent.statut_agent != 'RADIE' %}
+                <form method="post"
+                      action="{% url 'agents:toggle_actif' agent.pk %}"
+                      style="display:inline;"
+                      onsubmit="return confirm('Réactiver cet agent ?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-create">Réactiver</button>
+                </form>
+            {% endif %}
+        {% endif %}
+
         <a href="{% url 'agents:list' %}" class="btn-secondary">Retour</a>
     </div>
 </div>

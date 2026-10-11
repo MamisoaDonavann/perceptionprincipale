@@ -139,3 +139,67 @@ class AgentUpdateViewTests(BaseAgentTest):
         self.assertEqual(response.status_code, 302)
         self.agent.refresh_from_db()
         self.assertEqual(self.agent.statut_agent, 'SUSPENDU')
+
+
+class AgentToggleActifTests(BaseAgentTest):
+
+    def test_desactivation_reussie(self):
+        self.client.login(username='agent_user', password='TestPassword2026!')
+        r = self.client.post(
+            reverse('agents:toggle_actif', args=[self.agent.pk])
+        )
+        self.assertEqual(r.status_code, 302)
+        self.agent.refresh_from_db()
+        self.assertFalse(self.agent.actif)
+
+    def test_reactivation_reussie_si_non_radie(self):
+        self.agent.actif = False
+        self.agent.save()
+        self.client.login(username='agent_user', password='TestPassword2026!')
+        r = self.client.post(
+            reverse('agents:toggle_actif', args=[self.agent.pk])
+        )
+        self.assertEqual(r.status_code, 302)
+        self.agent.refresh_from_db()
+        self.assertTrue(self.agent.actif)
+
+    def test_reactivation_refusee_si_radie(self):
+        self.agent.actif = False
+        self.agent.statut_agent = 'RADIE'
+        self.agent.save()
+        self.client.login(username='agent_user', password='TestPassword2026!')
+        r = self.client.post(
+            reverse('agents:toggle_actif', args=[self.agent.pk])
+        )
+        self.assertEqual(r.status_code, 302)
+        self.agent.refresh_from_db()
+        self.assertFalse(self.agent.actif)
+
+    def test_toggle_requires_post(self):
+        self.client.login(username='agent_user', password='TestPassword2026!')
+        r = self.client.get(
+            reverse('agents:toggle_actif', args=[self.agent.pk])
+        )
+        self.assertEqual(r.status_code, 405)
+
+    def test_toggle_requires_permission(self):
+        u = User.objects.create_user(username='no_perm_toggle', password='x')
+        self.client.login(username='no_perm_toggle', password='x')
+        r = self.client.post(
+            reverse('agents:toggle_actif', args=[self.agent.pk])
+        )
+        self.assertEqual(r.status_code, 403)
+
+    def test_toggle_journalise(self):
+        from audit.models import JournalAudit
+        self.client.login(username='agent_user', password='TestPassword2026!')
+        self.client.post(
+            reverse('agents:toggle_actif', args=[self.agent.pk])
+        )
+        self.assertTrue(
+            JournalAudit.objects.filter(
+                entite_concernee='agents.Agent',
+                id_entite_concernee=self.agent.pk,
+                action=JournalAudit.ACTION_MODIFICATION,
+            ).exists()
+        )

@@ -8,6 +8,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.views.decorators.http import require_POST
 
 from .forms import AgentForm
 from .models import Agent
@@ -121,3 +122,70 @@ def agent_update(request, pk):
         'mode': 'modification',
         'agent': agent,
     })
+
+
+@login_required
+@permission_required('agents.change_agent', raise_exception=True)
+@require_POST
+def agent_toggle_actif(request, pk):
+    """
+    Désactive ou réactive un agent.
+
+    Règles :
+    - Aucune suppression physique.
+    - Bascule de `actif` (True ↔ False).
+    - Réactivation interdite si statut_agent == 'RADIE'.
+    - Journalisation systématique.
+    """
+    from audit.models import JournalAudit
+    from audit.services import journaliser
+
+    agent = get_object_or_404(Agent, pk=pk)
+
+    if agent.actif:
+        # ---- Désactivation ----
+        agent.actif = False
+        agent.save(update_fields=['actif', 'date_maj'])
+
+        journaliser(
+            user=request.user,
+            action=JournalAudit.ACTION_MODIFICATION,
+            entite='agents.Agent',
+            id_entite=agent.pk,
+            avant={'actif': True},
+            apres={'actif': False},
+            commentaire=f"Désactivation de l'agent {agent.matricule}",
+        )
+        messages.success(
+            request,
+            f"Agent {agent.matricule} — {agent.nom} {agent.prenoms} désactivé."
+        )
+    else:
+        # ---- Réactivation ----
+        if agent.statut_agent == Agent.STATUT_RADIE:
+            messages.error(
+                request,
+                "Un agent au statut « Radié » ne peut pas être réactivé "
+                "par cette procédure. Une correction administrative "
+                "explicite est nécessaire."
+            )
+            return redirect(reverse('agents:detail', args=[agent.pk]))
+
+        agent.actif = True
+        agent.save(update_fields=['actif', 'date_maj'])
+
+        journaliser(
+            user=request.user,
+            action=JournalAudit.ACTION_MODIFICATION,
+            entite='agents.Agent',
+            id_entite=agent.pk,
+            avant={'actif': False},
+            apres={'actif': True},
+            commentaire=f"Réactivation de l'agent {agent.matricule}",
+        )
+        messages.success(
+            request,
+            f"Agent {agent.matricule} — {agent.nom} {agent.prenoms} réactivé."
+        )
+
+    return redirect(reverse('agents:detail', args=[agent.pk]))
