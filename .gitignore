@@ -61,3 +61,14 @@ Thumbs.db
 *.sql
 *.dump
 *.backup
+
+# Gunicorn
+gunicorn.sock
+*.sock
+
+# Fichiers statiques collectés (production)
+staticfiles/
+
+# Logs Nginx / Gunicorn
+*.access.log
+*.error.log
