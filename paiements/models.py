@@ -61,6 +61,18 @@ class OrdrePaiement(models.Model):
         (STATUT_ANNULE, 'Annulé'),
     ]
 
+    MODALITE_BON_CAISSE = 'BON_CAISSE'
+    MODALITE_VIREMENT_BANCAIRE = 'VIREMENT_BANCAIRE'
+    MODALITE_AUTRE_VIREMENT = 'AUTRE_VIREMENT'
+    MODALITE_OPERATION_ORDRE = 'OPERATION_ORDRE'
+
+    MODALITES_CHOICES = [
+        (MODALITE_BON_CAISSE, 'Bon de caisse'),
+        (MODALITE_VIREMENT_BANCAIRE, 'Virement bancaire'),
+        (MODALITE_AUTRE_VIREMENT, 'Autre type de virement'),
+        (MODALITE_OPERATION_ORDRE, "Opération d'ordre"),
+    ]
+
     numero_op = models.CharField(
         max_length=20, unique=True, verbose_name="Numéro OP"
     )
@@ -115,6 +127,38 @@ class OrdrePaiement(models.Model):
     )
     observation = models.TextField(
         blank=True, default="", verbose_name="Observation"
+    )
+
+    # ---- Champs administratifs (optionnels, format officiel OP) ----
+    date_emission = models.DateField(
+        null=True, blank=True,
+        verbose_name="Date d'émission",
+        help_text="Date figurant sur le document officiel (peut être différente de la date de création)."
+    )
+    numero_be = models.CharField(
+        max_length=50, blank=True, default="",
+        verbose_name="Numéro BE"
+    )
+    titulaire_nom = models.CharField(
+        max_length=200, blank=True, default="",
+        verbose_name="Nom du titulaire",
+        help_text="Laisser vide si le titulaire est l'agent bénéficiaire."
+    )
+    titulaire_numero = models.CharField(
+        max_length=50, blank=True, default="",
+        verbose_name="N° d'identification du titulaire",
+        help_text="Ex : F0035/484. Laisser vide si titulaire = bénéficiaire."
+    )
+    montant_lettres = models.TextField(
+        blank=True, default="",
+        verbose_name="Montant en lettres",
+        help_text="Ex : trois cent trente mille Ariary. Obligatoire si le montant est positif."
+    )
+    modalite_reglement = models.CharField(
+        max_length=30,
+        choices=MODALITES_CHOICES,
+        blank=True, default="",
+        verbose_name="Modalité de règlement"
     )
 
     class Meta:

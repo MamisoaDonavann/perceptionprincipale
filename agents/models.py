@@ -101,6 +101,14 @@ class Agent(models.Model):
         help_text="Facultatif. Aucune unicité imposée en V1."
     )
 
+    adresse = models.CharField(
+        max_length=200,
+        blank=True,
+        default="",
+        verbose_name="Adresse",
+        help_text="Adresse administrative du titulaire. Facultatif."
+    )
+
     # --- Fonction ---
     grade = models.CharField(
         max_length=100,
