@@ -401,12 +401,55 @@ class OPCreateViewTests(BasePaiementTest):
             'annee': 2026,
             'decomptes': [d.pk],
             'observation': '',
+            'montant_lettres': 'quinze mille Ariary',
         }, follow=True)
         self.assertEqual(r.status_code, 200)
         self.assertEqual(OrdrePaiement.objects.count(), 1)
         op = OrdrePaiement.objects.first()
         self.assertEqual(op.statut, 'BROUILLON')
         self.assertEqual(op.montant_total, d.montant_total)
+
+    def test_create_op_refuse_si_montant_lettres_absent(self):
+        """Contrôle de présence de montant_lettres (règle R2.2)."""
+        d = self._creer_decompte_valide()
+        self.client.login(username='op_user', password='pwd2026_test')
+        r = self.client.post(reverse('paiements:create'), {
+            'agent': self.agent.pk,
+            'annee': 2026,
+            'decomptes': [d.pk],
+            'observation': '',
+            'montant_lettres': '',
+        })
+        # Formulaire invalide → page re-affichée (200) et aucun OP créé
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(OrdrePaiement.objects.count(), 0)
+        self.assertContains(r, 'obligatoire', status_code=200)
+
+    def test_create_op_persiste_champs_admin(self):
+        """Vérifie que les 6 champs administratifs sont bien enregistrés."""
+        d = self._creer_decompte_valide()
+        self.client.login(username='op_user', password='pwd2026_test')
+        r = self.client.post(reverse('paiements:create'), {
+            'agent': self.agent.pk,
+            'annee': 2026,
+            'decomptes': [d.pk],
+            'observation': '',
+            'date_emission': '2026-07-01',
+            'numero_be': '12345',
+            'titulaire_nom': 'ANDRIAMALISON Johany Michael',
+            'titulaire_numero': 'F0035/484',
+            'montant_lettres': 'quinze mille Ariary',
+            'modalite_reglement': 'BON_CAISSE',
+        }, follow=True)
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(OrdrePaiement.objects.count(), 1)
+        op = OrdrePaiement.objects.first()
+        self.assertEqual(str(op.date_emission), '2026-07-01')
+        self.assertEqual(op.numero_be, '12345')
+        self.assertEqual(op.titulaire_nom, 'ANDRIAMALISON Johany Michael')
+        self.assertEqual(op.titulaire_numero, 'F0035/484')
+        self.assertEqual(op.montant_lettres, 'quinze mille Ariary')
+        self.assertEqual(op.modalite_reglement, 'BON_CAISSE')
 
 
 class OPValiderViewTests(BasePaiementTest):
