@@ -11,7 +11,9 @@ from django.utils import timezone
 from agents.models import Agent
 from decomptes.models import Decompte
 
-from .models import ConfirmationReception, Paiement, PeriodePaiement
+from .models import (
+    ConfirmationReception, OrdrePaiement, Paiement, PeriodePaiement,
+)
 
 
 def _apply_css(form):
@@ -56,6 +58,43 @@ class OrdrePaiementForm(forms.Form):
         widget=forms.Textarea(attrs={'rows': 3}),
     )
 
+    # ---- Informations administratives (facultatives) ----
+    date_emission = forms.DateField(
+        label="Date d'émission",
+        required=False,
+        input_formats=['%Y-%m-%d'],
+        widget=forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
+        help_text="Date figurant sur le document officiel.",
+    )
+    numero_be = forms.CharField(
+        label="Numéro BE",
+        max_length=50,
+        required=False,
+    )
+    titulaire_nom = forms.CharField(
+        label="Nom du titulaire",
+        max_length=200,
+        required=False,
+        help_text="Laisser vide si le titulaire est l'agent bénéficiaire.",
+    )
+    titulaire_numero = forms.CharField(
+        label="N° d'identification du titulaire",
+        max_length=50,
+        required=False,
+        help_text="Ex : F0035/484. Laisser vide si titulaire = bénéficiaire.",
+    )
+    montant_lettres = forms.CharField(
+        label="Montant en lettres",
+        required=False,
+        widget=forms.Textarea(attrs={'rows': 2}),
+        help_text="Obligatoire si le montant total est positif.",
+    )
+    modalite_reglement = forms.ChoiceField(
+        label="Modalité de règlement",
+        required=False,
+        choices=[('', '— Non défini —')] + list(OrdrePaiement.MODALITES_CHOICES),
+    )
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         reserved_ids = PeriodePaiement.objects.filter(
@@ -73,6 +112,8 @@ class OrdrePaiementForm(forms.Form):
         cleaned = super().clean()
         agent = cleaned.get('agent')
         decomptes = cleaned.get('decomptes')
+
+        # Cohérence agent ↔ décomptes
         if agent and decomptes:
             for d in decomptes:
                 if d.agent_id != agent.pk:
@@ -81,6 +122,21 @@ class OrdrePaiementForm(forms.Form):
                         f"Le décompte {d.annee}/{d.mois:02d} "
                         f"appartient à un autre agent."
                     )
+
+        # Contrôle de présence de montant_lettres
+        montant_total = Decimal('0.00')
+        if decomptes:
+            montant_total = sum(
+                (d.montant_total for d in decomptes), Decimal('0.00')
+            )
+        montant_lettres = (cleaned.get('montant_lettres') or '').strip()
+        if montant_total > 0 and not montant_lettres:
+            self.add_error(
+                'montant_lettres',
+                "Le montant en lettres est obligatoire lorsque le montant "
+                "total est positif."
+            )
+
         return cleaned
 
 

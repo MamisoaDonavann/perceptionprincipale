@@ -19,7 +19,7 @@ class AgentForm(forms.ModelForm):
         fields = [
             'matricule', 'nom', 'prenoms', 'cin',
             'date_naissance', 'lieu_naissance', 'sexe', 'telephone',
-            'grade', 'statut_agent', 'actif', 'observation',
+            'grade', 'adresse', 'statut_agent', 'actif', 'observation',
         ]
         widgets = {
             'date_naissance': forms.DateInput(

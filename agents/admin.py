@@ -23,7 +23,7 @@ class AgentAdmin(admin.ModelAdmin):
             'fields': ('matricule', 'nom', 'prenoms', 'cin')
         }),
         ("Informations personnelles", {
-            'fields': ('date_naissance', 'lieu_naissance', 'sexe', 'telephone')
+            'fields': ('date_naissance', 'lieu_naissance', 'sexe', 'telephone', 'adresse')
         }),
         ("Fonction", {
             'fields': ('grade',)

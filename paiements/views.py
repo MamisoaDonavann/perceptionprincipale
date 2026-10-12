@@ -138,6 +138,12 @@ def op_create(request):
                     decomptes=list(data['decomptes']),
                     user=request.user,
                     observation=data.get('observation') or '',
+                    date_emission=data.get('date_emission') or None,
+                    numero_be=data.get('numero_be') or '',
+                    titulaire_nom=data.get('titulaire_nom') or '',
+                    titulaire_numero=data.get('titulaire_numero') or '',
+                    montant_lettres=data.get('montant_lettres') or '',
+                    modalite_reglement=data.get('modalite_reglement') or '',
                 )
                 for a in avertissements:
                     messages.warning(request, a)

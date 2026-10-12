@@ -61,9 +61,40 @@ class OrdrePaiementAdmin(admin.ModelAdmin):
         'id_utilisateur_validateur', 'date_validation',
         'cloture_administrative', 'date_cloture', 'id_utilisateur_cloture',
         'motif_annulation',
+        # Champs administratifs
+        'date_emission', 'numero_be', 'titulaire_nom', 'titulaire_numero',
+        'montant_lettres', 'modalite_reglement',
     )
     inlines = [PeriodePaiementInline, PaiementInline]
     autocomplete_fields = ('agent_beneficiaire',)
+    fieldsets = (
+        ("Identification", {
+            'fields': ('numero_op', 'annee', 'agent_beneficiaire', 'statut')
+        }),
+        ("Montants", {
+            'fields': ('montant_total', 'montant_net_paye')
+        }),
+        ("Informations administratives", {
+            'fields': (
+                'date_emission', 'numero_be',
+                'titulaire_nom', 'titulaire_numero',
+                'montant_lettres', 'modalite_reglement',
+            ),
+            'description': (
+                "Champs renseignés lors de la création de l'OP. "
+                "Lecture seule après création."
+            ),
+        }),
+        ("Traçabilité", {
+            'fields': (
+                'id_utilisateur_createur', 'date_creation',
+                'id_utilisateur_validateur', 'date_validation',
+                'cloture_administrative', 'date_cloture', 'id_utilisateur_cloture',
+                'motif_annulation', 'observation',
+            ),
+            'classes': ('collapse',),
+        }),
+    )
 
     def has_add_permission(self, request): return False
     def has_delete_permission(self, request, obj=None): return False

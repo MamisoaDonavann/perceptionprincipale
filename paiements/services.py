@@ -58,7 +58,11 @@ def _next_numero_op(annee):
 # ---------------------------------------------------------------------
 
 @transaction.atomic
-def creer_ordre_paiement(agent, annee, decomptes, user, observation=""):
+def creer_ordre_paiement(
+    agent, annee, decomptes, user, observation="",
+    date_emission=None, numero_be="", titulaire_nom="",
+    titulaire_numero="", montant_lettres="", modalite_reglement="",
+):
     """
     Crée un OP BROUILLON avec réservation active des décomptes.
 
@@ -67,6 +71,10 @@ def creer_ordre_paiement(agent, annee, decomptes, user, observation=""):
     - Verrouillage des Decompte existants pour sérialiser
       les réservations concurrentes.
     - Capture de IntegrityError résiduel.
+
+    Champs administratifs optionnels (format officiel OP) :
+    - date_emission, numero_be, titulaire_nom, titulaire_numero,
+      montant_lettres, modalite_reglement.
     """
     if not user.has_perm('paiements.creer_ordre_paiement'):
         raise PermissionDenied("Permission requise : paiements.creer_ordre_paiement.")
@@ -116,6 +124,12 @@ def creer_ordre_paiement(agent, annee, decomptes, user, observation=""):
         montant_net_paye=Decimal('0.00'),
         id_utilisateur_createur=user,
         observation=observation,
+        date_emission=date_emission,
+        numero_be=numero_be or '',
+        titulaire_nom=titulaire_nom or '',
+        titulaire_numero=titulaire_numero or '',
+        montant_lettres=montant_lettres or '',
+        modalite_reglement=modalite_reglement or '',
     )
 
     try:
