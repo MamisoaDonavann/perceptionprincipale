@@ -128,11 +128,13 @@
 </head>
 <body>
 
+{% block entete %}
 <div class="entete">
     <div class="entete__institution">PERCEPTION MAROVOAY</div>
     <div class="entete__titre">{% block titre_rapport %}Rapport{% endblock %}</div>
     {% block sous_titre %}{% endblock %}
 </div>
+{% endblock %}
 
 {% block contenu %}{% endblock %}
 

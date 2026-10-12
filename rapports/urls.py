@@ -22,6 +22,20 @@ urlpatterns = [
     ),
 
     # ------------------------------------------------------------------
+    # Récapitulatif mensuel (tous agents d'un mois)
+    # ------------------------------------------------------------------
+    path(
+        'decomptes-mensuels/',
+        views.filtres_decomptes_mensuels,
+        name='filtres_decomptes_mensuels',
+    ),
+    path(
+        'decomptes-mensuels/<int:annee>/<int:mois>/pdf/',
+        views.decomptes_mensuels_pdf,
+        name='decomptes_mensuels_pdf',
+    ),
+
+    # ------------------------------------------------------------------
     # Rapport 2 — Liste de paiement
     # ------------------------------------------------------------------
     path(

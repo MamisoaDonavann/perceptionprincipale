@@ -1,0 +1,74 @@
+{% extends "rapports/pdf/base_pdf.html" %}
+{% load format_tags %}
+
+{% block titre %}État de décompte {{ mois|stringformat:"02d" }}/{{ annee }}{% endblock %}
+
+{% block entete %}
+<div style="text-align: center; border-bottom: 2px solid #0d1b3e; padding-bottom: 10px; margin-bottom: 16px;">
+    <div style="font-size: 15px; font-weight: 700; color: #0d1b3e; text-transform: uppercase; letter-spacing: .5px;">
+        État de décompte d'indemnité de garde permanente
+    </div>
+    <div style="margin-top: 12px; text-align: right; font-size: 12px; font-weight: 600; color: #0d1b3e;">
+        <div>MOIS : {{ mois|nom_mois|upper }}</div>
+        <div>ANNEE : {{ annee }}</div>
+    </div>
+</div>
+{% endblock %}
+
+{% block contenu %}
+
+{% if groupes %}
+<table class="data" style="font-size: 9.5px;">
+    <thead>
+        <tr>
+            <th style="width: 15%;">Date et heure début</th>
+            <th style="width: 15%;">Date et heure fin</th>
+            <th style="width: 22%;">Nom et prénoms</th>
+            <th style="width: 10%;">Numéro matricule</th>
+            <th style="width: 8%; text-align: right;">Partiel<br>de 12h</th>
+            <th style="width: 13%; text-align: right;">Montant<br>(Ariary)</th>
+            <th style="width: 14%; text-align: right;">TOTAL<br>(Ariary)</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for g in groupes %}
+            {% for l in g.lignes %}
+            <tr>
+                <td>{{ l.garde.date_heure_debut|date:"d/m/Y H:i:s" }}</td>
+                <td>{{ l.garde.date_heure_fin|date:"d/m/Y H:i:s" }}</td>
+                <td>{{ g.agent.nom }} {{ g.agent.prenoms }}</td>
+                <td>{{ g.agent.matricule }}</td>
+                <td style="text-align: right;">{{ l.nombre_partiels_snapshot }}</td>
+                <td style="text-align: right;">{{ l.montant_partiel_snapshot|format_ar }}</td>
+                <td style="text-align: right;">{{ l.montant_ligne|format_ar }}</td>
+            </tr>
+            {% endfor %}
+            <tr style="background: #f1f5f9;">
+                <td colspan="4" style="text-align: right; font-weight: 600; font-style: italic;">
+                    Total pour {{ g.agent.nom }} {{ g.agent.prenoms }}
+                </td>
+                <td style="text-align: right; font-weight: 700;">{{ g.total_partiels }}</td>
+                <td style="text-align: right; font-weight: 700;">{{ g.total_montant|format_ar }}</td>
+                <td style="text-align: right; font-weight: 700;">{{ g.total_general|format_ar }}</td>
+            </tr>
+            <tr><td colspan="7" style="height: 6px; border: none;"></td></tr>
+        {% endfor %}
+    </tbody>
+    <tfoot>
+        <tr style="background: #cbd5e1;">
+            <td colspan="4" style="text-align: right; font-weight: 700; font-size: 11px;">
+                TOTAL GÉNÉRAL DU MOIS
+            </td>
+            <td style="text-align: right; font-weight: 700; font-size: 11px;">{{ grand_total_partiels }}</td>
+            <td style="text-align: right; font-weight: 700; font-size: 11px;">{{ grand_total_montant|format_ar }}</td>
+            <td style="text-align: right; font-weight: 700; font-size: 11px;">{{ grand_total|format_ar }}</td>
+        </tr>
+    </tfoot>
+</table>
+{% else %}
+<p style="text-align: center; padding: 40px; color: #6b7280; font-style: italic;">
+    Aucun décompte validé pour {{ mois|nom_mois }} {{ annee }}.
+</p>
+{% endif %}
+
+{% endblock %}

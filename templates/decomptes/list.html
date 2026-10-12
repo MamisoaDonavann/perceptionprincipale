@@ -10,6 +10,11 @@
             {{ total }} décompte{{ total|pluralize }} enregistré{{ total|pluralize }}.
         </p>
     </div>
+    {% if perms.decomptes.view_decompte %}
+    <a href="{% url 'rapports:filtres_decomptes_mensuels' %}" class="btn-secondary">
+        Récapitulatif mensuel PDF
+    </a>
+    {% endif %}
     {% if perms.decomptes.add_decompte %}
     <a href="{% url 'decomptes:create' %}" class="btn-create">+ Nouveau décompte</a>
     {% endif %}

@@ -21,6 +21,7 @@ from paiements.models import OrdrePaiement
 
 from .permissions import verifier_permission
 from .services import (
+    generer_decomptes_mensuels_pdf,
     generer_etat_decompte_pdf,
     generer_etat_gardes_excel,
     generer_etat_gardes_pdf,
@@ -506,4 +507,47 @@ def rapport_periode_excel(request):
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     )
     response['Content-Disposition'] = 'attachment; filename="rapport_periode.xlsx"'
+    return response
+
+
+# ===================================================================
+# Récapitulatif mensuel des décomptes (tous agents)
+# ===================================================================
+
+@login_required
+def filtres_decomptes_mensuels(request):
+    """Formulaire de choix de mois pour le récapitulatif mensuel."""
+    from datetime import date
+    verifier_permission(request.user, 'decomptes.view_decompte')
+    return render(request, 'rapports/filtres_decomptes_mensuels.html', {
+        'annee_courante': date.today().year,
+    })
+
+
+@login_required
+def decomptes_mensuels_pdf(request, annee, mois):
+    """Génère le récapitulatif mensuel officiel (tous agents)."""
+    verifier_permission(request.user, 'decomptes.view_decompte')
+
+    if not (1900 <= annee <= 2200) or not (1 <= mois <= 12):
+        messages.error(request, "Année ou mois invalide.")
+        return redirect(reverse('decomptes:list'))
+
+    buffer = generer_decomptes_mensuels_pdf(annee, mois)
+
+    journaliser(
+        user=request.user,
+        action=JournalAudit.ACTION_EXPORT,
+        entite='decomptes.Decompte', id_entite=0,
+        apres={
+            'type': 'decomptes_mensuels_pdf',
+            'annee': annee,
+            'mois': mois,
+        },
+        commentaire=f"Export PDF récapitulatif mensuel {mois:02d}/{annee}",
+    )
+
+    filename = f"decomptes_{annee}_{mois:02d}.pdf"
+    response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
     return response

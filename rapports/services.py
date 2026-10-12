@@ -9,7 +9,7 @@ from datetime import date, timedelta
 from decimal import Decimal
 from io import BytesIO
 
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.template.loader import render_to_string
 from django.utils import timezone
 from weasyprint import HTML
@@ -63,15 +63,17 @@ def _pdf_from_template(template_name, context, base_url=None):
 
 def generer_etat_decompte_pdf(decompte):
     """
-    Génère le PDF de l'état de décompte d'un agent.
-
-    Retourne un BytesIO contenant le PDF.
+    Génère le PDF de l'état de décompte individuel d'un agent,
+    au format officiel (colonnes début/fin/matricule/partiels/montant/total).
     """
-    lignes = (
+    lignes = list(
         decompte.lignes
         .select_related('garde', 'tarif', 'garde__agent')
         .order_by('garde__date_heure_debut')
     )
+
+    total_partiels = sum(l.nombre_partiels_snapshot for l in lignes)
+    total_montant = sum(l.montant_partiel_snapshot for l in lignes)
 
     audit_entry = _reference_audit(
         'decomptes.Decompte', decompte.pk, JournalAudit.ACTION_VALIDATION
@@ -80,12 +82,80 @@ def generer_etat_decompte_pdf(decompte):
     context = {
         'decompte': decompte,
         'lignes': lignes,
+        'total_partiels': total_partiels,
+        'total_montant': total_montant,
         'audit_entry': audit_entry,
         'date_edition': _date_edition(),
     }
 
     pdf_bytes = _pdf_from_template(
         'rapports/pdf/etat_decompte.html', context
+    )
+    return BytesIO(pdf_bytes)
+
+
+def collecter_decomptes_mensuels(annee, mois):
+    """
+    Retourne la liste des groupes { agent, lignes, totaux } pour un mois donné,
+    uniquement pour les décomptes VALIDÉS.
+    """
+    decomptes = (
+        Decompte.objects
+        .filter(annee=annee, mois=mois, statut=Decompte.STATUT_VALIDE)
+        .select_related('agent')
+        .order_by('agent__nom', 'agent__prenoms')
+    )
+
+    groupes = []
+    grand_total_partiels = 0
+    grand_total_montant = Decimal('0.00')
+    grand_total = Decimal('0.00')
+
+    for d in decomptes:
+        lignes = list(
+            d.lignes
+            .select_related('garde')
+            .order_by('garde__date_heure_debut')
+        )
+        total_partiels = sum(l.nombre_partiels_snapshot for l in lignes)
+        total_montant = sum(l.montant_partiel_snapshot for l in lignes)
+        total_general = d.montant_total
+
+        groupes.append({
+            'agent': d.agent,
+            'decompte': d,
+            'lignes': lignes,
+            'total_partiels': total_partiels,
+            'total_montant': total_montant,
+            'total_general': total_general,
+        })
+
+        grand_total_partiels += total_partiels
+        grand_total_montant += total_montant
+        grand_total += total_general
+
+    return {
+        'groupes': groupes,
+        'grand_total_partiels': grand_total_partiels,
+        'grand_total_montant': grand_total_montant,
+        'grand_total': grand_total,
+    }
+
+
+def generer_decomptes_mensuels_pdf(annee, mois):
+    """
+    Génère le PDF récapitulatif mensuel (tous les agents d'un mois),
+    au format officiel avec sous-totaux par agent et total général.
+    """
+    data = collecter_decomptes_mensuels(annee, mois)
+    context = {
+        'annee': annee,
+        'mois': mois,
+        **data,
+        'date_edition': _date_edition(),
+    }
+    pdf_bytes = _pdf_from_template(
+        'rapports/pdf/decomptes_mensuels.html', context
     )
     return BytesIO(pdf_bytes)
 
