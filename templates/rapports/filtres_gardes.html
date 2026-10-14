@@ -1,61 +1,88 @@
 {% extends "base.html" %}
+
 {% block title %}État des gardes — Rapports{% endblock %}
+
 {% block content %}
 <div class="page-header">
     <div class="page-header__titles">
         <h1 class="page-title">État détaillé des gardes</h1>
-        <p class="page-subtitle">Filtrez puis exportez en PDF ou Excel.</p>
+        <p class="page-subtitle">
+            Filtrez puis exportez la liste des gardes en PDF ou Excel.
+        </p>
     </div>
-    <div><a href="{% url 'rapports:index' %}" class="btn-secondary">Retour</a></div>
+    <div>
+        <a href="{% url 'rapports:index' %}" class="btn-secondary">Retour aux rapports</a>
+    </div>
 </div>
 
-<form method="get" class="form-card">
-    <div class="form-grid">
-        <div class="form-group">
-            <label>Date de début</label>
-            <input type="date" name="date_debut" class="form-input"
-                   value="{{ filtres.date_debut|date:'Y-m-d' }}">
+<div class="info-box info-box--info">
+    Toutes les gardes sont incluses (validées et annulées). Utilisez la conformité
+    pour filtrer les gardes exclues des décomptes. Les filtres sont facultatifs.
+</div>
+
+<form method="get" novalidate>
+    <fieldset class="form-section">
+        <legend>Période</legend>
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="date_debut">Date de début</label>
+                <input type="date" name="date_debut" id="date_debut" class="form-input"
+                       value="{{ filtres.date_debut|date:'Y-m-d' }}">
+            </div>
+            <div class="form-group">
+                <label for="date_fin">Date de fin</label>
+                <input type="date" name="date_fin" id="date_fin" class="form-input"
+                       value="{{ filtres.date_fin|date:'Y-m-d' }}">
+            </div>
         </div>
-        <div class="form-group">
-            <label>Date de fin</label>
-            <input type="date" name="date_fin" class="form-input"
-                   value="{{ filtres.date_fin|date:'Y-m-d' }}">
+    </fieldset>
+
+    <fieldset class="form-section">
+        <legend>Filtres</legend>
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="agent">Agent</label>
+                <select name="agent" id="agent" class="form-select">
+                    <option value="">Tous les agents</option>
+                    {% for a in agents %}
+                    <option value="{{ a.pk }}" {% if filtres.agent.pk == a.pk %}selected{% endif %}>
+                        {{ a.matricule }} — {{ a.nom }} {{ a.prenoms }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="mission">Mission</label>
+                <select name="mission" id="mission" class="form-select">
+                    <option value="">Toutes les missions</option>
+                    {% for m in missions %}
+                    <option value="{{ m.pk }}" {% if filtres.mission.pk == m.pk %}selected{% endif %}>
+                        {{ m.libelle }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group form-grid__full">
+                <label for="conforme">Conformité</label>
+                <select name="conforme" id="conforme" class="form-select">
+                    <option value="">Toutes les gardes</option>
+                    <option value="1" {% if filtres.conforme == True %}selected{% endif %}>Conformes uniquement</option>
+                    <option value="0" {% if filtres.conforme == False %}selected{% endif %}>Non conformes uniquement</option>
+                </select>
+            </div>
         </div>
-        <div class="form-group">
-            <label>Agent</label>
-            <select name="agent" class="form-select">
-                <option value="">Tous</option>
-                {% for a in agents %}
-                <option value="{{ a.pk }}" {% if filtres.agent.pk == a.pk %}selected{% endif %}>
-                    {{ a.matricule }} — {{ a.nom }} {{ a.prenoms }}
-                </option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="form-group">
-            <label>Mission</label>
-            <select name="mission" class="form-select">
-                <option value="">Toutes</option>
-                {% for m in missions %}
-                <option value="{{ m.pk }}" {% if filtres.mission.pk == m.pk %}selected{% endif %}>
-                    {{ m.libelle }}
-                </option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="form-group">
-            <label>Conformité</label>
-            <select name="conforme" class="form-select">
-                <option value="">Toutes</option>
-                <option value="1" {% if filtres.conforme == True %}selected{% endif %}>Conformes</option>
-                <option value="0" {% if filtres.conforme == False %}selected{% endif %}>Non conformes</option>
-            </select>
-        </div>
-    </div>
+    </fieldset>
+
     <div class="form-actions">
-        <button type="submit" formaction="{% url 'rapports:etat_gardes_pdf' %}" class="btn-create">Télécharger PDF</button>
-        <button type="submit" formaction="{% url 'rapports:etat_gardes_excel' %}" class="btn-create">Télécharger Excel</button>
-        <a href="{% url 'rapports:index' %}" class="btn-secondary">Annuler</a>
+        <button type="submit" formaction="{% url 'rapports:etat_gardes_pdf' %}" class="btn-create">
+            Télécharger PDF
+        </button>
+        <button type="submit" formaction="{% url 'rapports:etat_gardes_excel' %}" class="btn-secondary">
+            Télécharger Excel
+        </button>
+        <a href="{% url 'rapports:filtres_gardes' %}" class="btn-secondary">Réinitialiser</a>
     </div>
 </form>
 {% endblock %}
