@@ -6,123 +6,271 @@
 <style>
     @page {
         size: A4 portrait;
-        margin: 18mm 15mm 20mm 15mm;
+        margin: 16mm 14mm 20mm 14mm;
         @bottom-center {
             content: "Page " counter(page) " / " counter(pages);
-            font-size: 9px;
-            color: #666;
+            font-size: 8.5px;
+            color: #94a3b8;
+            font-family: "DejaVu Sans", Arial, sans-serif;
         }
     }
     * { box-sizing: border-box; }
     body {
         font-family: "DejaVu Sans", Arial, sans-serif;
-        font-size: 10.5px;
-        color: #1a1a1a;
-        line-height: 1.4;
+        font-size: 10px;
+        color: #1e293b;
+        line-height: 1.45;
         margin: 0;
     }
+
+    /* ============================================================
+       EN-TÊTE INSTITUTIONNEL
+       ============================================================ */
     .entete {
+        padding-bottom: 12px;
+        margin-bottom: 18px;
+        border-bottom: 2px solid #4f46e5;
+        position: relative;
         text-align: center;
-        border-bottom: 2px solid #0d1b3e;
-        padding-bottom: 8px;
-        margin-bottom: 14px;
+    }
+    .entete::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 2px;
+        background: #ec4899;
     }
     .entete__institution {
-        font-size: 11px;
+        font-size: 10px;
         font-weight: 700;
-        letter-spacing: 1px;
-        color: #0d1b3e;
-    }
-    .entete__titre {
-        font-size: 15px;
-        font-weight: 700;
-        margin-top: 4px;
-        color: #0d1b3e;
+        letter-spacing: 1.4px;
+        color: #4f46e5;
         text-transform: uppercase;
     }
-    .entete__sous-titre {
-        font-size: 10px;
-        color: #555;
-        margin-top: 2px;
+    .entete__titre {
+        font-size: 16px;
+        font-weight: 700;
+        margin-top: 4px;
+        color: #0f172a;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
     }
+    .entete__sous-titre {
+        font-size: 9.5px;
+        color: #64748b;
+        margin-top: 3px;
+        font-style: italic;
+    }
+
+    /* ============================================================
+       BLOCS D'INFORMATION (dl horizontale)
+       ============================================================ */
     .bloc-info {
-        margin-bottom: 12px;
+        margin-bottom: 14px;
         display: table;
         width: 100%;
+        font-size: 10px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-left: 3px solid #6366f1;
+        border-radius: 4px;
+        padding: 8px 12px;
     }
-    .bloc-info__ligne {
-        display: table-row;
-    }
+    .bloc-info__ligne { display: table-row; }
     .bloc-info__label {
         display: table-cell;
-        width: 25%;
+        width: 28%;
         font-weight: 600;
-        color: #444;
-        padding: 2px 8px 2px 0;
+        color: #475569;
+        padding: 3px 12px 3px 0;
         vertical-align: top;
+        font-size: 9.5px;
     }
     .bloc-info__valeur {
         display: table-cell;
-        padding: 2px 0;
+        padding: 3px 0;
+        color: #0f172a;
+        font-weight: 500;
     }
+
+    /* ============================================================
+       SECTIONS (h2)
+       ============================================================ */
+    h2.section {
+        font-size: 10.5px;
+        color: #4f46e5;
+        margin-top: 18px;
+        margin-bottom: 8px;
+        padding: 4px 0 4px 10px;
+        border-bottom: 1px solid #e2e8f0;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        font-weight: 700;
+        position: relative;
+    }
+    h2.section::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 3px;
+        bottom: 3px;
+        width: 3px;
+        background: linear-gradient(180deg, #6366f1, #8b5cf6);
+        border-radius: 2px;
+    }
+
+    /* ============================================================
+       TABLEAUX
+       ============================================================ */
     table.data {
         width: 100%;
         border-collapse: collapse;
         margin-top: 8px;
-        font-size: 10px;
+        font-size: 9.5px;
+        border: 1px solid #e2e8f0;
+        border-radius: 4px;
+        overflow: hidden;
     }
     table.data thead th {
-        background: #1e3a8a;
-        color: #fff;
-        padding: 6px 6px;
+        background: #f1f5f9;
+        color: #4f46e5;
+        padding: 8px 8px;
         text-align: left;
-        font-size: 9.5px;
+        font-size: 8.5px;
         text-transform: uppercase;
-        letter-spacing: .3px;
-        border: 1px solid #1e3a8a;
+        letter-spacing: 0.5px;
+        font-weight: 700;
+        border-bottom: 2px solid #cbd5e1;
+        border-right: 1px solid #e2e8f0;
+    }
+    table.data thead th:last-child {
+        border-right: none;
     }
     table.data tbody td {
-        padding: 5px 6px;
-        border: 1px solid #d1d5db;
-        vertical-align: top;
+        padding: 7px 8px;
+        border-bottom: 1px solid #f1f5f9;
+        border-right: 1px solid #f8fafc;
+        vertical-align: middle;
+        color: #1e293b;
+    }
+    table.data tbody td:last-child {
+        border-right: none;
     }
     table.data tbody tr:nth-child(even) td {
-        background: #f8fafc;
+        background: #fafbff;
+    }
+    table.data tbody tr:last-child td {
+        border-bottom: none;
     }
     table.data tfoot td {
-        padding: 6px;
+        padding: 8px;
         font-weight: 700;
-        background: #e2e8f0;
-        border: 1px solid #cbd5e1;
+        background: #f1f5f9;
+        border-top: 2px solid #cbd5e1;
+        color: #0f172a;
+        font-size: 9.5px;
     }
+
+    /* ============================================================
+       CELLULES SPÉCIALES
+       ============================================================ */
     .text-right { text-align: right; }
     .text-center { text-align: center; }
     .amount {
         text-align: right;
         font-variant-numeric: tabular-nums;
         white-space: nowrap;
+        font-weight: 600;
+        color: #0f172a;
     }
+    .amount strong {
+        color: #4f46e5;
+    }
+
+    /* Badge de statut */
+    .badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 8px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+    .badge--valide    { background: #dcfce7; color: #15803d; }
+    .badge--brouillon { background: #f1f5f9; color: #64748b; }
+    .badge--paye      { background: #dbeafe; color: #1d4ed8; }
+    .badge--annule    { background: #fee2e2; color: #b91c1c; }
+
+    /* ============================================================
+       PIED
+       ============================================================ */
     .pied {
-        margin-top: 24px;
-        font-size: 9.5px;
-        color: #555;
-        border-top: 1px solid #d1d5db;
-        padding-top: 8px;
+        margin-top: 28px;
+        font-size: 8.5px;
+        color: #64748b;
+        border-top: 1px solid #e2e8f0;
+        padding-top: 10px;
+        page-break-inside: avoid;
     }
     .pied__ligne {
-        margin-bottom: 2px;
+        margin-bottom: 3px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
     }
+    .pied__ligne strong {
+        color: #475569;
+    }
+
     .signature {
         height: 20mm;
-        border: 1px solid #999;
+        border: 1px solid #cbd5e1;
+        border-radius: 4px;
+        background: #f8fafc;
     }
-    h2.section {
-        font-size: 12px;
-        color: #0d1b3e;
-        margin-top: 18px;
-        margin-bottom: 6px;
-        border-left: 4px solid #1e3a8a;
-        padding-left: 8px;
+
+    /* ============================================================
+       SYNTHÈSE (blocs statistiques)
+       ============================================================ */
+    .synthese {
+        display: table;
+        width: 100%;
+        margin-bottom: 16px;
+        border-spacing: 8px 0;
+    }
+    .synthese__cell {
+        display: table-cell;
+        width: 25%;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        padding: 10px 12px;
+        text-align: center;
+        vertical-align: middle;
+    }
+    .synthese__label {
+        font-size: 8px;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+    .synthese__value {
+        font-size: 16px;
+        font-weight: 700;
+        color: #4f46e5;
+        line-height: 1;
+    }
+    .synthese__unit {
+        font-size: 9px;
+        color: #94a3b8;
+        font-weight: 500;
+        margin-left: 2px;
     }
 </style>
 </head>
