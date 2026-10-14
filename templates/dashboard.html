@@ -171,18 +171,19 @@
         <div class="detail-card">
             <h2 class="detail-card__title">Évolution des paiements (12 derniers mois)</h2>
             {% if evolution_mensuelle %}
-            <div class="chart-bars">
+            <div style="display:grid;grid-template-columns:repeat(12,1fr);gap:6px;height:200px;padding:12px 4px 0;border-bottom:1px solid #e5e7eb;">
                 {% for m in evolution_mensuelle %}
-                <div class="chart-bars__item" title="{{ m.mois }}/{{ m.annee }} : {{ m.total|format_ar }} Ar">
-                    <div class="chart-bars__bar-wrapper">
-                        <div class="chart-bars__bar" style="height: {{ m.hauteur_pct }}%;"></div>
+                <div style="display:flex;flex-direction:column;align-items:center;height:100%;"
+                     title="{{ m.mois }}/{{ m.annee }} : {{ m.total|format_ar }} Ar">
+                    <div style="flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center;">
+                        <div style="width:70%;height:{{ m.hauteur_pct }}%;min-height:3px;background:linear-gradient(180deg,#6366f1,#8b5cf6);border-radius:4px 4px 0 0;box-shadow:0 1px 4px rgba(99,102,241,0.2);"></div>
                     </div>
-                    <div class="chart-bars__label">{{ m.mois }}</div>
+                    <div style="font-size:10px;font-weight:600;color:#94a3b8;padding-top:6px;text-align:center;line-height:1;">{{ m.mois }}</div>
                 </div>
                 {% endfor %}
             </div>
-            <p style="font-size: 11px; color: var(--text-muted); margin: 12px 0 0 0; text-align: center;">
-                Mois 1 à 12 sur les 12 derniers mois glissants. Survolez pour le détail.
+            <p style="font-size:11px;color:#94a3b8;margin:12px 0 0 0;text-align:center;">
+                12 derniers mois glissants. Survolez une barre pour le détail.
             </p>
             {% else %}
             <p class="empty-state__hint">Aucun paiement enregistré.</p>
