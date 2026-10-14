@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+{% load initials %}
+
+{% block title %}Recherche — {{ q|default:"global" }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header__titles">
+        <h1 class="page-title">Résultats de recherche</h1>
+        <p class="page-subtitle">
+            {% if q %}
+                {{ total }} résultat{{ total|pluralize }} pour « {{ q }} »
+            {% else %}
+                Saisissez un mot-clé dans la barre de recherche.
+            {% endif %}
+        </p>
+    </div>
+</div>
+
+{% if not q or q|length < 2 %}
+<div class="empty-state">
+    <div class="empty-state__icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+    </div>
+    <p class="empty-state__title">Recherche globale</p>
+    <p class="empty-state__hint">
+        Saisissez au moins 2 caractères pour lancer la recherche.
+        La recherche couvre : agents, missions, gardes, décomptes et ordres de paiement.
+    </p>
+</div>
+
+{% elif total == 0 %}
+<div class="empty-state">
+    <div class="empty-state__icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+    </div>
+    <p class="empty-state__title">Aucun résultat</p>
+    <p class="empty-state__hint">Aucune entité ne correspond à « {{ q }} ».</p>
+</div>
+
+{% else %}
+
+{# ===================== AGENTS ===================== #}
+{% if agents %}
+<div class="search-results-section">
+    <h2 class="search-results-section__title">
+        Agents
+        <span class="search-results-section__count">{{ agents|length }}</span>
+    </h2>
+    <div class="search-results-list">
+        {% for a in agents %}
+        <a href="{% url 'agents:detail' a.pk %}" class="search-result-item">
+            <span class="avatar avatar--sm {{ forloop.counter|avatar_color }}">
+                {{ a.nom|initials:a.prenoms }}
+            </span>
+            <div class="search-result-item__info">
+                <div class="search-result-item__title">{{ a.nom }} {{ a.prenoms }}</div>
+                <div class="search-result-item__meta">
+                    {{ a.matricule }}{% if a.grade %} — {{ a.grade }}{% endif %}
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{# ===================== MISSIONS ===================== #}
+{% if missions %}
+<div class="search-results-section">
+    <h2 class="search-results-section__title">
+        Missions
+        <span class="search-results-section__count">{{ missions|length }}</span>
+    </h2>
+    <div class="search-results-list">
+        {% for m in missions %}
+        <a href="{% url 'missions:detail' m.pk %}" class="search-result-item">
+            <div class="search-result-item__info">
+                <div class="search-result-item__title">
+                    {{ m.libelle }}
+                    {% if m.numero_officiel %}<code>{{ m.numero_officiel }}</code>{% endif %}
+                </div>
+                <div class="search-result-item__meta">
+                    {{ m.date_debut|date:"d/m/Y" }} — {{ m.get_statut_display }}
+                    {% if m.lieu %} — {{ m.lieu }}{% endif %}
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{# ===================== GARDES ===================== #}
+{% if gardes %}
+<div class="search-results-section">
+    <h2 class="search-results-section__title">
+        Gardes
+        <span class="search-results-section__count">{{ gardes|length }}</span>
+    </h2>
+    <div class="search-results-list">
+        {% for g in gardes %}
+        <a href="{% url 'gardes:detail' g.pk %}" class="search-result-item">
+            <span class="avatar avatar--sm {{ forloop.counter|avatar_color }}">
+                {{ g.agent.nom|initials:g.agent.prenoms }}
+            </span>
+            <div class="search-result-item__info">
+                <div class="search-result-item__title">
+                    {{ g.agent.nom }} {{ g.agent.prenoms }}
+                </div>
+                <div class="search-result-item__meta">
+                    {{ g.date_heure_debut|date:"d/m/Y H:i" }} —
+                    {{ g.nombre_partiels|default:"—" }} partiel(s) —
+                    {{ g.get_statut_display }}
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{# ===================== DÉCOMPTES ===================== #}
+{% if decomptes %}
+<div class="search-results-section">
+    <h2 class="search-results-section__title">
+        Décomptes
+        <span class="search-results-section__count">{{ decomptes|length }}</span>
+    </h2>
+    <div class="search-results-list">
+        {% for d in decomptes %}
+        <a href="{% url 'decomptes:detail' d.pk %}" class="search-result-item">
+            <span class="avatar avatar--sm {{ forloop.counter|avatar_color }}">
+                {{ d.agent.nom|initials:d.agent.prenoms }}
+            </span>
+            <div class="search-result-item__info">
+                <div class="search-result-item__title">
+                    {{ d.agent.nom }} {{ d.agent.prenoms }}
+                </div>
+                <div class="search-result-item__meta">
+                    {{ d.mois|stringformat:"02d" }}/{{ d.annee }} —
+                    {{ d.montant_total }} Ar — {{ d.get_statut_display }}
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{# ===================== ORDRES DE PAIEMENT ===================== #}
+{% if ordres_paiement %}
+<div class="search-results-section">
+    <h2 class="search-results-section__title">
+        Ordres de paiement
+        <span class="search-results-section__count">{{ ordres_paiement|length }}</span>
+    </h2>
+    <div class="search-results-list">
+        {% for op in ordres_paiement %}
+        <a href="{% url 'paiements:detail' op.pk %}" class="search-result-item">
+            <span class="avatar avatar--sm {{ forloop.counter|avatar_color }}">
+                {{ op.agent_beneficiaire.nom|initials:op.agent_beneficiaire.prenoms }}
+            </span>
+            <div class="search-result-item__info">
+                <div class="search-result-item__title">
+                    <code>{{ op.numero_op }}</code> —
+                    {{ op.agent_beneficiaire.nom }} {{ op.agent_beneficiaire.prenoms }}
+                </div>
+                <div class="search-result-item__meta">
+                    {{ op.montant_total }} Ar — {{ op.get_statut_display }}
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% endif %}
+{% endblock %}
