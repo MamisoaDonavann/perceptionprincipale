@@ -6,7 +6,7 @@ Context processor pour le fil d'Ariane.
 # Chaque segment = (label, url_name_or_None)
 BREADCRUMBS = {
     # Dashboard
-    ('', 'dashboard'): [('Tableau de bord', None)],
+    ('core', 'dashboard'): [('Tableau de bord', None)],
 
     # Agents
     ('agents', 'list'):    [('Agents', None)],

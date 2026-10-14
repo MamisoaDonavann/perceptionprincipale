@@ -19,7 +19,7 @@ class AuthenticationTests(TestCase):
         )
 
     def test_dashboard_requires_login(self):
-        r = self.client.get(reverse('dashboard'))
+        r = self.client.get(reverse('core:dashboard'))
         self.assertEqual(r.status_code, 302)
         self.assertIn(reverse('login'), r.url)
 
@@ -29,7 +29,7 @@ class AuthenticationTests(TestCase):
             'password': 'TestPassword2026!',
         })
         self.assertEqual(r.status_code, 302)
-        self.assertEqual(r.url, reverse('dashboard'))
+        self.assertEqual(r.url, reverse('core:dashboard'))
 
     def test_login_invalid_credentials(self):
         r = self.client.post(reverse('login'), {

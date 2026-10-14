@@ -4,10 +4,12 @@ Routes de l'application core.
 
 from django.urls import path
 
-from .views import dashboard, global_search
+from . import views
 
+
+app_name = 'core'
 
 urlpatterns = [
-    path('', dashboard, name='dashboard'),
-    path('recherche/', global_search, name='search'),
+    path('', views.dashboard, name='dashboard'),
+    path('recherche/', views.global_search, name='search'),
 ]

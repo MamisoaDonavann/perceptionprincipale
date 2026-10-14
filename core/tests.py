@@ -19,14 +19,14 @@ class DashboardTests(TestCase):
 
     def test_dashboard_requires_login(self):
         """Sans connexion, dashboard inaccessible."""
-        response = self.client.get(reverse('dashboard'))
+        response = self.client.get(reverse('core:dashboard'))
         self.assertEqual(response.status_code, 302)
         self.assertIn(reverse('login'), response.url)
 
     def test_dashboard_contains_stats(self):
         """Dashboard affiche les cartes de statistiques."""
         self.client.login(username='dash_user', password='TestPassword2026!')
-        response = self.client.get(reverse('dashboard'))
+        response = self.client.get(reverse('core:dashboard'))
         self.assertEqual(response.status_code, 200)
         for label in [
             'Agents actifs', 'Missions', 'Gardes validées',
@@ -38,7 +38,7 @@ class DashboardTests(TestCase):
     def test_dashboard_stats_are_integers(self):
         """Les statistiques retournées sont des entiers."""
         self.client.login(username='dash_user', password='TestPassword2026!')
-        response = self.client.get(reverse('dashboard'))
+        response = self.client.get(reverse('core:dashboard'))
         stats = response.context['stats']
         for key in [
             'agents_actifs', 'missions', 'gardes_validees',
@@ -51,5 +51,5 @@ class DashboardTests(TestCase):
     def test_dashboard_contains_username(self):
         """Le nom d'utilisateur apparaît dans le dashboard."""
         self.client.login(username='dash_user', password='TestPassword2026!')
-        response = self.client.get(reverse('dashboard'))
+        response = self.client.get(reverse('core:dashboard'))
         self.assertContains(response, 'dash_user')
