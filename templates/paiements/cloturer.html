@@ -10,15 +10,19 @@
 </div>
 
 <div class="info-box info-box--warning">
-    La clôture exige que tous les paiements actifs aient une confirmation de réception active.
-    Action <strong>irréversible</strong> par les opérations ordinaires.
+    La clôture exige que tous les paiements actifs aient une confirmation
+    de réception active. Action <strong>irréversible</strong> par les
+    opérations ordinaires.
 </div>
 
-<form method="post" class="form-card">
+<form method="post"
+      data-confirm="La clôture administrative est définitive. Confirmez-vous ?"
+      data-confirm-title="Clôturer l'OP {{ op.numero_op }} ?"
+      data-confirm-label="Clôturer"
+      data-confirm-variant="warning">
     {% csrf_token %}
-    <p>Confirmez-vous la clôture administrative de cet OP ?</p>
     <div class="form-actions">
-        <button type="submit" class="btn-create">Clôturer</button>
+        <button type="submit" class="btn-create">Clôturer administrativement</button>
         <a href="{% url 'paiements:detail' op.pk %}" class="btn-secondary">Annuler</a>
     </div>
 </form>

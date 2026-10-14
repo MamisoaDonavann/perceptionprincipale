@@ -3,7 +3,7 @@
 {% block content %}
 <div class="page-header">
     <div class="page-header__titles">
-        <h1 class="page-title">Annuler l'OP</h1>
+        <h1 class="page-title">Annuler l'Ordre de Paiement</h1>
         <p class="page-subtitle">{{ op.numero_op }} — {{ op.montant_total }} Ar</p>
     </div>
     <div><a href="{% url 'paiements:detail' op.pk %}" class="btn-secondary">Retour</a></div>
@@ -14,15 +14,19 @@
     Les réservations des décomptes seront libérées.
 </div>
 
-<form method="post" class="form-card">
+<form method="post">
     {% csrf_token %}
-    <div class="form-group">
-        <label for="{{ form.motif.id_for_label }}">Motif d'annulation <span class="required">*</span></label>
-        {{ form.motif }}
-    </div>
+    <fieldset class="form-section">
+        <legend>Motif d'annulation</legend>
+        <div class="form-group">
+            <label for="{{ form.motif.id_for_label }}">Motif <span class="required">*</span></label>
+            {{ form.motif }}
+            {% if form.motif.errors %}<div class="errors"><ul>{% for e in form.motif.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+        </div>
+    </fieldset>
     <div class="form-actions">
         <button type="submit" class="btn-create">Confirmer l'annulation</button>
-        <a href="{% url 'paiements:detail' op.pk %}" class="btn-secondary">Retour</a>
+        <a href="{% url 'paiements:detail' op.pk %}" class="btn-secondary">Annuler</a>
     </div>
 </form>
 {% endblock %}

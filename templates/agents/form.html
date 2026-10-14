@@ -8,13 +8,13 @@
         <h1 class="page-title">{{ titre }}</h1>
         <p class="page-subtitle">
             {% if mode == 'creation' %}
-                Création d'un nouvel agent.
+                Création d'un nouvel agent dans la base.
             {% else %}
-                Modification de la fiche agent.
+                Modification de la fiche agent — les changements sont journalisés.
             {% endif %}
         </p>
     </div>
-    <div>
+    <div style="display: flex; gap: 8px;">
         <a href="{% url 'agents:list' %}" class="btn-secondary">Retour</a>
         {% if agent %}
             <a href="{% url 'agents:detail' agent.pk %}" class="btn-secondary">Voir la fiche</a>
@@ -22,48 +22,152 @@
     </div>
 </div>
 
-<form method="post" class="form-card" novalidate
+<form method="post" novalidate
       {% if mode == 'modification' %}
       data-confirm="Les modifications seront enregistrées sur la fiche de l'agent. Cette action est traçable dans le journal d'audit."
       data-confirm-title="Enregistrer les modifications ?"
       data-confirm-label="Enregistrer"
       data-confirm-variant="info"
       {% endif %}>
+
     {% csrf_token %}
 
     {% if form.non_field_errors %}
-        <div class="login-error">
+        <div class="info-box info-box--warning" style="border-color: var(--danger); background: #fef2f2; color: #991b1b;">
             {% for error in form.non_field_errors %}{{ error }}{% endfor %}
         </div>
     {% endif %}
 
-    <div class="form-grid">
-        {% for field in form %}
-            <div class="form-group {% if field.name == 'observation' %}form-grid__full{% endif %}">
-                <label for="{{ field.id_for_label }}">
-                    {{ field.label }}
-                    {% if field.field.required %}<span class="required">*</span>{% endif %}
+    {# ==================== SECTION : IDENTIFICATION ==================== #}
+    <fieldset class="form-section">
+        <legend>Identification</legend>
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="{{ form.matricule.id_for_label }}">
+                    {{ form.matricule.label }} <span class="required">*</span>
                 </label>
-                {{ field }}
-                {% if field.help_text %}
-                    <span class="help">{{ field.help_text }}</span>
-                {% endif %}
-                {% if field.errors %}
-                    <div class="errors">
-                        <ul>
-                            {% for error in field.errors %}<li>{{ error }}</li>{% endfor %}
-                        </ul>
-                    </div>
-                {% endif %}
+                {{ form.matricule }}
+                {% if form.matricule.help_text %}<span class="help">{{ form.matricule.help_text }}</span>{% endif %}
+                {% if form.matricule.errors %}<div class="errors"><ul>{% for e in form.matricule.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
             </div>
-        {% endfor %}
-    </div>
 
+            <div class="form-group">
+                <label for="{{ form.cin.id_for_label }}">{{ form.cin.label }}</label>
+                {{ form.cin }}
+                {% if form.cin.help_text %}<span class="help">{{ form.cin.help_text }}</span>{% endif %}
+                {% if form.cin.errors %}<div class="errors"><ul>{% for e in form.cin.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.nom.id_for_label }}">
+                    {{ form.nom.label }} <span class="required">*</span>
+                </label>
+                {{ form.nom }}
+                {% if form.nom.errors %}<div class="errors"><ul>{% for e in form.nom.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.prenoms.id_for_label }}">
+                    {{ form.prenoms.label }} <span class="required">*</span>
+                </label>
+                {{ form.prenoms }}
+                {% if form.prenoms.errors %}<div class="errors"><ul>{% for e in form.prenoms.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+            </div>
+        </div>
+    </fieldset>
+
+    {# ==================== SECTION : INFORMATIONS PERSONNELLES ==================== #}
+    <fieldset class="form-section">
+        <legend>Informations personnelles</legend>
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="{{ form.date_naissance.id_for_label }}">{{ form.date_naissance.label }}</label>
+                {{ form.date_naissance }}
+                {% if form.date_naissance.errors %}<div class="errors"><ul>{% for e in form.date_naissance.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.lieu_naissance.id_for_label }}">{{ form.lieu_naissance.label }}</label>
+                {{ form.lieu_naissance }}
+                {% if form.lieu_naissance.errors %}<div class="errors"><ul>{% for e in form.lieu_naissance.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.sexe.id_for_label }}">{{ form.sexe.label }}</label>
+                {{ form.sexe }}
+                {% if form.sexe.errors %}<div class="errors"><ul>{% for e in form.sexe.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.telephone.id_for_label }}">{{ form.telephone.label }}</label>
+                {{ form.telephone }}
+                {% if form.telephone.help_text %}<span class="help">{{ form.telephone.help_text }}</span>{% endif %}
+                {% if form.telephone.errors %}<div class="errors"><ul>{% for e in form.telephone.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+            </div>
+
+            <div class="form-group form-grid__full">
+                <label for="{{ form.adresse.id_for_label }}">{{ form.adresse.label }}</label>
+                {{ form.adresse }}
+                {% if form.adresse.help_text %}<span class="help">{{ form.adresse.help_text }}</span>{% endif %}
+                {% if form.adresse.errors %}<div class="errors"><ul>{% for e in form.adresse.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+            </div>
+        </div>
+    </fieldset>
+
+    {# ==================== SECTION : FONCTION ==================== #}
+    <fieldset class="form-section">
+        <legend>Fonction</legend>
+        <div class="form-grid">
+            <div class="form-group form-grid__full">
+                <label for="{{ form.grade.id_for_label }}">{{ form.grade.label }}</label>
+                {{ form.grade }}
+                {% if form.grade.help_text %}<span class="help">{{ form.grade.help_text }}</span>{% endif %}
+                {% if form.grade.errors %}<div class="errors"><ul>{% for e in form.grade.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+            </div>
+        </div>
+    </fieldset>
+
+    {# ==================== SECTION : STATUT ET ACTIVATION ==================== #}
+    <fieldset class="form-section">
+        <legend>Statut et activation</legend>
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="{{ form.statut_agent.id_for_label }}">
+                    {{ form.statut_agent.label }} <span class="required">*</span>
+                </label>
+                {{ form.statut_agent }}
+                {% if form.statut_agent.help_text %}<span class="help">{{ form.statut_agent.help_text }}</span>{% endif %}
+                {% if form.statut_agent.errors %}<div class="errors"><ul>{% for e in form.statut_agent.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-top: 24px;">
+                    {{ form.actif }}
+                    <span>{{ form.actif.label }}</span>
+                </label>
+                {% if form.actif.help_text %}<span class="help">{{ form.actif.help_text }}</span>{% endif %}
+                {% if form.actif.errors %}<div class="errors"><ul>{% for e in form.actif.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+            </div>
+        </div>
+    </fieldset>
+
+    {# ==================== SECTION : DIVERS ==================== #}
+    <fieldset class="form-section">
+        <legend>Divers</legend>
+        <div class="form-group">
+            <label for="{{ form.observation.id_for_label }}">{{ form.observation.label }}</label>
+            {{ form.observation }}
+            {% if form.observation.errors %}<div class="errors"><ul>{% for e in form.observation.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+        </div>
+    </fieldset>
+
+    {# ==================== ACTIONS ==================== #}
     <div class="form-actions">
         <button type="submit" class="btn-create">
             {% if mode == 'creation' %}Créer l'agent{% else %}Enregistrer les modifications{% endif %}
         </button>
         <a href="{% url 'agents:list' %}" class="btn-secondary">Annuler</a>
     </div>
+
 </form>
 {% endblock %}

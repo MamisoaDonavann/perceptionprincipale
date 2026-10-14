@@ -10,7 +10,7 @@
             Un décompte regroupe les gardes conformes d'un agent sur un mois civil.
         </p>
     </div>
-    <div>
+    <div style="display: flex; gap: 8px;">
         <a href="{% url 'decomptes:list' %}" class="btn-secondary">Retour</a>
     </div>
 </div>
@@ -18,38 +18,54 @@
 <div class="info-box info-box--info">
     Les gardes conformes (multiples de 12 heures) sur le mois choisi seront
     automatiquement sélectionnées. Le montant est calculé avec le tarif
-    historique de chaque garde. Les gardes non conformes sont signalées mais
-    exclues.
+    historique de chaque garde. Les gardes non conformes sont signalées mais exclues.
 </div>
 
-<form method="post" class="form-card" novalidate>
+<form method="post" novalidate>
     {% csrf_token %}
+
     {% if form.non_field_errors %}
-        <div class="login-error">
+        <div class="info-box info-box--warning" style="border-color: var(--danger); background: #fef2f2; color: #991b1b;">
             {% for error in form.non_field_errors %}{{ error }}{% endfor %}
         </div>
     {% endif %}
 
-    <div class="form-grid">
-        {% for field in form %}
-            <div class="form-group">
-                <label for="{{ field.id_for_label }}">
-                    {{ field.label }}
-                    {% if field.field.required %}<span class="required">*</span>{% endif %}
+    {# ==================== SECTION : AGENT ET PÉRIODE ==================== #}
+    <fieldset class="form-section">
+        <legend>Agent et période</legend>
+        <div class="form-grid">
+            <div class="form-group form-grid__full">
+                <label for="{{ form.agent.id_for_label }}">
+                    {{ form.agent.label }} <span class="required">*</span>
                 </label>
-                {{ field }}
-                {% if field.errors %}
-                    <div class="errors"><ul>
-                        {% for error in field.errors %}<li>{{ error }}</li>{% endfor %}
-                    </ul></div>
-                {% endif %}
+                {{ form.agent }}
+                {% if form.agent.help_text %}<span class="help">{{ form.agent.help_text }}</span>{% endif %}
+                {% if form.agent.errors %}<div class="errors"><ul>{% for e in form.agent.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
             </div>
-        {% endfor %}
-    </div>
 
+            <div class="form-group">
+                <label for="{{ form.annee.id_for_label }}">
+                    {{ form.annee.label }} <span class="required">*</span>
+                </label>
+                {{ form.annee }}
+                {% if form.annee.errors %}<div class="errors"><ul>{% for e in form.annee.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.mois.id_for_label }}">
+                    {{ form.mois.label }} <span class="required">*</span>
+                </label>
+                {{ form.mois }}
+                {% if form.mois.errors %}<div class="errors"><ul>{% for e in form.mois.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+            </div>
+        </div>
+    </fieldset>
+
+    {# ==================== ACTIONS ==================== #}
     <div class="form-actions">
         <button type="submit" class="btn-create">Créer le décompte</button>
         <a href="{% url 'decomptes:list' %}" class="btn-secondary">Annuler</a>
     </div>
+
 </form>
 {% endblock %}

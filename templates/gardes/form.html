@@ -10,7 +10,7 @@
             Un partiel correspond à 12 heures (720 minutes).
         </p>
     </div>
-    <div>
+    <div style="display: flex; gap: 8px;">
         <a href="{% url 'gardes:list' %}" class="btn-secondary">Retour</a>
     </div>
 </div>
@@ -24,36 +24,87 @@
     </ul>
 </div>
 
-<form method="post" class="form-card" novalidate>
+<form method="post" novalidate>
     {% csrf_token %}
 
     {% if form.non_field_errors %}
-        <div class="login-error">
+        <div class="info-box info-box--warning" style="border-color: var(--danger); background: #fef2f2; color: #991b1b;">
             {% for error in form.non_field_errors %}{{ error }}{% endfor %}
         </div>
     {% endif %}
 
-    <div class="form-grid">
-        {% for field in form %}
-            <div class="form-group {% if field.name == 'observation' %}form-grid__full{% endif %}">
-                <label for="{{ field.id_for_label }}">
-                    {{ field.label }}
-                    {% if field.field.required %}<span class="required">*</span>{% endif %}
+    {# ==================== SECTION : AGENT ET MISSION ==================== #}
+    <fieldset class="form-section">
+        <legend>Agent et mission</legend>
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="{{ form.agent.id_for_label }}">
+                    {{ form.agent.label }} <span class="required">*</span>
                 </label>
-                {{ field }}
-                {% if field.help_text %}<span class="help">{{ field.help_text }}</span>{% endif %}
-                {% if field.errors %}
-                    <div class="errors"><ul>
-                        {% for error in field.errors %}<li>{{ error }}</li>{% endfor %}
-                    </ul></div>
-                {% endif %}
+                {{ form.agent }}
+                {% if form.agent.help_text %}<span class="help">{{ form.agent.help_text }}</span>{% endif %}
+                {% if form.agent.errors %}<div class="errors"><ul>{% for e in form.agent.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
             </div>
-        {% endfor %}
-    </div>
 
+            <div class="form-group">
+                <label for="{{ form.mission.id_for_label }}">{{ form.mission.label }}</label>
+                {{ form.mission }}
+                {% if form.mission.help_text %}<span class="help">{{ form.mission.help_text }}</span>{% endif %}
+                {% if form.mission.errors %}<div class="errors"><ul>{% for e in form.mission.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+            </div>
+        </div>
+    </fieldset>
+
+    {# ==================== SECTION : TARIF APPLICABLE ==================== #}
+    <fieldset class="form-section">
+        <legend>Tarif applicable</legend>
+        <div class="form-grid">
+            <div class="form-group form-grid__full">
+                <label for="{{ form.tarif.id_for_label }}">{{ form.tarif.label }}</label>
+                {{ form.tarif }}
+                {% if form.tarif.help_text %}<span class="help">{{ form.tarif.help_text }}</span>{% endif %}
+                {% if form.tarif.errors %}<div class="errors"><ul>{% for e in form.tarif.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+            </div>
+        </div>
+    </fieldset>
+
+    {# ==================== SECTION : PÉRIODE DE LA GARDE ==================== #}
+    <fieldset class="form-section">
+        <legend>Période de la garde</legend>
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="{{ form.date_heure_debut.id_for_label }}">
+                    {{ form.date_heure_debut.label }} <span class="required">*</span>
+                </label>
+                {{ form.date_heure_debut }}
+                {% if form.date_heure_debut.errors %}<div class="errors"><ul>{% for e in form.date_heure_debut.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.date_heure_fin.id_for_label }}">
+                    {{ form.date_heure_fin.label }} <span class="required">*</span>
+                </label>
+                {{ form.date_heure_fin }}
+                {% if form.date_heure_fin.errors %}<div class="errors"><ul>{% for e in form.date_heure_fin.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+            </div>
+        </div>
+    </fieldset>
+
+    {# ==================== SECTION : OBSERVATION ==================== #}
+    <fieldset class="form-section">
+        <legend>Observation</legend>
+        <div class="form-group">
+            <label for="{{ form.observation.id_for_label }}">{{ form.observation.label }}</label>
+            {{ form.observation }}
+            {% if form.observation.errors %}<div class="errors"><ul>{% for e in form.observation.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+        </div>
+    </fieldset>
+
+    {# ==================== ACTIONS ==================== #}
     <div class="form-actions">
         <button type="submit" class="btn-create">Créer la garde</button>
         <a href="{% url 'gardes:list' %}" class="btn-secondary">Annuler</a>
     </div>
+
 </form>
 {% endblock %}

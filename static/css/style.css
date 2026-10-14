@@ -853,9 +853,58 @@ a:hover { color: var(--primary-700); }
     margin-bottom: 7px;
 }
 
-.form-group .required { color: var(--danger); }
-.form-group .help { display: block; font-size: 11.5px; color: var(--text-muted); margin-top: 5px; font-style: italic; }
-.form-group .errors { color: var(--danger); font-size: 12px; margin-top: 5px; }
+.form-group .required {
+    color: var(--danger);
+    font-size: 15px;
+    font-weight: 800;
+    margin-left: 3px;
+    line-height: 1;
+    vertical-align: middle;
+}
+
+.form-group .help {
+    display: block;
+    font-size: 13px;
+    color: var(--text-2);
+    margin-top: 6px;
+    line-height: 1.5;
+    font-style: normal;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+}
+
+.form-group .help::before {
+    content: '';
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+    margin-top: 2px;
+    background-color: var(--primary-400);
+    -webkit-mask-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3ccircle cx='12' cy='12' r='10'/%3e%3cline x1='12' y1='16' x2='12' y2='12'/%3e%3cline x1='12' y1='8' x2='12.01' y2='8'/%3e%3c/svg%3e");
+    mask-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3ccircle cx='12' cy='12' r='10'/%3e%3cline x1='12' y1='16' x2='12' y2='12'/%3e%3cline x1='12' y1='8' x2='12.01' y2='8'/%3e%3c/svg%3e");
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+}
+
+.form-group .errors {
+    color: var(--danger);
+    font-size: 13px;
+    font-weight: 500;
+    margin-top: 6px;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+}
+
+.form-group .errors::before {
+    content: '⚠';
+    flex-shrink: 0;
+    font-size: 14px;
+    line-height: 1.2;
+}
 .form-group .errors ul { list-style: none; padding: 0; margin: 0; }
 
 .form-actions {

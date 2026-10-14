@@ -10,37 +10,118 @@
             Sélectionnez un agent et un ou plusieurs décomptes validés.
         </p>
     </div>
-    <div><a href="{% url 'paiements:list' %}" class="btn-secondary">Retour</a></div>
+    <div style="display: flex; gap: 8px;">
+        <a href="{% url 'paiements:list' %}" class="btn-secondary">Retour</a>
+    </div>
 </div>
 
-<form method="post" class="form-card">
+<div class="info-box info-box--info">
+    Un Ordre de Paiement concerne un seul agent bénéficiaire et peut regrouper
+    plusieurs décomptes validés du même agent. Les décomptes déjà réservés par
+    un autre OP actif ne sont pas affichés.
+</div>
+
+<form method="post" novalidate>
     {% csrf_token %}
+
     {% if form.non_field_errors %}
-        <div class="login-error">
-            {% for e in form.non_field_errors %}{{ e }}{% endfor %}
+        <div class="info-box info-box--warning" style="border-color: var(--danger); background: #fef2f2; color: #991b1b;">
+            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
         </div>
     {% endif %}
 
-    <div class="form-grid">
-        {% for field in form %}
-            <div class="form-group {% if field.name in 'decomptes,observation' %}form-grid__full{% endif %}">
-                <label for="{{ field.id_for_label }}">
-                    {{ field.label }}{% if field.field.required %}<span class="required">*</span>{% endif %}
+    {# ==================== SECTION : BÉNÉFICIAIRE ET PÉRIODE ==================== #}
+    <fieldset class="form-section">
+        <legend>Bénéficiaire et période</legend>
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="{{ form.agent.id_for_label }}">
+                    {{ form.agent.label }} <span class="required">*</span>
                 </label>
-                {{ field }}
-                {% if field.help_text %}<span class="help">{{ field.help_text }}</span>{% endif %}
-                {% if field.errors %}
-                    <div class="errors"><ul>
-                        {% for e in field.errors %}<li>{{ e }}</li>{% endfor %}
-                    </ul></div>
-                {% endif %}
+                {{ form.agent }}
+                {% if form.agent.errors %}<div class="errors"><ul>{% for e in form.agent.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
             </div>
-        {% endfor %}
-    </div>
 
+            <div class="form-group">
+                <label for="{{ form.annee.id_for_label }}">
+                    {{ form.annee.label }} <span class="required">*</span>
+                </label>
+                {{ form.annee }}
+                {% if form.annee.errors %}<div class="errors"><ul>{% for e in form.annee.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+            </div>
+
+            <div class="form-group form-grid__full">
+                <label for="{{ form.decomptes.id_for_label }}">
+                    {{ form.decomptes.label }} <span class="required">*</span>
+                </label>
+                {{ form.decomptes }}
+                {% if form.decomptes.help_text %}<span class="help">{{ form.decomptes.help_text }}</span>{% endif %}
+                {% if form.decomptes.errors %}<div class="errors"><ul>{% for e in form.decomptes.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+            </div>
+        </div>
+    </fieldset>
+
+    {# ==================== SECTION : INFORMATIONS ADMINISTRATIVES ==================== #}
+    <fieldset class="form-section">
+        <legend>Informations administratives (optionnelles)</legend>
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="{{ form.date_emission.id_for_label }}">{{ form.date_emission.label }}</label>
+                {{ form.date_emission }}
+                {% if form.date_emission.help_text %}<span class="help">{{ form.date_emission.help_text }}</span>{% endif %}
+                {% if form.date_emission.errors %}<div class="errors"><ul>{% for e in form.date_emission.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.numero_be.id_for_label }}">{{ form.numero_be.label }}</label>
+                {{ form.numero_be }}
+                {% if form.numero_be.errors %}<div class="errors"><ul>{% for e in form.numero_be.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.titulaire_nom.id_for_label }}">{{ form.titulaire_nom.label }}</label>
+                {{ form.titulaire_nom }}
+                {% if form.titulaire_nom.help_text %}<span class="help">{{ form.titulaire_nom.help_text }}</span>{% endif %}
+                {% if form.titulaire_nom.errors %}<div class="errors"><ul>{% for e in form.titulaire_nom.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.titulaire_numero.id_for_label }}">{{ form.titulaire_numero.label }}</label>
+                {{ form.titulaire_numero }}
+                {% if form.titulaire_numero.help_text %}<span class="help">{{ form.titulaire_numero.help_text }}</span>{% endif %}
+                {% if form.titulaire_numero.errors %}<div class="errors"><ul>{% for e in form.titulaire_numero.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+            </div>
+
+            <div class="form-group form-grid__full">
+                <label for="{{ form.montant_lettres.id_for_label }}">{{ form.montant_lettres.label }}</label>
+                {{ form.montant_lettres }}
+                {% if form.montant_lettres.help_text %}<span class="help">{{ form.montant_lettres.help_text }}</span>{% endif %}
+                {% if form.montant_lettres.errors %}<div class="errors"><ul>{% for e in form.montant_lettres.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+            </div>
+
+            <div class="form-group form-grid__full">
+                <label for="{{ form.modalite_reglement.id_for_label }}">{{ form.modalite_reglement.label }}</label>
+                {{ form.modalite_reglement }}
+                {% if form.modalite_reglement.errors %}<div class="errors"><ul>{% for e in form.modalite_reglement.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+            </div>
+        </div>
+    </fieldset>
+
+    {# ==================== SECTION : OBSERVATION ==================== #}
+    <fieldset class="form-section">
+        <legend>Observation</legend>
+        <div class="form-group">
+            <label for="{{ form.observation.id_for_label }}">{{ form.observation.label }}</label>
+            {{ form.observation }}
+            {% if form.observation.errors %}<div class="errors"><ul>{% for e in form.observation.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+        </div>
+    </fieldset>
+
+    {# ==================== ACTIONS ==================== #}
     <div class="form-actions">
         <button type="submit" class="btn-create">Créer l'OP</button>
         <a href="{% url 'paiements:list' %}" class="btn-secondary">Annuler</a>
     </div>
+
 </form>
 {% endblock %}

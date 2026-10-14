@@ -8,19 +8,30 @@
     </div>
     <div><a href="{% url 'paiements:detail' op.pk %}" class="btn-secondary">Retour</a></div>
 </div>
-<form method="post" class="form-card">
+
+<div class="info-box info-box--info">
+    Le décompte retiré sera libéré et pourra être rattaché à un autre OP.
+    Cette action n'est possible que sur un OP en BROUILLON.
+</div>
+
+<form method="post">
     {% csrf_token %}
-    <div class="form-grid">
-        {% for field in form %}
-            <div class="form-group {% if field.name == 'motif' %}form-grid__full{% endif %}">
-                <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="required">*</span>{% endif %}</label>
-                {{ field }}
-                {% if field.errors %}<div class="errors"><ul>{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
-            </div>
-        {% endfor %}
-    </div>
+    <fieldset class="form-section">
+        <legend>Période à retirer</legend>
+        <div class="form-grid">
+            {% for field in form %}
+                <div class="form-group {% if field.name == 'motif' %}form-grid__full{% endif %}">
+                    <label for="{{ field.id_for_label }}">
+                        {{ field.label }}{% if field.field.required %} <span class="required">*</span>{% endif %}
+                    </label>
+                    {{ field }}
+                    {% if field.errors %}<div class="errors"><ul>{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    </fieldset>
     <div class="form-actions">
-        <button type="submit" class="btn-create">Retirer</button>
+        <button type="submit" class="btn-create">Retirer la période</button>
         <a href="{% url 'paiements:detail' op.pk %}" class="btn-secondary">Annuler</a>
     </div>
 </form>
