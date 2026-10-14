@@ -1,54 +1,94 @@
 {% extends "rapports/pdf/base_pdf.html" %}
+{% load format_tags %}
 
 {% block titre %}Liste des ordres de paiement{% endblock %}
 {% block titre_rapport %}Liste des ordres de paiement{% endblock %}
 {% block sous_titre %}
     <div class="entete__sous-titre">
         {% if date_debut or date_fin %}
-            Période :
-            {{ date_debut|date:"d/m/Y"|default:"—" }} → {{ date_fin|date:"d/m/Y"|default:"—" }}
+            Période : {{ date_debut|date:"d/m/Y"|default:"—" }} → {{ date_fin|date:"d/m/Y"|default:"—" }}
         {% else %}
-            Tous les OP
+            Tous les ordres de paiement
         {% endif %}
         {% if statut_filtre %} — Statut : {{ statut_filtre }}{% endif %}
-        — {{ total }} enregistrement{{ total|pluralize }}
     </div>
 {% endblock %}
 
 {% block contenu %}
 
+<div class="synthese">
+    <div class="synthese__cell">
+        <div class="synthese__label">Ordres</div>
+        <div class="synthese__value">{{ total }}</div>
+    </div>
+    <div class="synthese__cell">
+        <div class="synthese__label">Montant total</div>
+        <div class="synthese__value">{{ total_montant|format_ar }}<span class="synthese__unit">Ar</span></div>
+    </div>
+    <div class="synthese__cell">
+        <div class="synthese__label">Net payé</div>
+        <div class="synthese__value">{{ total_paye|format_ar }}<span class="synthese__unit">Ar</span></div>
+    </div>
+    <div class="synthese__cell">
+        <div class="synthese__label">Reste à payer</div>
+        <div class="synthese__value">{{ reste_a_payer|format_ar }}<span class="synthese__unit">Ar</span></div>
+    </div>
+</div>
+
+<h2 class="section">Détail des ordres de paiement</h2>
+
 <table class="data">
     <thead>
         <tr>
-            <th>N° OP</th>
-            <th>Agent bénéficiaire</th>
-            <th>Créé le</th>
-            <th class="amount">Montant total</th>
-            <th class="amount">Net payé</th>
-            <th class="text-center">Statut</th>
-            <th class="text-center">Clôturé</th>
+            <th style="width: 12%;">N° OP</th>
+            <th style="width: 22%;">Agent bénéficiaire</th>
+            <th style="width: 10%;">Créé le</th>
+            <th class="amount" style="width: 14%;">Montant total</th>
+            <th class="amount" style="width: 14%;">Net payé</th>
+            <th class="text-center" style="width: 14%;">Statut</th>
+            <th class="text-center" style="width: 14%;">Clôture</th>
         </tr>
     </thead>
     <tbody>
         {% for op in ops %}
         <tr>
-            <td>{{ op.numero_op }}</td>
-            <td>{{ op.agent_beneficiaire.matricule }} — {{ op.agent_beneficiaire.nom }}</td>
+            <td><strong>{{ op.numero_op }}</strong></td>
+            <td>{{ op.agent_beneficiaire.matricule }}<br><span style="color: #64748b; font-size: 8.5px;">{{ op.agent_beneficiaire.nom }} {{ op.agent_beneficiaire.prenoms }}</span></td>
             <td>{{ op.date_creation|date:"d/m/Y" }}</td>
-            <td class="amount">{{ op.montant_total }} Ar</td>
-            <td class="amount">{{ op.montant_net_paye }} Ar</td>
-            <td class="text-center">{{ op.get_statut_display }}</td>
-            <td class="text-center">{% if op.cloture_administrative %}Oui{% else %}Non{% endif %}</td>
+            <td class="amount">{{ op.montant_total|format_ar }} Ar</td>
+            <td class="amount">{{ op.montant_net_paye|format_ar }} Ar</td>
+            <td class="text-center">
+                {% if op.statut == 'PAYE' %}
+                    <span class="badge badge--paye">Payé</span>
+                {% elif op.statut == 'VALIDE' %}
+                    <span class="badge badge--valide">Validé</span>
+                {% elif op.statut == 'ANNULE' %}
+                    <span class="badge badge--annule">Annulé</span>
+                {% else %}
+                    <span class="badge badge--brouillon">Brouillon</span>
+                {% endif %}
+            </td>
+            <td class="text-center">
+                {% if op.cloture_administrative %}
+                    <span class="badge badge--valide">Clôturé</span>
+                {% else %}
+                    <span style="color: #94a3b8; font-size: 8.5px;">—</span>
+                {% endif %}
+            </td>
         </tr>
         {% empty %}
-        <tr><td colspan="7" class="text-center">Aucun OP trouvé.</td></tr>
+        <tr>
+            <td colspan="7" class="text-center" style="padding: 20px; color: #94a3b8; font-style: italic;">
+                Aucun OP trouvé pour ces critères.
+            </td>
+        </tr>
         {% endfor %}
     </tbody>
     <tfoot>
         <tr>
-            <td colspan="3" class="amount"><strong>Total</strong></td>
-            <td class="amount"><strong>{{ total_montant }} Ar</strong></td>
-            <td class="amount"><strong>{{ total_paye }} Ar</strong></td>
+            <td colspan="3" class="text-right">TOTAL GÉNÉRAL</td>
+            <td class="amount"><strong>{{ total_montant|format_ar }} Ar</strong></td>
+            <td class="amount"><strong>{{ total_paye|format_ar }} Ar</strong></td>
             <td colspan="2"></td>
         </tr>
     </tfoot>

@@ -1621,3 +1621,144 @@ summary:focus-visible {
     outline-offset: 2px;
     border-radius: 4px;
 }
+
+/* ============================================================
+   24. DASHBOARD — Graphique barres + Timeline
+   ============================================================ */
+
+/* ---------- Graphique en barres ---------- */
+.chart-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 180px;
+    padding: 12px 4px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.chart-bars__item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    cursor: help;
+}
+
+.chart-bars__bar-wrapper {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 4px;
+}
+
+.chart-bars__bar {
+    width: 70%;
+    min-height: 2px;
+    background: linear-gradient(180deg, var(--primary-500), var(--violet));
+    border-radius: 4px 4px 0 0;
+    transition: all 0.3s var(--ease-out);
+    box-shadow: 0 1px 4px rgba(99,102,241,.20);
+}
+
+.chart-bars__item:hover .chart-bars__bar {
+    background: linear-gradient(180deg, var(--primary-600), var(--accent-violet, #8b5cf6));
+    box-shadow: 0 4px 12px rgba(99,102,241,.35);
+    transform: scaleY(1.03);
+    transform-origin: bottom;
+}
+
+.chart-bars__label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+    padding-top: 6px;
+    text-align: center;
+    line-height: 1;
+}
+
+.chart-bars__item:hover .chart-bars__label {
+    color: var(--primary-600);
+}
+
+/* ---------- Timeline ---------- */
+.timeline {
+    position: relative;
+    padding-left: 4px;
+}
+
+.timeline__item {
+    position: relative;
+    padding: 0 0 16px 24px;
+    display: flex;
+    gap: 0;
+}
+
+.timeline__item:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 14px;
+    bottom: -4px;
+    width: 2px;
+    background: var(--gray-200);
+}
+
+.timeline__dot {
+    position: absolute;
+    left: 0;
+    top: 4px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--primary-100);
+    border: 2px solid var(--surface);
+    box-shadow: 0 0 0 1px var(--primary-200);
+    z-index: 1;
+}
+
+.timeline__dot--creation     { background: #d1fae5; box-shadow: 0 0 0 1px #a7f3d0; }
+.timeline__dot--modification { background: #fef3c7; box-shadow: 0 0 0 1px #fde68a; }
+.timeline__dot--annulation   { background: #fee2e2; box-shadow: 0 0 0 1px #fecaca; }
+.timeline__dot--validation   { background: #dbeafe; box-shadow: 0 0 0 1px #bfdbfe; }
+.timeline__dot--export       { background: #e0e7ff; box-shadow: 0 0 0 1px #c7d2fe; }
+
+.timeline__content {
+    flex: 1;
+    min-width: 0;
+}
+
+.timeline__title {
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--text);
+}
+
+.timeline__title strong {
+    color: var(--primary-700);
+    font-weight: 600;
+}
+
+.timeline__meta {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.timeline__comment {
+    font-size: 12px;
+    color: var(--text-2);
+    margin-top: 4px;
+    padding: 4px 8px;
+    background: var(--surface-2);
+    border-radius: 4px;
+    border-left: 2px solid var(--primary-300);
+    font-style: italic;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .chart-bars__bar { transition: none; }
+    .chart-bars__item:hover .chart-bars__bar { transform: none; }
+}
