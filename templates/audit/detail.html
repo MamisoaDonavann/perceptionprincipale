@@ -10,9 +10,7 @@
             {{ entry.get_action_display }} — {{ entry.date_action|date:"d/m/Y H:i:s" }}
         </p>
     </div>
-    <div>
-        <a href="{% url 'audit:list' %}" class="btn-secondary">Retour</a>
-    </div>
+    <div><a href="{% url 'audit:list' %}" class="btn-secondary">Retour</a></div>
 </div>
 
 <div class="detail-grid">
@@ -30,8 +28,10 @@
                         <span class="tag tag--suspendu">{{ entry.get_action_display }}</span>
                     {% elif entry.action == 'ANNULATION' %}
                         <span class="tag tag--annule">{{ entry.get_action_display }}</span>
-                    {% else %}
+                    {% elif entry.action == 'EXPORT' %}
                         <span class="tag tag--paye">{{ entry.get_action_display }}</span>
+                    {% else %}
+                        <span class="tag tag--actif">{{ entry.get_action_display }}</span>
                     {% endif %}
                 </dd>
                 <dt>Entité concernée</dt>
@@ -57,14 +57,14 @@
         {% if entry.valeurs_avant %}
         <div class="detail-card">
             <h2 class="detail-card__title">Valeurs avant</h2>
-            <pre style="background: var(--fond); padding: 12px; border-radius: var(--radius); font-size: 12px; overflow-x: auto;">{{ entry.valeurs_avant|pprint }}</pre>
+            <pre style="background: var(--surface-2); padding: 12px; border-radius: var(--r); font-size: 12px; overflow-x: auto; margin: 0;">{{ entry.valeurs_avant|pprint }}</pre>
         </div>
         {% endif %}
 
         {% if entry.valeurs_apres %}
         <div class="detail-card">
             <h2 class="detail-card__title">Valeurs après</h2>
-            <pre style="background: var(--fond); padding: 12px; border-radius: var(--radius); font-size: 12px; overflow-x: auto;">{{ entry.valeurs_apres|pprint }}</pre>
+            <pre style="background: var(--surface-2); padding: 12px; border-radius: var(--r); font-size: 12px; overflow-x: auto; margin: 0;">{{ entry.valeurs_apres|pprint }}</pre>
         </div>
         {% endif %}
     </div>

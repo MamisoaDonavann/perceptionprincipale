@@ -1,19 +1,26 @@
 {% extends "base.html" %}
+{% load initials %}
 
 {% block title %}{{ op.numero_op }} — Ordre de paiement{% endblock %}
 
 {% block content %}
 <div class="page-header">
     <div class="page-header__titles">
-        <h1 class="page-title">OP {{ op.numero_op }}</h1>
-        <p class="page-subtitle">
-            {{ op.agent_beneficiaire.matricule }} — {{ op.agent_beneficiaire.nom }} {{ op.agent_beneficiaire.prenoms }}
-        </p>
+        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 8px;">
+            <span class="avatar avatar--lg {{ op.agent_beneficiaire.pk|avatar_color }}">
+                {{ op.agent_beneficiaire.nom|initials:op.agent_beneficiaire.prenoms }}
+            </span>
+            <div>
+                <h1 class="page-title" style="margin: 0;">OP {{ op.numero_op }}</h1>
+                <p class="page-subtitle" style="padding-left: 0; margin: 4px 0 0;">
+                    {{ op.agent_beneficiaire.matricule }} — {{ op.agent_beneficiaire.nom }} {{ op.agent_beneficiaire.prenoms }}
+                </p>
+            </div>
+        </div>
     </div>
-    <div>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
         {% if op.statut == 'VALIDE' or op.statut == 'PAYE' %}
-            <a href="{% url 'rapports:liste_paiement_pdf' op.pk %}"
-               class="btn-create" target="_blank">
+            <a href="{% url 'rapports:liste_paiement_pdf' op.pk %}" class="btn-secondary" target="_blank">
                 Imprimer la liste
             </a>
         {% endif %}
@@ -26,24 +33,37 @@
         <a href="{% url 'paiements:valider' op.pk %}" class="btn-action btn-action--primary">Valider</a>
         <a href="{% url 'paiements:retirer_periode' op.pk %}" class="btn-action">Retirer une période</a>
     {% endif %}
-
     {% if peut_payer and perms.paiements.enregistrer_paiement %}
         <a href="{% url 'paiements:paiement_create' op.pk %}" class="btn-action btn-action--primary">+ Enregistrer un paiement</a>
     {% endif %}
-
     {% if peut_cloturer and perms.paiements.cloturer_ordre_paiement %}
-        <a href="{% url 'paiements:cloturer' op.pk %}" class="btn-action btn-action--success">Clôturer administrativement</a>
+        <a href="{% url 'paiements:cloturer' op.pk %}" class="btn-action btn-action--success">Clôturer</a>
     {% endif %}
-
     {% if peut_annuler and perms.paiements.annuler_ordre_paiement %}
         <a href="{% url 'paiements:annuler' op.pk %}" class="btn-action btn-action--danger">Annuler l'OP</a>
     {% endif %}
 </div>
 
+{% if op.statut == 'ANNULE' and op.motif_annulation %}
+<div class="info-box info-box--warning">
+    <strong>Motif d'annulation :</strong> {{ op.motif_annulation }}
+</div>
+{% endif %}
+
 <div class="op-summary">
     <div class="op-summary__item">
         <div class="op-summary__label">Statut</div>
-        <div class="op-summary__value">{{ op.get_statut_display }}</div>
+        <div class="op-summary__value">
+            {% if op.statut == 'PAYE' %}
+                <span class="tag tag--paye">{{ op.get_statut_display }}</span>
+            {% elif op.statut == 'VALIDE' %}
+                <span class="tag tag--valide">{{ op.get_statut_display }}</span>
+            {% elif op.statut == 'ANNULE' %}
+                <span class="tag tag--annule">{{ op.get_statut_display }}</span>
+            {% else %}
+                <span class="tag tag--brouillon">{{ op.get_statut_display }}</span>
+            {% endif %}
+        </div>
     </div>
     <div class="op-summary__item">
         <div class="op-summary__label">Montant total</div>
@@ -54,38 +74,42 @@
         <div class="op-summary__value amount">{{ op.montant_net_paye }} Ar</div>
     </div>
     <div class="op-summary__item">
-        <div class="op-summary__label">Reste à payer</div>
-        <div class="op-summary__value amount">
-            {{ op.montant_total|add:"-"|add:op.montant_net_paye }} Ar
-        </div>
-    </div>
-    <div class="op-summary__item">
         <div class="op-summary__label">Clôture administrative</div>
         <div class="op-summary__value">
-            {% if op.cloture_administrative %}Clôturé{% else %}Ouvert{% endif %}
+            {% if op.cloture_administrative %}
+                <span class="tag tag--valide">Clôturé</span>
+            {% else %}
+                <span class="tag tag--brouillon">Ouvert</span>
+            {% endif %}
         </div>
     </div>
 </div>
 
-{% if op.statut == 'ANNULE' and op.motif_annulation %}
-<div class="info-box info-box--warning">
-    <strong>Motif d'annulation :</strong> {{ op.motif_annulation }}
+<div class="detail-card">
+    <h2 class="detail-card__title">Informations administratives</h2>
+    <dl class="detail-list">
+        <dt>Date d'émission</dt><dd>{{ op.date_emission|date:"d/m/Y"|default:"—" }}</dd>
+        <dt>Numéro BE</dt><dd>{{ op.numero_be|default:"—" }}</dd>
+        <dt>Titulaire</dt><dd>{{ op.titulaire_nom|default:op.agent_beneficiaire.nom }} {{ op.titulaire_nom|yesno:",," }}{{ op.titulaire_nom|default:op.agent_beneficiaire.prenoms }}</dd>
+        <dt>N° identification</dt><dd>{{ op.titulaire_numero|default:op.agent_beneficiaire.matricule }}</dd>
+        <dt>Montant en lettres</dt><dd>{{ op.montant_lettres|default:"—" }}</dd>
+        <dt>Modalité de règlement</dt><dd>{{ op.get_modalite_reglement_display|default:"—" }}</dd>
+    </dl>
 </div>
-{% endif %}
 
 <div class="detail-card">
     <h2 class="detail-card__title">Périodes (décomptes inclus) — {{ periodes|length }}</h2>
     {% if periodes %}
     <table class="data-table">
         <thead>
-            <tr><th>Décompte</th><th>Période</th><th>Montant source</th><th>Réservation</th></tr>
+            <tr><th>Décompte</th><th>Période</th><th class="text-right">Montant source</th><th>Réservation</th></tr>
         </thead>
         <tbody>
             {% for p in periodes %}
             <tr>
-                <td>Décompte #{{ p.decompte.pk }}</td>
+                <td><a href="{% url 'decomptes:detail' p.decompte.pk %}">Décompte #{{ p.decompte.pk }}</a></td>
                 <td>{{ p.decompte.mois|stringformat:"02d" }}/{{ p.decompte.annee }}</td>
-                <td class="amount">{{ p.montant_source }} Ar</td>
+                <td class="text-right amount">{{ p.montant_source }} Ar</td>
                 <td>
                     {% if p.reservation_active %}
                         <span class="tag tag--valide">Active</span>
@@ -98,8 +122,8 @@
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="2" style="text-align:right;"><strong>Total</strong></td>
-                <td class="amount"><strong>{{ op.montant_total }} Ar</strong></td>
+                <td colspan="2" class="text-right"><strong>Total</strong></td>
+                <td class="text-right amount"><strong>{{ op.montant_total }} Ar</strong></td>
                 <td></td>
             </tr>
         </tfoot>
@@ -116,7 +140,7 @@
         <thead>
             <tr>
                 <th>Date</th>
-                <th>Montant</th>
+                <th class="text-right">Montant</th>
                 <th>Mode</th>
                 <th>Référence</th>
                 <th>Statut</th>
@@ -128,7 +152,7 @@
             {% for p in paiements %}
             <tr>
                 <td>{{ p.date_paiement|date:"d/m/Y H:i" }}</td>
-                <td class="amount">{{ p.montant }} Ar</td>
+                <td class="text-right amount">{{ p.montant }} Ar</td>
                 <td>{{ p.get_mode_paiement_display }}</td>
                 <td>{{ p.reference|default:"—" }}</td>
                 <td>
@@ -139,22 +163,18 @@
                     {% endif %}
                 </td>
                 <td>
-                    {% with conf=p.confirmations.all %}
-                        {% for c in conf %}
-                            {% if c.statut == 'CONFIRME' %}
-                                <span class="tag tag--valide">Confirmé</span>
-                            {% endif %}
-                        {% empty %}
+                    {% with confirme=p.confirmations.all %}
+                        {% if confirme %}
+                            <span class="tag tag--valide">Confirmé</span>
+                        {% else %}
                             <span class="tag tag--brouillon">En attente</span>
-                        {% endfor %}
+                        {% endif %}
                     {% endwith %}
                 </td>
                 <td>
                     {% if p.statut == 'ENREGISTRE' %}
-                        {% if perms.paiements.confirmer_reception %}
-                            {% if not p.confirmations.all %}
-                                <a href="{% url 'paiements:confirmation_create' op.pk p.pk %}" class="btn-action btn-action--primary">Confirmer</a>
-                            {% endif %}
+                        {% if perms.paiements.confirmer_reception and not p.confirmations.all %}
+                            <a href="{% url 'paiements:confirmation_create' op.pk p.pk %}" class="btn-action btn-action--primary">Confirmer</a>
                         {% endif %}
                         {% if perms.paiements.annuler_paiement and not op.cloture_administrative %}
                             <a href="{% url 'paiements:paiement_annuler' op.pk p.pk %}" class="btn-action btn-action--danger">Annuler</a>

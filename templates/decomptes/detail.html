@@ -1,21 +1,28 @@
 {% extends "base.html" %}
+{% load initials %}
 
 {% block title %}Décompte {{ decompte.mois|stringformat:"02d" }}/{{ decompte.annee }}{% endblock %}
 
 {% block content %}
 <div class="page-header">
     <div class="page-header__titles">
-        <h1 class="page-title">
-            Décompte {{ decompte.mois|stringformat:"02d" }}/{{ decompte.annee }}
-        </h1>
-        <p class="page-subtitle">
-            {{ decompte.agent.matricule }} — {{ decompte.agent.nom }} {{ decompte.agent.prenoms }}
-        </p>
+        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 8px;">
+            <span class="avatar avatar--lg {{ decompte.agent.pk|avatar_color }}">
+                {{ decompte.agent.nom|initials:decompte.agent.prenoms }}
+            </span>
+            <div>
+                <h1 class="page-title" style="margin: 0;">
+                    Décompte {{ decompte.mois|stringformat:"02d" }}/{{ decompte.annee }}
+                </h1>
+                <p class="page-subtitle" style="padding-left: 0; margin: 4px 0 0;">
+                    {{ decompte.agent.matricule }} — {{ decompte.agent.nom }} {{ decompte.agent.prenoms }}
+                </p>
+            </div>
+        </div>
     </div>
-    <div>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
         {% if decompte.statut == 'VALIDE' %}
-            <a href="{% url 'rapports:etat_decompte_pdf' decompte.pk %}"
-               class="btn-create" target="_blank">
+            <a href="{% url 'rapports:etat_decompte_pdf' decompte.pk %}" class="btn-secondary" target="_blank">
                 Télécharger le PDF
             </a>
         {% endif %}
@@ -41,18 +48,28 @@
 </div>
 {% endif %}
 
-<div class="cards">
-    <div class="card card--info">
-        <div class="card__label">Montant total</div>
-        <div class="card__value amount">{{ decompte.montant_total }} Ar</div>
+<div class="op-summary">
+    <div class="op-summary__item">
+        <div class="op-summary__label">Statut</div>
+        <div class="op-summary__value">
+            {% if decompte.statut == 'VALIDE' %}
+                <span class="tag tag--valide">{{ decompte.get_statut_display }}</span>
+            {% else %}
+                <span class="tag tag--suspendu">{{ decompte.get_statut_display }}</span>
+            {% endif %}
+        </div>
     </div>
-    <div class="card card--info">
-        <div class="card__label">Gardes retenues</div>
-        <div class="card__value">{{ decompte.nombre_gardes_retunes }}</div>
+    <div class="op-summary__item">
+        <div class="op-summary__label">Montant total</div>
+        <div class="op-summary__value amount">{{ decompte.montant_total }} Ar</div>
     </div>
-    <div class="card card--warning">
-        <div class="card__label">Gardes non conformes exclues</div>
-        <div class="card__value">{{ decompte.nombre_gardes_non_conformes_exclues }}</div>
+    <div class="op-summary__item">
+        <div class="op-summary__label">Gardes retenues</div>
+        <div class="op-summary__value">{{ decompte.nombre_gardes_retunes }}</div>
+    </div>
+    <div class="op-summary__item">
+        <div class="op-summary__label">Non conformes exclues</div>
+        <div class="op-summary__value">{{ decompte.nombre_gardes_non_conformes_exclues }}</div>
     </div>
 </div>
 
@@ -62,34 +79,30 @@
     <table class="data-table">
         <thead>
             <tr>
-                <th>Garde source</th>
+                <th>Garde</th>
                 <th>Début</th>
-                <th>Durée (min)</th>
-                <th>Partiels</th>
-                <th>Montant partiel</th>
-                <th>Montant ligne</th>
+                <th class="text-right">Durée</th>
+                <th class="text-right">Partiels</th>
+                <th class="text-right">Montant partiel</th>
+                <th class="text-right">Montant ligne</th>
             </tr>
         </thead>
         <tbody>
             {% for l in lignes %}
             <tr>
-                <td>
-                    <a href="{% url 'gardes:detail' l.garde.pk %}">
-                        Garde #{{ l.garde.pk }}
-                    </a>
-                </td>
+                <td><a href="{% url 'gardes:detail' l.garde.pk %}">Garde #{{ l.garde.pk }}</a></td>
                 <td>{{ l.garde.date_heure_debut|date:"d/m/Y H:i" }}</td>
-                <td>{{ l.duree_minutes_snapshot }}</td>
-                <td>{{ l.nombre_partiels_snapshot }}</td>
-                <td class="amount">{{ l.montant_partiel_snapshot }} Ar</td>
-                <td class="amount"><strong>{{ l.montant_ligne }} Ar</strong></td>
+                <td class="text-right">{{ l.duree_minutes_snapshot }} min</td>
+                <td class="text-right"><strong>{{ l.nombre_partiels_snapshot }}</strong></td>
+                <td class="text-right amount">{{ l.montant_partiel_snapshot }} Ar</td>
+                <td class="text-right amount"><strong>{{ l.montant_ligne }} Ar</strong></td>
             </tr>
             {% endfor %}
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="5" style="text-align:right;"><strong>Total</strong></td>
-                <td class="amount"><strong>{{ decompte.montant_total }} Ar</strong></td>
+                <td colspan="5" class="text-right"><strong>Total</strong></td>
+                <td class="text-right amount"><strong>{{ decompte.montant_total }} Ar</strong></td>
             </tr>
         </tfoot>
     </table>
