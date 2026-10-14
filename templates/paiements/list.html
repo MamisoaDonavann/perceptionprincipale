@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load initials %}
 
 {% block title %}Ordres de paiement — Perception Marovoay{% endblock %}
 
@@ -6,20 +7,23 @@
 <div class="page-header">
     <div class="page-header__titles">
         <h1 class="page-title">Ordres de paiement</h1>
-        <p class="page-subtitle">
-            {{ total }} OP{{ total|pluralize }} enregistré{{ total|pluralize }}.
-        </p>
+        <p class="page-subtitle">{{ total }} OP{{ total|pluralize }} enregistré{{ total|pluralize }}.</p>
     </div>
     {% if perms.paiements.creer_ordre_paiement %}
-    <a href="{% url 'paiements:create' %}" class="btn-create">+ Nouvel OP</a>
+    <a href="{% url 'paiements:create' %}" class="btn-create">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Nouvel OP
+    </a>
     {% endif %}
 </div>
 
 <form method="get" class="filters">
     <div class="filters__group">
         <label class="filters__label" for="q">Recherche</label>
-        <input type="text" id="q" name="q" value="{{ q }}"
-               placeholder="N° OP, matricule, nom">
+        <input type="text" id="q" name="q" value="{{ q }}" placeholder="N° OP, matricule, nom">
     </div>
     <div class="filters__group">
         <label class="filters__label" for="statut">Statut</label>
@@ -46,9 +50,9 @@
         <thead>
             <tr>
                 <th>N° OP</th>
-                <th>Agent</th>
-                <th>Montant</th>
-                <th>Net payé</th>
+                <th>Agent bénéficiaire</th>
+                <th class="text-right">Montant</th>
+                <th class="text-right">Net payé</th>
                 <th>Statut</th>
                 <th>Clôture</th>
                 <th></th>
@@ -57,10 +61,20 @@
         <tbody>
             {% for op in page.object_list %}
             <tr>
-                <td><strong>{{ op.numero_op }}</strong></td>
-                <td>{{ op.agent_beneficiaire.matricule }} — {{ op.agent_beneficiaire.nom }}</td>
-                <td class="amount">{{ op.montant_total }} Ar</td>
-                <td class="amount">{{ op.montant_net_paye }} Ar</td>
+                <td><code style="font-weight: 600;">{{ op.numero_op }}</code></td>
+                <td>
+                    <div class="cell-user">
+                        <span class="avatar avatar--sm {{ forloop.counter|avatar_color }}">
+                            {{ op.agent_beneficiaire.nom|initials:op.agent_beneficiaire.prenoms }}
+                        </span>
+                        <div class="cell-user__info">
+                            <div class="cell-user__name">{{ op.agent_beneficiaire.nom }} {{ op.agent_beneficiaire.prenoms }}</div>
+                            <div class="cell-user__meta">{{ op.agent_beneficiaire.matricule }}</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="text-right amount">{{ op.montant_total }} Ar</td>
+                <td class="text-right amount">{{ op.montant_net_paye }} Ar</td>
                 <td>
                     {% if op.statut == 'PAYE' %}
                         <span class="tag tag--paye">{{ op.get_statut_display }}</span>
@@ -104,11 +118,14 @@
 {% else %}
 <div class="table-wrapper">
     <div class="empty-state">
+        <div class="empty-state__icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="2" y="5" width="20" height="14" rx="2"/>
+                <line x1="2" y1="10" x2="22" y2="10"/>
+            </svg>
+        </div>
         <p class="empty-state__title">Aucun ordre de paiement</p>
-        <p class="empty-state__hint">
-            {% if q or statut or annee %}Modifiez les filtres.
-            {% else %}Créez un OP à partir de décomptes validés.{% endif %}
-        </p>
+        <p class="empty-state__hint">Créez un OP à partir de décomptes validés.</p>
     </div>
 </div>
 {% endif %}

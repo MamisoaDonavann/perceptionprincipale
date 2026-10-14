@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load initials %}
 
 {% block title %}Décomptes — Perception Marovoay{% endblock %}
 
@@ -6,27 +7,31 @@
 <div class="page-header">
     <div class="page-header__titles">
         <h1 class="page-title">Décomptes</h1>
-        <p class="page-subtitle">
-            {{ total }} décompte{{ total|pluralize }} enregistré{{ total|pluralize }}.
-        </p>
+        <p class="page-subtitle">{{ total }} décompte{{ total|pluralize }} enregistré{{ total|pluralize }}.</p>
     </div>
-    {% if perms.decomptes.view_decompte %}
-    <a href="{% url 'rapports:filtres_decomptes_mensuels' %}" class="btn-secondary">
-        Récapitulatif mensuel PDF
-    </a>
-    {% endif %}
-    {% if perms.decomptes.add_decompte %}
-    <a href="{% url 'decomptes:create' %}" class="btn-create">+ Nouveau décompte</a>
-    {% endif %}
+    <div style="display: flex; gap: 8px;">
+        {% if perms.decomptes.view_decompte %}
+        <a href="{% url 'rapports:filtres_decomptes_mensuels' %}" class="btn-secondary">
+            Récapitulatif mensuel
+        </a>
+        {% endif %}
+        {% if perms.decomptes.add_decompte %}
+        <a href="{% url 'decomptes:create' %}" class="btn-create">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Nouveau décompte
+        </a>
+        {% endif %}
+    </div>
 </div>
 
 <form method="get" class="filters">
     <div class="filters__group">
         <label class="filters__label" for="q">Recherche</label>
-        <input type="text" id="q" name="q" value="{{ q }}"
-               placeholder="Matricule, nom">
+        <input type="text" id="q" name="q" value="{{ q }}" placeholder="Matricule, nom">
     </div>
-
     <div class="filters__group">
         <label class="filters__label" for="statut">Statut</label>
         <select id="statut" name="statut">
@@ -36,13 +41,10 @@
             {% endfor %}
         </select>
     </div>
-
     <div class="filters__group">
         <label class="filters__label" for="annee">Année</label>
-        <input type="number" id="annee" name="annee" value="{{ annee }}"
-               placeholder="2026" min="1900" max="2200">
+        <input type="number" id="annee" name="annee" value="{{ annee }}" placeholder="2026" min="1900" max="2200">
     </div>
-
     <div class="filters__actions">
         <button type="submit" class="btn-create">Filtrer</button>
         <a href="{% url 'decomptes:list' %}" class="btn-secondary">Réinitialiser</a>
@@ -57,7 +59,7 @@
                 <th>Agent</th>
                 <th>Période</th>
                 <th>Gardes</th>
-                <th>Montant</th>
+                <th class="text-right">Montant</th>
                 <th>Statut</th>
                 <th>Validé par</th>
                 <th></th>
@@ -66,13 +68,23 @@
         <tbody>
             {% for d in page.object_list %}
             <tr>
-                <td>{{ d.agent.matricule }} — {{ d.agent.nom }}</td>
+                <td>
+                    <div class="cell-user">
+                        <span class="avatar avatar--sm {{ forloop.counter|avatar_color }}">
+                            {{ d.agent.nom|initials:d.agent.prenoms }}
+                        </span>
+                        <div class="cell-user__info">
+                            <div class="cell-user__name">{{ d.agent.nom }} {{ d.agent.prenoms }}</div>
+                            <div class="cell-user__meta">{{ d.agent.matricule }}</div>
+                        </div>
+                    </div>
+                </td>
                 <td><strong>{{ d.mois|stringformat:"02d" }}/{{ d.annee }}</strong></td>
                 <td>{{ d.nombre_gardes_retunes }}</td>
-                <td class="amount">{{ d.montant_total }} Ar</td>
+                <td class="text-right amount">{{ d.montant_total }} Ar</td>
                 <td>
                     {% if d.statut == 'VALIDE' %}
-                        <span class="tag tag--actif">{{ d.get_statut_display }}</span>
+                        <span class="tag tag--valide">{{ d.get_statut_display }}</span>
                     {% else %}
                         <span class="tag tag--suspendu">{{ d.get_statut_display }}</span>
                     {% endif %}
@@ -103,11 +115,14 @@
 {% else %}
 <div class="table-wrapper">
     <div class="empty-state">
+        <div class="empty-state__icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 3v18h18"/>
+                <path d="m19 9-5 5-4-4-3 3"/>
+            </svg>
+        </div>
         <p class="empty-state__title">Aucun décompte trouvé</p>
-        <p class="empty-state__hint">
-            {% if q or statut or annee %}Modifiez les filtres.
-            {% else %}Commencez par créer un décompte mensuel.{% endif %}
-        </p>
+        <p class="empty-state__hint">Modifiez les filtres ou créez un nouveau décompte.</p>
     </div>
 </div>
 {% endif %}

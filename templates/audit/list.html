@@ -8,7 +8,7 @@
         <h1 class="page-title">Journal d'audit</h1>
         <p class="page-subtitle">
             {{ total }} entrée{{ total|pluralize }} enregistrée{{ total|pluralize }}.
-            Lecture seule : aucune modification possible.
+            Lecture seule.
         </p>
     </div>
 </div>
@@ -16,10 +16,8 @@
 <form method="get" class="filters">
     <div class="filters__group">
         <label class="filters__label" for="q">Recherche</label>
-        <input type="text" id="q" name="q" value="{{ q }}"
-               placeholder="Utilisateur, entité, commentaire">
+        <input type="text" id="q" name="q" value="{{ q }}" placeholder="Utilisateur, entité, commentaire">
     </div>
-
     <div class="filters__group">
         <label class="filters__label" for="action">Action</label>
         <select id="action" name="action">
@@ -29,7 +27,6 @@
             {% endfor %}
         </select>
     </div>
-
     <div class="filters__group">
         <label class="filters__label" for="entite">Entité</label>
         <select id="entite" name="entite">
@@ -39,7 +36,6 @@
             {% endfor %}
         </select>
     </div>
-
     <div class="filters__actions">
         <button type="submit" class="btn-create">Filtrer</button>
         <a href="{% url 'audit:list' %}" class="btn-secondary">Réinitialiser</a>
@@ -55,7 +51,6 @@
                 <th>Utilisateur</th>
                 <th>Action</th>
                 <th>Entité</th>
-                <th>ID</th>
                 <th>Commentaire</th>
                 <th></th>
             </tr>
@@ -63,7 +58,10 @@
         <tbody>
             {% for e in page.object_list %}
             <tr>
-                <td>{{ e.date_action|date:"d/m/Y H:i:s" }}</td>
+                <td>
+                    <div class="cell-user__name">{{ e.date_action|date:"d/m/Y" }}</div>
+                    <div class="cell-user__meta">{{ e.date_action|date:"H:i:s" }}</div>
+                </td>
                 <td>{{ e.id_utilisateur.username }}</td>
                 <td>
                     {% if e.action == 'CREATION' %}
@@ -72,12 +70,13 @@
                         <span class="tag tag--suspendu">{{ e.get_action_display }}</span>
                     {% elif e.action == 'ANNULATION' %}
                         <span class="tag tag--annule">{{ e.get_action_display }}</span>
-                    {% else %}
+                    {% elif e.action == 'EXPORT' %}
                         <span class="tag tag--paye">{{ e.get_action_display }}</span>
+                    {% else %}
+                        <span class="tag tag--actif">{{ e.get_action_display }}</span>
                     {% endif %}
                 </td>
-                <td><code>{{ e.entite_concernee }}</code></td>
-                <td>{{ e.id_entite_concernee }}</td>
+                <td><code>{{ e.entite_concernee }}</code> #{{ e.id_entite_concernee }}</td>
                 <td>{{ e.commentaire|truncatechars:60|default:"—" }}</td>
                 <td>
                     <a href="{% url 'audit:detail' e.pk %}" class="btn-action">Voir</a>
@@ -104,11 +103,14 @@
 {% else %}
 <div class="table-wrapper">
     <div class="empty-state">
+        <div class="empty-state__icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+            </svg>
+        </div>
         <p class="empty-state__title">Aucune entrée d'audit</p>
-        <p class="empty-state__hint">
-            {% if q or action or entite %}Modifiez les filtres.
-            {% else %}Les actions sensibles seront tracées ici automatiquement.{% endif %}
-        </p>
+        <p class="empty-state__hint">Les actions sensibles seront tracées ici.</p>
     </div>
 </div>
 {% endif %}
