@@ -1631,7 +1631,7 @@ summary:focus-visible {
     display: flex;
     align-items: flex-end;
     gap: 4px;
-    height: 180px;
+    height: 200px;
     padding: 12px 4px 0;
     border-bottom: 1px solid var(--border);
 }
@@ -1648,15 +1648,16 @@ summary:focus-visible {
 .chart-bars__bar-wrapper {
     flex: 1;
     width: 100%;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    padding-bottom: 4px;
+    position: relative;
+    min-height: 0;
 }
 
 .chart-bars__bar {
+    position: absolute;
+    bottom: 4px;
+    left: 15%;
     width: 70%;
-    min-height: 2px;
+    min-height: 3px;
     background: linear-gradient(180deg, var(--primary-500), var(--violet));
     border-radius: 4px 4px 0 0;
     transition: all 0.3s var(--ease-out);
@@ -1691,7 +1692,7 @@ summary:focus-visible {
 
 .timeline__item {
     position: relative;
-    padding: 0 0 16px 24px;
+    padding: 2px 0 18px 26px;
     display: flex;
     gap: 0;
 }
@@ -1709,9 +1710,9 @@ summary:focus-visible {
 .timeline__dot {
     position: absolute;
     left: 0;
-    top: 4px;
-    width: 16px;
-    height: 16px;
+    top: 6px;
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
     background: var(--primary-100);
     border: 2px solid var(--surface);
