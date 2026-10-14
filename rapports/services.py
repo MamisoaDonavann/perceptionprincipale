@@ -18,6 +18,7 @@ from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 
 from agents.models import Agent
+from core.models import Parametre
 from audit.models import JournalAudit
 from decomptes.models import Decompte
 from gardes.models import Garde
@@ -164,25 +165,89 @@ def generer_decomptes_mensuels_pdf(annee, mois):
 # Rapport 2 — Liste de paiement
 # ===================================================================
 
+def _param_op(cle, defaut=""):
+    """Lit un paramètre OP depuis core.Parametre. Retourne `defaut` si absent."""
+    try:
+        return Parametre.objects.get(cle=cle).valeur
+    except Parametre.DoesNotExist:
+        return defaut
+
+
+def _nom_mois_fr(numero):
+    """1 → 'Janvier'."""
+    from rapports.templatetags.format_tags import MOIS_FR
+    return MOIS_FR.get(int(numero), '')
+
+
 def generer_liste_paiement_pdf(op):
     """
-    Génère le PDF de la liste de paiement pour un OP.
+    Génère le PDF de l'Ordre de Paiement au format officiel.
 
-    Un OP concerne un seul agent bénéficiaire : la liste contient donc
-    une ligne pour cet agent, avec une colonne signature vide.
+    Lit les valeurs stables depuis core.Parametre.
+    Gère le fallback titulaire/adresse/matricule depuis l'agent bénéficiaire.
     """
-    paiements = (
-        op.paiements
-        .filter(statut=Paiement.STATUT_ENREGISTRE)
-        .order_by('date_paiement')
-    )
+    agent = op.agent_beneficiaire
+
+    # Fallback titulaire
+    titulaire_nom = op.titulaire_nom or f"{agent.nom} {agent.prenoms}"
+    titulaire_numero = op.titulaire_numero or agent.matricule
+    cin_titulaire = agent.cin or ""
+    adresse_titulaire = agent.adresse or ""
+
+    # Période couverte
+    periode_debut = op.periodes.filter(reservation_active=True).order_by(
+        'decompte__annee', 'decompte__mois'
+    ).first()
+    periode_fin = op.periodes.filter(reservation_active=True).order_by(
+        '-decompte__annee', '-decompte__mois'
+    ).first()
+
+    if periode_debut and periode_fin:
+        mois_debut = _nom_mois_fr(periode_debut.decompte.mois)
+        mois_fin = _nom_mois_fr(periode_fin.decompte.mois)
+        annee_debut = periode_debut.decompte.annee
+        annee_fin = periode_fin.decompte.annee
+        if annee_debut == annee_fin:
+            periode_texte = f"{mois_debut} à {mois_fin} {annee_fin}"
+        else:
+            periode_texte = f"{mois_debut} {annee_debut} à {mois_fin} {annee_fin}"
+    else:
+        periode_texte = "—"
 
     context = {
         'op': op,
-        'agent': op.agent_beneficiaire,
-        'paiements': paiements,
-        'montant_net_paye': op.montant_net_paye,
+        'agent': agent,
         'date_edition': _date_edition(),
+
+        # Titulaire (fallback)
+        'titulaire_nom': titulaire_nom,
+        'titulaire_numero': titulaire_numero,
+        'cin_titulaire': cin_titulaire,
+        'adresse_titulaire': adresse_titulaire,
+
+        # Période
+        'periode_texte': periode_texte,
+
+        # Paramètres officiels (16 valeurs)
+        'p_ministere': _param_op('op.ministere', '21 MEF'),
+        'p_ordonnateur': _param_op('op.ordonnateur', '00-221-A-000000'),
+        'p_commune_beneficiaire': _param_op('op.commune_beneficiaire', '00000'),
+        'p_code_cf': _param_op('op.code_cf', '0101 220'),
+        'p_tp_assignataire': _param_op('op.tp_assignataire', '10101 100'),
+        'p_programme': _param_op('op.programme', '117'),
+        'p_activite_projet': _param_op('op.activite_projet', '117-1-1-1-01'),
+        'p_imputation_admin': _param_op('op.imputation_admin', '00-21-7-223-00000'),
+        'p_compte': _param_op('op.compte', '6241 Indemnités de mission intérieure'),
+        'p_republique': _param_op('op.republique', 'REPUBLIQUE DE MADAGASCAR'),
+        'p_code_mission': _param_op('op.code_mission', '220'),
+        'p_budget': _param_op('op.budget', '01'),
+        'p_categorie': _param_op('op.categorie', '3'),
+        'p_sect_conv': _param_op('op.sect_conv', '000 RESSOURCES PROPRES'),
+        'p_financement': _param_op('op.financement', '110-001-001-A'),
+        'p_pieces_justificatives': _param_op(
+            'op.pieces_justificatives',
+            'Ordre de mission — État de décompte'
+        ),
     }
 
     pdf_bytes = _pdf_from_template(

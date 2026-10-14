@@ -1,105 +1,206 @@
 {% extends "rapports/pdf/base_pdf.html" %}
+{% load format_tags %}
 
-{% block titre %}Liste de paiement {{ op.numero_op }}{% endblock %}
-{% block titre_rapport %}Liste de paiement{% endblock %}
-{% block sous_titre %}
-    <div class="entete__sous-titre">
-        OP n° {{ op.numero_op }} — {{ op.get_statut_display }}
+{% block titre %}Ordre de paiement {{ op.numero_op }}{% endblock %}
+
+{% block entete %}
+<div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 10px;">
+    <div style="font-size: 13px; font-weight: 700; letter-spacing: 1px;">
+        {{ p_republique }}
     </div>
+</div>
 {% endblock %}
 
 {% block contenu %}
 
-<div class="bloc-info">
-    <div class="bloc-info__ligne">
-        <div class="bloc-info__label">Numéro OP</div>
-        <div class="bloc-info__valeur">{{ op.numero_op }}</div>
-    </div>
-    <div class="bloc-info__ligne">
-        <div class="bloc-info__label">Date d'émission</div>
-        <div class="bloc-info__valeur">{{ op.date_creation|date:"d/m/Y" }}</div>
-    </div>
-    <div class="bloc-info__ligne">
-        <div class="bloc-info__label">Agent bénéficiaire</div>
-        <div class="bloc-info__valeur">{{ agent.nom }} {{ agent.prenoms }}</div>
-    </div>
-    <div class="bloc-info__ligne">
-        <div class="bloc-info__label">Montant total</div>
-        <div class="bloc-info__valeur">{{ op.montant_total }} Ar</div>
-    </div>
-</div>
-
-<table class="data" style="margin-top: 12px;">
-    <thead>
-        <tr>
-            <th style="width: 18%;">N° OP</th>
-            <th style="width: 22%;">Nom et prénoms</th>
-            <th style="width: 15%;">Matricule</th>
-            <th class="amount" style="width: 20%;">Montant</th>
-            <th class="text-center" style="width: 25%;">Signature</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td>{{ op.numero_op }}</td>
-            <td>{{ agent.nom }} {{ agent.prenoms }}</td>
-            <td>{{ agent.matricule }}</td>
-            <td class="amount">{{ op.montant_total }} Ar</td>
-            <td><div class="signature"></div></td>
-        </tr>
-    </tbody>
-    <tfoot>
-        <tr>
-            <td colspan="3" class="amount"><strong>Total général</strong></td>
-            <td class="amount"><strong>{{ op.montant_total }} Ar</strong></td>
-            <td></td>
-        </tr>
-    </tfoot>
+{# ---------- TABLEAU PRINCIPAL D'EN-TÊTE ADMINISTRATIF ---------- #}
+<table style="width: 100%; border-collapse: collapse; font-size: 9.5px; margin-bottom: 8px;">
+    <tr>
+        <td style="border: 1px solid #000; padding: 3px 6px; width: 22%; font-weight: 600;">MINISTERE</td>
+        <td style="border: 1px solid #000; padding: 3px 6px; width: 14%;">{{ p_ministere }}</td>
+        <td style="border: 1px solid #000; padding: 3px 6px; width: 32%; text-align: center; font-weight: 700; font-size: 11px;" rowspan="2">
+            {{ p_republique }}
+        </td>
+        <td style="border: 1px solid #000; padding: 3px 6px; width: 32%;" rowspan="2">
+            <div style="font-weight: 600;">N° BE</div>
+            <div>{{ op.numero_be|default:"" }}</div>
+        </td>
+    </tr>
+    <tr>
+        <td style="border: 1px solid #000; padding: 3px 6px; font-weight: 600;">ORDONNATEUR</td>
+        <td style="border: 1px solid #000; padding: 3px 6px;">{{ p_ordonnateur }}</td>
+    </tr>
+    <tr>
+        <td style="border: 1px solid #000; padding: 3px 6px; font-weight: 600;">COMMUNE<br>BENEFICIAIRE</td>
+        <td style="border: 1px solid #000; padding: 3px 6px;">{{ p_commune_beneficiaire }}</td>
+        <td style="border: 1px solid #000; padding: 3px 6px; font-weight: 600;">MISSION : {{ p_code_mission }}</td>
+        <td style="border: 1px solid #000; padding: 3px 6px; font-weight: 600;">EXERCICE : {{ op.annee }}</td>
+    </tr>
+    <tr>
+        <td style="border: 1px solid #000; padding: 3px 6px; font-weight: 600;">CODE CF</td>
+        <td style="border: 1px solid #000; padding: 3px 6px;">{{ p_code_cf }}</td>
+        <td style="border: 1px solid #000; padding: 3px 6px; font-weight: 600;">BUDGET : {{ p_budget }}</td>
+        <td style="border: 1px solid #000; padding: 3px 6px; font-weight: 600;">CATEGORIE : {{ p_categorie }}</td>
+    </tr>
+    <tr>
+        <td style="border: 1px solid #000; padding: 3px 6px; font-weight: 600;">TP ASSIGNATAIRE</td>
+        <td style="border: 1px solid #000; padding: 3px 6px;">{{ p_tp_assignataire }}</td>
+        <td colspan="2" style="border: 1px solid #000; padding: 3px 6px; text-align: center; font-size: 15px; font-weight: 800; letter-spacing: 1px;">
+            ORDRE DE PAIEMENT
+        </td>
+    </tr>
+    <tr>
+        <td style="border: 1px solid #000; padding: 3px 6px; font-weight: 600;">PROGRAMME</td>
+        <td style="border: 1px solid #000; padding: 3px 6px;">{{ p_programme }}</td>
+        <td colspan="2" style="border: 1px solid #000; padding: 3px 6px; font-weight: 700; text-align: center;">
+            N° OP : {{ op.numero_op }}
+        </td>
+    </tr>
+    <tr>
+        <td style="border: 1px solid #000; padding: 3px 6px; font-weight: 600;">ACTIVITE PROJET</td>
+        <td style="border: 1px solid #000; padding: 3px 6px;">{{ p_activite_projet }}</td>
+        <td style="border: 1px solid #000; padding: 3px 6px; font-weight: 600;">SECT.CONV. : {{ p_sect_conv }}</td>
+        <td style="border: 1px solid #000; padding: 3px 6px; font-weight: 600;">FINANCEMENT : {{ p_financement }}</td>
+    </tr>
+    <tr>
+        <td style="border: 1px solid #000; padding: 3px 6px; font-weight: 600;">IMPUTATION ADMINISTRATIVE - CDD</td>
+        <td style="border: 1px solid #000; padding: 3px 6px;">{{ p_imputation_admin }}</td>
+        <td colspan="2" style="border: 1px solid #000; padding: 3px 6px; font-style: italic; font-size: 8.5px;">
+            En vertu des crédits sur le paragraphe ci-dessous, l'ordonnateur soussigné mandate les créanciers ci-après.
+        </td>
+    </tr>
+    <tr>
+        <td style="border: 1px solid #000; padding: 3px 6px; font-weight: 600;">COMPTE</td>
+        <td colspan="3" style="border: 1px solid #000; padding: 3px 6px;">{{ p_compte }}</td>
+    </tr>
 </table>
 
-<div style="margin-top: 30px; display: table; width: 100%;">
-    <div style="display: table-cell; width: 50%; padding-right: 20px;">
-        <div style="font-size: 10px; color: #444; margin-bottom: 4px;">
-            <strong>Visa du Percepteur Principal</strong>
-        </div>
-        <div style="height: 25mm; border: 1px solid #999;"></div>
-    </div>
-    <div style="display: table-cell; width: 50%; padding-left: 20px;">
-        <div style="font-size: 10px; color: #444; margin-bottom: 4px;">
-            <strong>Date de paiement</strong>
-        </div>
-        <div style="height: 25mm; border: 1px solid #999;"></div>
-    </div>
-</div>
-
-{% if paiements %}
-<h2 class="section">Détail des versements effectués</h2>
-<table class="data">
-    <thead>
-        <tr>
-            <th>Date</th>
-            <th>Mode</th>
-            <th>Référence</th>
-            <th class="amount">Montant</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for p in paiements %}
-        <tr>
-            <td>{{ p.date_paiement|date:"d/m/Y H:i" }}</td>
-            <td>{{ p.get_mode_paiement_display }}</td>
-            <td>{{ p.reference|default:"—" }}</td>
-            <td class="amount">{{ p.montant }} Ar</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-    <tfoot>
-        <tr>
-            <td colspan="3" class="amount"><strong>Net payé</strong></td>
-            <td class="amount"><strong>{{ montant_net_paye }} Ar</strong></td>
-        </tr>
-    </tfoot>
+{# ---------- LIQUIDATION / REGLEMENT ---------- #}
+<table style="width: 100%; border-collapse: collapse; font-size: 9px; margin-bottom: 8px;">
+    <tr>
+        <td style="border: 1px solid #000; padding: 4px 6px; width: 50%; vertical-align: top;">
+            <div style="font-weight: 700; margin-bottom: 4px; text-decoration: underline;">LIQUIDATION DE LA DEPENSE</div>
+            <div style="margin-bottom: 4px;">
+                <strong>Pièces justificatives :</strong>
+                {{ p_pieces_justificatives }}
+            </div>
+        </td>
+        <td style="border: 1px solid #000; padding: 4px 6px; width: 50%; vertical-align: top;">
+            <div style="font-weight: 700; margin-bottom: 4px; text-decoration: underline;">REGLEMENT DE LA CREANCE</div>
+            <div style="margin-bottom: 2px;">(Modalités de REGLEMENT)</div>
+            <div>☐ BON DE CAISSE &nbsp;&nbsp; ☐ VIREMENT BANCAIRE</div>
+            <div>☐ AUTRE VIREMENT &nbsp;&nbsp; ☐ OPERATION D'ORDRE</div>
+        </td>
+    </tr>
 </table>
+
+{# ---------- MONTANTS ---------- #}
+<table style="width: 100%; border-collapse: collapse; font-size: 9.5px; margin-bottom: 8px;">
+    <tr>
+        <td style="border: 1px solid #000; padding: 4px 6px; width: 30%; font-weight: 600;">MONTANT LIQUIDE HT</td>
+        <td style="border: 1px solid #000; padding: 4px 6px; width: 20%; text-align: right; font-variant-numeric: tabular-nums;">
+            {{ op.montant_total|format_ar }}
+        </td>
+        <td style="border: 1px solid #000; padding: 4px 6px; width: 25%; font-weight: 600;">Descriptif de l'opération</td>
+        <td style="border: 1px solid #000; padding: 4px 6px; width: 25%;">Cadre réservé au comptable</td>
+    </tr>
+    <tr>
+        <td style="border: 1px solid #000; padding: 4px 6px; font-weight: 600;">TAXES (TTL, DTI)</td>
+        <td style="border: 1px solid #000; padding: 4px 6px; text-align: right;">—</td>
+        <td style="border: 1px solid #000; padding: 4px 6px; font-weight: 600;">COMPTE A CREDITER</td>
+        <td style="border: 1px solid #000; padding: 4px 6px;"></td>
+    </tr>
+    <tr>
+        <td style="border: 1px solid #000; padding: 4px 6px; font-weight: 600;">MONTANT LIQUIDE</td>
+        <td style="border: 1px solid #000; padding: 4px 6px; text-align: right; font-variant-numeric: tabular-nums;">
+            {{ op.montant_total|format_ar }}
+        </td>
+        <td style="border: 1px solid #000; padding: 4px 6px; font-weight: 600;">POSTE COMPTABLE</td>
+        <td style="border: 1px solid #000; padding: 4px 6px;"></td>
+    </tr>
+</table>
+
+{# ---------- OBJET DE LA DEPENSE + PERIODE ---------- #}
+<table style="width: 100%; border-collapse: collapse; font-size: 9.5px; margin-bottom: 8px;">
+    <tr>
+        <td style="border: 1px solid #000; padding: 4px 6px; width: 30%; font-weight: 600;">PERIODE LIQUIDEE</td>
+        <td style="border: 1px solid #000; padding: 4px 6px; width: 70%;">
+            {{ periode_texte }}
+        </td>
+    </tr>
+    <tr>
+        <td style="border: 1px solid #000; padding: 4px 6px; font-weight: 600;">Objet de la dépense</td>
+        <td style="border: 1px solid #000; padding: 4px 6px;">
+            Paiement d'indemnité(s) de mission intérieure de garde permanente
+            au titre du mois de {{ periode_texte }}
+            auprès de la Perception Principale de Marovoay.
+        </td>
+    </tr>
+    <tr>
+        <td style="border: 1px solid #000; padding: 4px 6px; font-weight: 600;">MONTANT MANDATE (A)</td>
+        <td style="border: 1px solid #000; padding: 4px 6px; text-align: right; font-variant-numeric: tabular-nums; font-weight: 700;">
+            {{ op.montant_total|format_ar }}
+        </td>
+    </tr>
+    <tr>
+        <td style="border: 1px solid #000; padding: 4px 6px; font-weight: 600;">A PRECOMPTER</td>
+        <td style="border: 1px solid #000; padding: 4px 6px;">—</td>
+    </tr>
+    <tr>
+        <td style="border: 1px solid #000; padding: 4px 6px; font-weight: 600;">NET A PAYER</td>
+        <td style="border: 1px solid #000; padding: 4px 6px; text-align: right; font-variant-numeric: tabular-nums; font-weight: 700;">
+            {{ op.montant_total|format_ar }}
+        </td>
+    </tr>
+</table>
+
+{# ---------- MONTANT EN LETTRES + ARRETE ---------- #}
+<table style="width: 100%; border-collapse: collapse; font-size: 9.5px; margin-bottom: 8px;">
+    <tr>
+        <td style="border: 1px solid #000; padding: 4px 6px; width: 60%; vertical-align: top;">
+            <div style="font-weight: 700; margin-bottom: 3px;">ARRETE par nous le présent ordre de paiement à la somme de (A) :</div>
+            <div style="font-style: italic; margin-top: 4px;">
+                {{ op.montant_lettres|default:"—" }}
+            </div>
+        </td>
+        <td style="border: 1px solid #000; padding: 4px 6px; width: 40%; vertical-align: top;">
+            <div style="font-weight: 700; margin-bottom: 3px;">Numéro d'identification du TITULAIRE :</div>
+            <div>{{ titulaire_numero }}</div>
+            <div style="margin-top: 6px; font-weight: 700;">TITULAIRE :</div>
+            <div>{{ titulaire_nom }}</div>
+            <div style="margin-top: 6px;">
+                <strong>CIN :</strong> {{ cin_titulaire|default:"—" }}
+            </div>
+            <div style="margin-top: 3px;">
+                <strong>ADRESSE :</strong> {{ adresse_titulaire|default:"—" }}
+            </div>
+        </td>
+    </tr>
+</table>
+
+{# ---------- SIGNATURES ---------- #}
+<table style="width: 100%; border-collapse: collapse; font-size: 10px; margin-top: 12px;">
+    <tr>
+        <td style="width: 50%; vertical-align: top; padding: 6px;">
+            <div style="font-weight: 600; margin-bottom: 4px;">
+                Fait à Marovoay, le {{ date_edition|date:"d/m/Y" }}
+            </div>
+            <div style="margin-top: 4px;">(Signature et timbre du Chef de Poste)</div>
+            <div style="height: 22mm; border: 1px solid #000; margin-top: 6px;"></div>
+        </td>
+        <td style="width: 50%; vertical-align: top; padding: 6px;">
+            <div style="font-weight: 600; margin-bottom: 4px;">Pour acquit de la somme indiquée ci-contre (A)</div>
+            <div style="margin-top: 12px;">A ................................................</div>
+            <div style="margin-top: 10px;">Le ................................................</div>
+            <div style="height: 18mm; border: 1px solid #000; margin-top: 6px;"></div>
+        </td>
+    </tr>
+</table>
+
+{% if op.modalite_reglement %}
+<div style="margin-top: 8px; font-size: 9px; color: #444;">
+    <strong>Modalité de règlement :</strong> {{ op.get_modalite_reglement_display }}
+</div>
 {% endif %}
 
 {% endblock %}

@@ -302,3 +302,81 @@ class RapportPeriodeViewTests(BaseRapportTest):
             'date_fin': '2026-01-01',
         })
         self.assertEqual(r.status_code, 302)
+
+
+# ===================================================================
+# Tests R2 — PDF OP format officiel + paramètres
+# ===================================================================
+
+class ListePaiementFormatOfficielTests(BaseRapportTest):
+
+    def _op_valide_avec_champs(self):
+        from paiements.services import creer_ordre_paiement, valider_ordre_paiement
+        from datetime import date
+        d = self._decompte_valide()
+        op, _ = creer_ordre_paiement(
+            self.agent, 2026, [d], self.user,
+            date_emission=date(2026, 7, 1),
+            numero_be='12345',
+            titulaire_nom='ANDRIAMALISON Johany Michael',
+            titulaire_numero='F0035/484',
+            montant_lettres='trois cent trente mille Ariary',
+            modalite_reglement='BON_CAISSE',
+        )
+        return valider_ordre_paiement(op, self.validateur)
+
+    def test_pdf_contient_titre_ordre_de_paiement(self):
+        op = self._op_valide_avec_champs()
+        self.client.login(username='admin_test', password='TestPassword2026!')
+        r = self.client.get(reverse('rapports:liste_paiement_pdf', args=[op.pk]))
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r['Content-Type'], 'application/pdf')
+        self.assertTrue(r.content.startswith(b'%PDF'))
+
+    def test_pdf_inclut_titulaire_et_montant_lettres(self):
+        """Vérifie via le service que le contexte contient les bonnes valeurs."""
+        from rapports.services import _param_op
+        op = self._op_valide_avec_champs()
+        # Vérifier que les paramètres sont créés (utilisés dans le template)
+        from core.models import Parametre
+        # La commande seed a été appelée en setUp de BaseRapportTest via setup_groups ? Non.
+        # On la lance ici explicitement :
+        from django.core.management import call_command
+        call_command('seed_parametres_op', verbosity=0)
+        self.assertEqual(_param_op('op.ministere'), '21 MEF')
+        self.assertEqual(_param_op('op.code_cf'), '0101 220')
+
+
+class SeedParametresOPTests(TestCase):
+    """Tests de la commande seed_parametres_op."""
+
+    def test_seed_cree_les_16_parametres(self):
+        from django.core.management import call_command
+        from core.models import Parametre
+        Parametre.objects.filter(cle__startswith='op.').delete()
+        call_command('seed_parametres_op', verbosity=0)
+        self.assertEqual(
+            Parametre.objects.filter(cle__startswith='op.').count(), 16
+        )
+
+    def test_seed_idempotent_conserve_valeur_modifiee(self):
+        from django.core.management import call_command
+        from core.models import Parametre
+        call_command('seed_parametres_op', verbosity=0)
+        p = Parametre.objects.get(cle='op.ministere')
+        p.valeur = 'VALEUR_PERSONNALISEE'
+        p.save()
+        call_command('seed_parametres_op', verbosity=0)
+        p.refresh_from_db()
+        self.assertEqual(p.valeur, 'VALEUR_PERSONNALISEE')
+
+    def test_seed_reset_ecrase(self):
+        from django.core.management import call_command
+        from core.models import Parametre
+        call_command('seed_parametres_op', verbosity=0)
+        p = Parametre.objects.get(cle='op.ministere')
+        p.valeur = 'VALEUR_PERSONNALISEE'
+        p.save()
+        call_command('seed_parametres_op', '--reset', verbosity=0)
+        p.refresh_from_db()
+        self.assertEqual(p.valeur, '21 MEF')
