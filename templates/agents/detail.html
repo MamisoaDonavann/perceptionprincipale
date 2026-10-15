@@ -26,6 +26,9 @@
         <a href="{% url 'rapports:historique_agent_excel' agent.pk %}" class="btn-secondary" target="_blank">
             Historique Excel
         </a>
+        <a href="{% url 'rapports:historique_agent_csv' agent.pk %}" class="btn-secondary" target="_blank">
+            Historique CSV
+        </a>
         {% if perms.agents.change_agent %}
         <a href="{% url 'agents:update' agent.pk %}" class="btn-create">Modifier</a>
         {% endif %}

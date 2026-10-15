@@ -123,4 +123,28 @@ urlpatterns = [
         views.rapport_periode_excel,
         name='rapport_periode_excel',
     ),
+
+    # ------------------------------------------------------------------
+    # Exports CSV (Lot UX-1.1)
+    # ------------------------------------------------------------------
+    path(
+        'gardes/csv/',
+        views.etat_gardes_csv,
+        name='etat_gardes_csv',
+    ),
+    path(
+        'liste-op/csv/',
+        views.liste_op_csv,
+        name='liste_op_csv',
+    ),
+    path(
+        'periode/csv/',
+        views.rapport_periode_csv,
+        name='rapport_periode_csv',
+    ),
+    path(
+        'agent/<int:pk>/csv/',
+        views.historique_agent_csv,
+        name='historique_agent_csv',
+    ),
 ]

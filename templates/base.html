@@ -138,18 +138,6 @@
 
     {# ================= HEADER ================= #}
     <header class="header" role="banner">
-        <form method="get" action="{% url 'core:search' %}" class="global-search" role="search">
-            <span class="global-search__icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <circle cx="11" cy="11" r="8"/>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                </svg>
-            </span>
-            <input type="search" name="q" class="global-search__input"
-                   placeholder="Rechercher un agent, un OP, une mission…"
-                   value="{{ request.GET.q|default:'' }}"
-                   autocomplete="off">
-        </form>
 
         <div class="header__actions">
             <details class="user-menu">
@@ -165,25 +153,69 @@
                     </svg>
                 </summary>
                 <div class="user-menu__dropdown">
-                    <div class="user-menu__header">
-                        <div class="user-menu__fullname">
-                            {{ user.get_full_name|default:user.username }}
+                    <div class="user-menu__hero">
+                        <div class="user-menu__avatar-lg">
+                            {{ user.get_short_name|default:user.username|slice:":1"|upper }}
                         </div>
-                        <div class="user-menu__meta">
-                            {% if user.is_superuser %}Superutilisateur
-                            {% elif user.groups.all %}{{ user.groups.all.0.name }}
-                            {% else %}Utilisateur{% endif %}
+                        <div class="user-menu__hero-info">
+                            <div class="user-menu__hero-name">
+                                {{ user.get_full_name|default:user.username }}
+                            </div>
+                            <div class="user-menu__hero-meta">
+                                <span class="user-menu__username">@{{ user.username }}</span>
+                                <span class="user-menu__dot">·</span>
+                                <span class="user-menu__role">
+                                    {% if user.is_superuser %}
+                                        Superutilisateur
+                                    {% elif user.groups.all %}
+                                        {{ user.groups.all.0.name }}
+                                    {% else %}
+                                        Utilisateur
+                                    {% endif %}
+                                </span>
+                            </div>
                         </div>
                     </div>
+
+                    <div class="user-menu__section">
+                        {% if user.is_staff %}
+                        <a href="/admin/" target="_blank" class="user-menu__item">
+                            <span class="user-menu__icon">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="3"/>
+                                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                                </svg>
+                            </span>
+                            <span>Administration Django</span>
+                            <span class="user-menu__arrow">↗</span>
+                        </a>
+                        {% endif %}
+                        {% if perms.audit.view_journalaudit %}
+                        <a href="{% url 'audit:list' %}" class="user-menu__item">
+                            <span class="user-menu__icon">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <polyline points="12 6 12 12 16 14"/>
+                                </svg>
+                            </span>
+                            <span>Journal d'audit</span>
+                        </a>
+                        {% endif %}
+                    </div>
+
+                    <div class="user-menu__divider"></div>
+
                     <form method="post" action="{% url 'logout' %}" class="user-menu__logout">
                         {% csrf_token %}
-                        <button type="submit" class="user-menu__logout-btn">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                                <polyline points="16 17 21 12 16 7"/>
-                                <line x1="21" y1="12" x2="9" y2="12"/>
-                            </svg>
-                            Déconnexion
+                        <button type="submit" class="user-menu__item user-menu__item--danger">
+                            <span class="user-menu__icon">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                                    <polyline points="16 17 21 12 16 7"/>
+                                    <line x1="21" y1="12" x2="9" y2="12"/>
+                                </svg>
+                            </span>
+                            <span>Déconnexion</span>
                         </button>
                     </form>
                 </div>

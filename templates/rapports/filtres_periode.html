@@ -48,6 +48,9 @@
         <button type="submit" formaction="{% url 'rapports:rapport_periode_excel' %}" class="btn-secondary">
             Télécharger Excel
         </button>
+        <button type="submit" formaction="{% url 'rapports:rapport_periode_csv' %}" class="btn-secondary">
+            Télécharger CSV
+        </button>
         <a href="{% url 'rapports:filtres_periode' %}" class="btn-secondary">Réinitialiser</a>
     </div>
 </form>

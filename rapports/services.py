@@ -827,3 +827,229 @@ def generer_rapport_periode_excel(date_debut, date_fin):
     wb.save(buffer)
     buffer.seek(0)
     return buffer
+
+
+# ===================================================================
+# EXPORTS CSV
+# ===================================================================
+# Format : séparateur ';' (Excel FR), UTF-8 avec BOM
+# ===================================================================
+
+import csv
+from io import StringIO
+
+
+def _csv_response_ready(buffer):
+    """Encode le StringIO en UTF-8 avec BOM pour Excel."""
+    return buffer.getvalue().encode('utf-8-sig')
+
+
+def generer_etat_gardes_csv(date_debut=None, date_fin=None,
+                            agent=None, mission=None, conforme=None):
+    """Export CSV de l'état détaillé des gardes."""
+    gardes = collecter_gardes_filtrees(
+        date_debut, date_fin, agent, mission, conforme
+    )
+
+    buffer = StringIO()
+    writer = csv.writer(buffer, delimiter=';', quoting=csv.QUOTE_MINIMAL)
+
+    writer.writerow([
+        'Garde #', 'Agent', 'Matricule', 'Mission',
+        'Date début', 'Date fin', 'Durée (min)', 'Partiels',
+        'Conforme', 'Statut', 'Tarif partiel (Ar)',
+    ])
+
+    for g in gardes:
+        writer.writerow([
+            g.pk,
+            f"{g.agent.nom} {g.agent.prenoms}",
+            g.agent.matricule,
+            g.mission.libelle if g.mission else '—',
+            g.date_heure_debut.strftime('%d/%m/%Y %H:%M'),
+            g.date_heure_fin.strftime('%d/%m/%Y %H:%M'),
+            g.duree_minutes,
+            g.nombre_partiels if g.nombre_partiels else '—',
+            'Oui' if g.conforme else 'Non',
+            g.get_statut_display(),
+            g.tarif.montant_partiel if g.tarif else '—',
+        ])
+
+    return _csv_response_ready(buffer)
+
+
+def generer_liste_op_csv(date_debut=None, date_fin=None, statut=None):
+    """Export CSV de la liste des OP."""
+    ops = collecter_ops_filtres(date_debut, date_fin, statut)
+
+    buffer = StringIO()
+    writer = csv.writer(buffer, delimiter=';', quoting=csv.QUOTE_MINIMAL)
+
+    writer.writerow([
+        'N° OP', 'Agent', 'Matricule', 'Année',
+        'Montant total (Ar)', 'Net payé (Ar)',
+        'Statut', 'Clôturé', 'Créé le', 'Créé par',
+    ])
+
+    for op in ops:
+        writer.writerow([
+            op.numero_op,
+            f"{op.agent_beneficiaire.nom} {op.agent_beneficiaire.prenoms}",
+            op.agent_beneficiaire.matricule,
+            op.annee,
+            op.montant_total,
+            op.montant_net_paye,
+            op.get_statut_display(),
+            'Oui' if op.cloture_administrative else 'Non',
+            op.date_creation.strftime('%d/%m/%Y %H:%M'),
+            op.id_utilisateur_createur.username,
+        ])
+
+    return _csv_response_ready(buffer)
+
+
+def generer_rapport_periode_csv(date_debut, date_fin):
+    """Export CSV du rapport sur période."""
+    data = collecter_donnees_periode(date_debut, date_fin)
+
+    buffer = StringIO()
+    writer = csv.writer(buffer, delimiter=';', quoting=csv.QUOTE_MINIMAL)
+
+    # Section synthèse
+    writer.writerow(['RAPPORT SUR PÉRIODE'])
+    writer.writerow(['Du', date_debut.strftime('%d/%m/%Y')])
+    writer.writerow(['Au', date_fin.strftime('%d/%m/%Y')])
+    writer.writerow([])
+    writer.writerow(['Indicateur', 'Valeur'])
+    writer.writerow(['Nombre de gardes validées', data['nb_gardes']])
+    writer.writerow(['Nombre de décomptes validés', data['nb_decomptes']])
+    writer.writerow(['Nombre d\'OP créés', data['nb_ops']])
+    writer.writerow(['Nombre de paiements enregistrés', data['nb_paiements']])
+    writer.writerow(['Total décomptes (Ar)', data['total_decomptes']])
+    writer.writerow(['Total OP (Ar)', data['total_ops']])
+    writer.writerow(['Total paiements (Ar)', data['total_paiements']])
+
+    # Section décomptes
+    writer.writerow([])
+    writer.writerow(['DÉCOMPTES VALIDÉS'])
+    writer.writerow(['Agent', 'Période', 'Gardes', 'Montant (Ar)'])
+    for d in data['decomptes']:
+        writer.writerow([
+            f"{d.agent.matricule} {d.agent.nom}",
+            f"{d.mois:02d}/{d.annee}",
+            d.nombre_gardes_retunes,
+            d.montant_total,
+        ])
+
+    # Section OP
+    writer.writerow([])
+    writer.writerow(['ORDRES DE PAIEMENT'])
+    writer.writerow(['N° OP', 'Agent', 'Montant total (Ar)', 'Net payé (Ar)', 'Statut'])
+    for op in data['ops']:
+        writer.writerow([
+            op.numero_op,
+            f"{op.agent_beneficiaire.matricule} {op.agent_beneficiaire.nom}",
+            op.montant_total,
+            op.montant_net_paye,
+            op.get_statut_display(),
+        ])
+
+    # Section paiements
+    writer.writerow([])
+    writer.writerow(['PAIEMENTS'])
+    writer.writerow(['Date', 'N° OP', 'Montant (Ar)', 'Mode', 'Référence'])
+    for p in data['paiements']:
+        writer.writerow([
+            p.date_paiement.strftime('%d/%m/%Y %H:%M'),
+            p.ordre_paiement.numero_op,
+            p.montant,
+            p.get_mode_paiement_display(),
+            p.reference or '—',
+        ])
+
+    return _csv_response_ready(buffer)
+
+
+def generer_historique_agent_csv(agent, date_debut=None, date_fin=None):
+    """Export CSV de l'historique complet d'un agent."""
+    data = collecter_donnees_historique_agent(agent, date_debut, date_fin)
+
+    buffer = StringIO()
+    writer = csv.writer(buffer, delimiter=';', quoting=csv.QUOTE_MINIMAL)
+
+    # Informations agent
+    writer.writerow(['FICHE AGENT'])
+    writer.writerow(['Matricule', agent.matricule])
+    writer.writerow(['Nom', agent.nom])
+    writer.writerow(['Prénoms', agent.prenoms])
+    writer.writerow(['Grade', agent.grade or '—'])
+    writer.writerow(['Statut', agent.get_statut_agent_display()])
+    writer.writerow(['Période analysée',
+                     f"{data['debut'].strftime('%d/%m/%Y')} → {data['fin'].strftime('%d/%m/%Y')}"])
+
+    # Gardes
+    writer.writerow([])
+    writer.writerow(['GARDES'])
+    writer.writerow(['Garde #', 'Début', 'Fin', 'Durée (min)', 'Partiels',
+                     'Conforme', 'Tarif (Ar)', 'Statut'])
+    for g in data['gardes']:
+        writer.writerow([
+            g.pk,
+            g.date_heure_debut.strftime('%d/%m/%Y %H:%M'),
+            g.date_heure_fin.strftime('%d/%m/%Y %H:%M'),
+            g.duree_minutes,
+            g.nombre_partiels if g.nombre_partiels else '—',
+            'Oui' if g.conforme else 'Non',
+            g.tarif.montant_partiel if g.tarif else '—',
+            g.get_statut_display(),
+        ])
+
+    # Décomptes
+    writer.writerow([])
+    writer.writerow(['DÉCOMPTES'])
+    writer.writerow(['Décompte #', 'Période', 'Gardes', 'Non conformes',
+                     'Montant (Ar)', 'Statut'])
+    for d in data['decomptes']:
+        writer.writerow([
+            d.pk,
+            f"{d.mois:02d}/{d.annee}",
+            d.nombre_gardes_retunes,
+            d.nombre_gardes_non_conformes_exclues,
+            d.montant_total,
+            d.get_statut_display(),
+        ])
+
+    # OP + Paiements
+    writer.writerow([])
+    writer.writerow(['ORDRES DE PAIEMENT'])
+    writer.writerow(['N° OP', 'Date OP', 'Montant total (Ar)', 'Net payé (Ar)',
+                     'Statut OP', 'Clôturé', 'Paiement date',
+                     'Paiement montant (Ar)', 'Mode', 'Statut paiement'])
+    for op in data['ordres']:
+        paiements_op = list(op.paiements.all())
+        if not paiements_op:
+            writer.writerow([
+                op.numero_op,
+                op.date_creation.strftime('%d/%m/%Y'),
+                op.montant_total,
+                op.montant_net_paye,
+                op.get_statut_display(),
+                'Oui' if op.cloture_administrative else 'Non',
+                '—', '—', '—', '—',
+            ])
+        else:
+            for p in paiements_op:
+                writer.writerow([
+                    op.numero_op,
+                    op.date_creation.strftime('%d/%m/%Y'),
+                    op.montant_total,
+                    op.montant_net_paye,
+                    op.get_statut_display(),
+                    'Oui' if op.cloture_administrative else 'Non',
+                    p.date_paiement.strftime('%d/%m/%Y %H:%M'),
+                    p.montant,
+                    p.get_mode_paiement_display(),
+                    p.get_statut_display(),
+                ])
+
+    return _csv_response_ready(buffer)

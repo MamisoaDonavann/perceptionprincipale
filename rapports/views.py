@@ -21,6 +21,10 @@ from paiements.models import OrdrePaiement
 
 from .permissions import verifier_permission
 from .services import (
+    generer_etat_gardes_csv,
+    generer_historique_agent_csv,
+    generer_liste_op_csv,
+    generer_rapport_periode_csv,
     generer_decomptes_mensuels_pdf,
     generer_etat_decompte_pdf,
     generer_etat_gardes_excel,
@@ -549,5 +553,113 @@ def decomptes_mensuels_pdf(request, annee, mois):
 
     filename = f"decomptes_{annee}_{mois:02d}.pdf"
     response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
+
+
+# ===================================================================
+# EXPORTS CSV (Lot UX-1.1)
+# ===================================================================
+
+@login_required
+def etat_gardes_csv(request):
+    """Export CSV de l'état détaillé des gardes."""
+    verifier_permission(request.user, 'gardes.view_garde')
+    try:
+        f = _filtres_gardes(request)
+        content = generer_etat_gardes_csv(
+            f['date_debut'], f['date_fin'],
+            f['agent'], f['mission'], f['conforme'],
+        )
+    except ValidationError as e:
+        for msg in e.messages:
+            messages.error(request, msg)
+        return redirect(reverse('rapports:index'))
+
+    journaliser(
+        user=request.user, action=JournalAudit.ACTION_EXPORT,
+        entite='gardes.Garde', id_entite=0,
+        apres={'type': 'etat_gardes_csv'},
+        commentaire="Export CSV état des gardes",
+    )
+
+    response = HttpResponse(content, content_type='text/csv; charset=utf-8-sig')
+    response['Content-Disposition'] = 'attachment; filename="etat_gardes.csv"'
+    return response
+
+
+@login_required
+def liste_op_csv(request):
+    """Export CSV de la liste des OP."""
+    verifier_permission(request.user, 'paiements.consulter_ordre_paiement')
+    try:
+        f = _filtres_op(request)
+        content = generer_liste_op_csv(f['date_debut'], f['date_fin'], f['statut'])
+    except ValidationError as e:
+        for msg in e.messages:
+            messages.error(request, msg)
+        return redirect(reverse('rapports:index'))
+
+    journaliser(
+        user=request.user, action=JournalAudit.ACTION_EXPORT,
+        entite='paiements.OrdrePaiement', id_entite=0,
+        apres={'type': 'liste_op_csv'},
+        commentaire="Export CSV liste des OP",
+    )
+
+    response = HttpResponse(content, content_type='text/csv; charset=utf-8-sig')
+    response['Content-Disposition'] = 'attachment; filename="liste_op.csv"'
+    return response
+
+
+@login_required
+def rapport_periode_csv(request):
+    """Export CSV du rapport sur période."""
+    verifier_permission(request.user, 'paiements.consulter_ordre_paiement')
+    try:
+        f = _filtres_periode(request)
+        content = generer_rapport_periode_csv(f['date_debut'], f['date_fin'])
+    except ValidationError as e:
+        for msg in e.messages:
+            messages.error(request, msg)
+        return redirect(reverse('rapports:index'))
+
+    journaliser(
+        user=request.user, action=JournalAudit.ACTION_EXPORT,
+        entite='rapports.RapportPeriode', id_entite=0,
+        apres={'type': 'rapport_periode_csv'},
+        commentaire=f"Export CSV rapport période {f['date_debut']} → {f['date_fin']}",
+    )
+
+    response = HttpResponse(content, content_type='text/csv; charset=utf-8-sig')
+    response['Content-Disposition'] = 'attachment; filename="rapport_periode.csv"'
+    return response
+
+
+@login_required
+def historique_agent_csv(request, pk):
+    """Export CSV de l'historique d'un agent."""
+    from agents.models import Agent
+    verifier_permission(request.user, 'agents.view_agent')
+    agent = get_object_or_404(Agent, pk=pk)
+
+    try:
+        date_debut = _parse_date(request.GET.get('date_debut'), 'de début')
+        date_fin = _parse_date(request.GET.get('date_fin'), 'de fin')
+        content = generer_historique_agent_csv(agent, date_debut, date_fin)
+    except ValidationError as e:
+        for msg in e.messages:
+            messages.error(request, msg)
+        return redirect(reverse('agents:detail', args=[agent.pk]))
+
+    journaliser(
+        user=request.user, action=JournalAudit.ACTION_EXPORT,
+        entite='agents.Agent', id_entite=agent.pk,
+        apres={'type': 'historique_agent_csv'},
+        commentaire=f"Export CSV historique agent {agent.matricule}",
+    )
+
+    filename = f"historique_{agent.matricule}.csv"
+    response = HttpResponse(content, content_type='text/csv; charset=utf-8-sig')
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
     return response

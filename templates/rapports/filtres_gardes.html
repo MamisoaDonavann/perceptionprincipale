@@ -82,6 +82,9 @@
         <button type="submit" formaction="{% url 'rapports:etat_gardes_excel' %}" class="btn-secondary">
             Télécharger Excel
         </button>
+        <button type="submit" formaction="{% url 'rapports:etat_gardes_csv' %}" class="btn-secondary">
+            Télécharger CSV
+        </button>
         <a href="{% url 'rapports:filtres_gardes' %}" class="btn-secondary">Réinitialiser</a>
     </div>
 </form>
