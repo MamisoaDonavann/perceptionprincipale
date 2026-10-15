@@ -31,6 +31,36 @@
     </div>
 </div>
 
+<div class="info-box info-box--info">
+    Les rapports sont générés en mémoire et téléchargés directement au format PDF ou Excel.
+    Aucun fichier n'est conservé sur le serveur.
+</div>
+
+{# ==================== RAPPORTS DEPUIS UNE FICHE ==================== #}
+<h2 class="detail-card__title" style="margin-top: 8px; font-size: 12px;">Rapports depuis une fiche</h2>
+<p style="font-size: 13px; color: var(--text-2); margin: 0 0 16px 0;">
+    Ces rapports nécessitent de sélectionner d'abord un agent, un décompte ou un OP.
+</p>
+
+<div class="cards">
+    <div class="card card--info card--with-icon">
+        <div class="card__icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+            </svg>
+        </div>
+        <div class="card__content">
+            <div class="card__label">État de décompte</div>
+            <div class="card__hint">
+                Depuis la fiche d'un décompte <strong>validé</strong>, bouton « Télécharger le PDF ».
+            </div>
+            <div style="margin-top: 12px;">
+                <a href="{% url 'decomptes:list' %}" class="btn-secondary">Voir les décomptes</a>
+            </div>
+        </div>
+    </div>
+
     <div class="card card--info card--with-icon">
         <div class="card__icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

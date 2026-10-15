@@ -4,163 +4,124 @@
 {% block title %}Tableau de bord — Perception Marovoay{% endblock %}
 
 {% block content %}
-{# ==================== HERO DASHBOARD ==================== #}
-<div style="position:relative;background:linear-gradient(135deg,#ffffff 0%,#f8fafc 100%);border:1px solid #e5e7eb;border-radius:20px;padding:28px 32px;margin-bottom:28px;overflow:hidden;box-shadow:0 1px 3px rgba(15,23,42,0.04);">
+
+{# ==================== HERO ==================== #}
+<div style="position:relative;background:linear-gradient(135deg,#ffffff 0%,#f8fafc 100%);border:1px solid #e5e7eb;border-radius:20px;padding:28px 32px;margin-bottom:24px;overflow:hidden;">
     <div style="position:absolute;top:-120px;right:-120px;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(99,102,241,0.12) 0%,transparent 70%);pointer-events:none;"></div>
-    <div style="position:absolute;bottom:-80px;left:30%;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,0.10) 0%,transparent 70%);pointer-events:none;"></div>
-
     <div style="position:relative;z-index:2;display:flex;justify-content:space-between;align-items:center;gap:28px;flex-wrap:wrap;">
-
         <div style="flex:1 1 400px;min-width:0;">
-            <div style="display:inline-flex;align-items:center;gap:8px;padding:4px 12px 4px 6px;background:linear-gradient(135deg,#eef2ff,#e0e7ff);color:#4338ca;font-size:11.5px;font-weight:600;border-radius:20px;margin-bottom:12px;border:1px solid #c7d2fe;">
-                <span style="display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:white;">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/>
-                    </svg>
-                </span>
-                <span>Bonjour, {{ user.get_short_name|default:user.username }}</span>
+            <div style="display:inline-flex;align-items:center;gap:8px;padding:4px 12px;background:linear-gradient(135deg,#eef2ff,#e0e7ff);color:#4338ca;font-size:11.5px;font-weight:600;border-radius:20px;margin-bottom:12px;border:1px solid #c7d2fe;">
+                Bonjour, {{ user.get_short_name|default:user.username }}
             </div>
-
             <h1 style="font-size:30px;font-weight:800;color:#0f172a;letter-spacing:-0.03em;line-height:1.15;margin:0 0 10px;">
                 Vue d'ensemble de la <span style="background:linear-gradient(135deg,#4f46e5,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Perception</span>
             </h1>
-
             <p style="font-size:14px;color:#475569;line-height:1.55;margin:0;max-width:620px;">
                 Toutes vos données à jour. Gérez agents, missions, gardes, décomptes et paiements en un seul endroit.
             </p>
         </div>
-
         <div style="display:flex;gap:10px;flex-wrap:wrap;flex-shrink:0;">
-
-            <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:#ffffff;border:1px solid #e5e7eb;border-radius:14px;min-width:180px;box-shadow:0 1px 3px rgba(15,23,42,0.04);">
-                <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:grid;place-items:center;flex-shrink:0;box-shadow:0 2px 6px rgba(99,102,241,0.20);">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                        <circle cx="9" cy="7" r="4"/>
-                    </svg>
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:#ffffff;border:1px solid #e5e7eb;border-radius:14px;min-width:170px;">
+                <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:grid;place-items:center;color:white;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
                 </div>
                 <div>
-                    <div style="font-size:10.5px;font-weight:600;text-transform:uppercase;color:#94a3b8;letter-spacing:0.05em;margin-bottom:2px;">Agents actifs</div>
-                    <div style="font-size:20px;font-weight:700;color:#0f172a;letter-spacing:-0.02em;line-height:1;">{{ stats.agents_actifs }}</div>
+                    <div style="font-size:10.5px;font-weight:600;text-transform:uppercase;color:#94a3b8;">Agents actifs</div>
+                    <div class="counter" data-target="{{ stats.agents_actifs }}" style="font-size:20px;font-weight:700;color:#0f172a;line-height:1;">{{ stats.agents_actifs }}</div>
                 </div>
             </div>
-
-            <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:#ffffff;border:1px solid #e5e7eb;border-radius:14px;min-width:180px;box-shadow:0 1px 3px rgba(15,23,42,0.04);">
-                <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#10b981,#06b6d4);display:grid;place-items:center;flex-shrink:0;box-shadow:0 2px 6px rgba(16,185,129,0.20);">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <polyline points="20 6 9 17 4 12"/>
-                    </svg>
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:#ffffff;border:1px solid #e5e7eb;border-radius:14px;min-width:170px;">
+                <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#10b981,#06b6d4);display:grid;place-items:center;color:white;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                 </div>
                 <div>
-                    <div style="font-size:10.5px;font-weight:600;text-transform:uppercase;color:#94a3b8;letter-spacing:0.05em;margin-bottom:2px;">Ordres payés</div>
-                    <div style="font-size:20px;font-weight:700;color:#0f172a;letter-spacing:-0.02em;line-height:1;">{{ stats.ordres_payes }}</div>
+                    <div style="font-size:10.5px;font-weight:600;text-transform:uppercase;color:#94a3b8;">Ordres payés</div>
+                    <div class="counter" data-target="{{ stats.ordres_payes }}" style="font-size:20px;font-weight:700;color:#0f172a;line-height:1;">{{ stats.ordres_payes }}</div>
                 </div>
             </div>
-
         </div>
-
     </div>
 </div>
 
-{# ==================== SYNTHÈSE PRINCIPALE ==================== #}
-<div class="cards">
-    <div class="card card--info card--with-icon">
-        <div class="card__icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                <circle cx="9" cy="7" r="4"/>
-                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-            </svg>
+{% if stats.total_donnees < 5 %}
+<div style="background:linear-gradient(135deg,#eef2ff 0%,#e0e7ff 100%);border:1px solid #c7d2fe;border-radius:16px;padding:22px 26px;margin-bottom:24px;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+        <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:grid;place-items:center;color:white;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20"/></svg>
         </div>
+        <div>
+            <div style="font-size:16px;font-weight:800;color:#312e81;">Bienvenue dans l'application</div>
+            <div style="font-size:13px;color:#4338ca;">3 étapes pour démarrer</div>
+        </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;">
+        <a href="{% url 'agents:create' %}" style="padding:14px 16px;background:white;border:1px solid #c7d2fe;border-radius:10px;text-decoration:none;color:inherit;">
+            <div style="font-size:11px;font-weight:700;color:#6366f1;">ÉTAPE 1</div>
+            <div style="font-size:13.5px;font-weight:600;color:#0f172a;margin-top:4px;">Créer un agent</div>
+        </a>
+        <a href="{% url 'gardes:create' %}" style="padding:14px 16px;background:white;border:1px solid #c7d2fe;border-radius:10px;text-decoration:none;color:inherit;">
+            <div style="font-size:11px;font-weight:700;color:#6366f1;">ÉTAPE 2</div>
+            <div style="font-size:13.5px;font-weight:600;color:#0f172a;margin-top:4px;">Saisir les gardes</div>
+        </a>
+        <a href="{% url 'decomptes:create' %}" style="padding:14px 16px;background:white;border:1px solid #c7d2fe;border-radius:10px;text-decoration:none;color:inherit;">
+            <div style="font-size:11px;font-weight:700;color:#6366f1;">ÉTAPE 3</div>
+            <div style="font-size:13.5px;font-weight:600;color:#0f172a;margin-top:4px;">Générer un décompte</div>
+        </a>
+    </div>
+</div>
+{% endif %}
+
+{# ==================== CARTES CLIQUABLES ==================== #}
+<div class="cards">
+    <a href="{% url 'agents:list' %}" class="card card--info card--with-icon" style="text-decoration:none;color:inherit;">
         <div class="card__content">
             <div class="card__label">Agents actifs</div>
-            <div class="card__value">{{ stats.agents_actifs }}</div>
+            <div class="card__value counter" data-target="{{ stats.agents_actifs }}">{{ stats.agents_actifs }}</div>
             <div class="card__hint">Enregistrés et actifs</div>
         </div>
-    </div>
-
-    <div class="card card--info card--with-icon">
-        <div class="card__icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <polyline points="14 2 14 8 20 8"/>
-            </svg>
-        </div>
+    </a>
+    <a href="{% url 'missions:list' %}" class="card card--info card--with-icon" style="text-decoration:none;color:inherit;">
         <div class="card__content">
             <div class="card__label">Missions</div>
-            <div class="card__value">{{ stats.missions }}</div>
-            <div class="card__hint">Missions enregistrées</div>
+            <div class="card__value counter" data-target="{{ stats.missions }}">{{ stats.missions }}</div>
+            <div class="card__hint">Enregistrées</div>
         </div>
-    </div>
-
-    <div class="card card--info card--with-icon">
-        <div class="card__icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M12 2 4 6v6c0 5 3.5 9.5 8 10 4.5-.5 8-5 8-10V6l-8-4z"/>
-            </svg>
-        </div>
+    </a>
+    <a href="{% url 'gardes:list' %}" class="card card--info card--with-icon" style="text-decoration:none;color:inherit;">
         <div class="card__content">
             <div class="card__label">Gardes validées</div>
-            <div class="card__value">{{ stats.gardes_validees }}</div>
+            <div class="card__value counter" data-target="{{ stats.gardes_validees }}">{{ stats.gardes_validees }}</div>
             <div class="card__hint">Statut VALIDEE</div>
         </div>
-    </div>
-
-    <div class="card card--success card--with-icon">
-        <div class="card__icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M3 3v18h18"/>
-                <path d="m19 9-5 5-4-4-3 3"/>
-            </svg>
-        </div>
+    </a>
+    <a href="{% url 'decomptes:list' %}" class="card card--success card--with-icon" style="text-decoration:none;color:inherit;">
         <div class="card__content">
             <div class="card__label">Décomptes validés</div>
-            <div class="card__value">{{ stats.decomptes_valides }}</div>
+            <div class="card__value counter" data-target="{{ stats.decomptes_valides }}">{{ stats.decomptes_valides }}</div>
             <div class="card__hint">Statut VALIDE</div>
         </div>
-    </div>
-
-    <div class="card card--warning card--with-icon">
-        <div class="card__icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <rect x="2" y="5" width="20" height="14" rx="2"/>
-                <line x1="2" y1="10" x2="22" y2="10"/>
-            </svg>
-        </div>
+    </a>
+    <a href="{% url 'paiements:list' %}" class="card card--warning card--with-icon" style="text-decoration:none;color:inherit;">
         <div class="card__content">
             <div class="card__label">Ordres en cours</div>
-            <div class="card__value">{{ stats.ordres_en_cours }}</div>
+            <div class="card__value counter" data-target="{{ stats.ordres_en_cours }}">{{ stats.ordres_en_cours }}</div>
             <div class="card__hint">BROUILLON ou VALIDE</div>
         </div>
-    </div>
-
-    <div class="card card--success card--with-icon">
-        <div class="card__icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <polyline points="20 6 9 17 4 12"/>
-            </svg>
-        </div>
+    </a>
+    <a href="{% url 'paiements:list' %}" class="card card--success card--with-icon" style="text-decoration:none;color:inherit;">
         <div class="card__content">
             <div class="card__label">Ordres payés</div>
-            <div class="card__value">{{ stats.ordres_payes }}</div>
+            <div class="card__value counter" data-target="{{ stats.ordres_payes }}">{{ stats.ordres_payes }}</div>
             <div class="card__hint">Statut PAYE</div>
         </div>
-    </div>
-
-    <div class="card card--info card--with-icon">
-        <div class="card__icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <line x1="12" y1="1" x2="12" y2="23"/>
-                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-            </svg>
-        </div>
+    </a>
+    <a href="{% url 'paiements:list' %}" class="card card--info card--with-icon" style="text-decoration:none;color:inherit;">
         <div class="card__content">
             <div class="card__label">Paiements enregistrés</div>
-            <div class="card__value">{{ stats.paiements_enregistres }}</div>
+            <div class="card__value counter" data-target="{{ stats.paiements_enregistres }}">{{ stats.paiements_enregistres }}</div>
             <div class="card__hint">Actifs (non annulés)</div>
         </div>
-    </div>
+    </a>
 </div>
 
 {# ==================== MONTANTS CLÉS ==================== #}
@@ -172,66 +133,92 @@
         <div class="card__value amount" style="font-size: 22px;">{{ montants.reste_a_payer|format_ar }} Ar</div>
         <div class="card__hint">Somme des OP VALIDE non soldés</div>
     </div>
-
     <div class="card" style="border-left: 3px solid var(--success);">
-        <div class="card__label">Total payé en {{ user.date_joined|date:"Y"|default:"cette année" }}</div>
-        <div class="card__value amount" style="font-size: 22px;">{{ montants.total_paye_annee|format_ar }} Ar</div>
-        <div class="card__hint">Paiements enregistrés cette année</div>
+        <div class="card__label">Total payé ce mois</div>
+        <div class="card__value amount" style="font-size: 22px;">{{ montants.total_paye_mois|format_ar }} Ar</div>
+        <div class="card__hint" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+            {% if montants.tendance_paye_dir == 'up' %}
+                <span style="color:#059669;font-weight:700;">▲ +{{ montants.tendance_paye_pct }}%</span>
+            {% elif montants.tendance_paye_dir == 'down' %}
+                <span style="color:#dc2626;font-weight:700;">▼ -{{ montants.tendance_paye_pct }}%</span>
+            {% else %}
+                <span style="color:#94a3b8;font-weight:600;">— stable</span>
+            {% endif %}
+            <span style="color:#94a3b8;">vs mois précédent</span>
+        </div>
+        <div style="font-size:11.5px;color:#94a3b8;margin-top:6px;padding-top:6px;border-top:1px dashed #e5e7eb;">Cumul annuel : {{ montants.total_paye_annee|format_ar }} Ar</div>
     </div>
-
     <div class="card" style="border-left: 3px solid var(--primary-500);">
-        <div class="card__label">Décomptes validés cette année</div>
-        <div class="card__value amount" style="font-size: 22px;">{{ montants.total_decomptes_annee|format_ar }} Ar</div>
-        <div class="card__hint">Cumul des montants validés</div>
+        <div class="card__label">Décomptes validés ce mois</div>
+        <div class="card__value amount" style="font-size: 22px;">{{ montants.total_decomptes_mois|format_ar }} Ar</div>
+        <div class="card__hint" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+            {% if montants.tendance_decompte_dir == 'up' %}
+                <span style="color:#059669;font-weight:700;">▲ +{{ montants.tendance_decompte_pct }}%</span>
+            {% elif montants.tendance_decompte_dir == 'down' %}
+                <span style="color:#dc2626;font-weight:700;">▼ -{{ montants.tendance_decompte_pct }}%</span>
+            {% else %}
+                <span style="color:#94a3b8;font-weight:600;">— stable</span>
+            {% endif %}
+            <span style="color:#94a3b8;">vs mois précédent</span>
+        </div>
+        <div style="font-size:11.5px;color:#94a3b8;margin-top:6px;padding-top:6px;border-top:1px dashed #e5e7eb;">Cumul annuel : {{ montants.total_decomptes_annee|format_ar }} Ar</div>
     </div>
 </div>
 
-{# ==================== ACTIONS RAPIDES ==================== #}
+{# ==================== ACTIONS GROUPÉES ==================== #}
 <h2 class="detail-card__title" style="margin-top: 8px; font-size: 12px;">Actions rapides</h2>
 
-<div class="actions-bar" style="justify-content: flex-start;">
-    {% if permissions.creer_agent %}
-        <a href="{% url 'agents:create' %}" class="btn-create">+ Agent</a>
-    {% endif %}
-    {% if permissions.creer_mission %}
-        <a href="{% url 'missions:create' %}" class="btn-create">+ Mission</a>
-    {% endif %}
-    {% if permissions.creer_garde %}
-        <a href="{% url 'gardes:create' %}" class="btn-create">+ Garde</a>
-    {% endif %}
-    {% if permissions.creer_decompte %}
-        <a href="{% url 'decomptes:create' %}" class="btn-create">+ Décompte</a>
-    {% endif %}
-    {% if permissions.creer_op %}
-        <a href="{% url 'paiements:create' %}" class="btn-create">+ OP</a>
-    {% endif %}
-    {% if permissions.voir_rapports %}
-        <a href="{% url 'rapports:index' %}" class="btn-secondary">Rapports</a>
-    {% endif %}
-    {% if permissions.voir_audit %}
-        <a href="{% url 'audit:list' %}" class="btn-secondary">Journal d'audit</a>
-    {% endif %}
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-bottom:24px;">
+    <div style="padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:14px;">
+        <div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:10px;">Référentiels</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+            {% if permissions.creer_agent %}<a href="{% url 'agents:create' %}" class="btn-create" style="font-size:12px;padding:7px 12px;">+ Agent</a>{% endif %}
+            {% if permissions.creer_mission %}<a href="{% url 'missions:create' %}" class="btn-create" style="font-size:12px;padding:7px 12px;">+ Mission</a>{% endif %}
+        </div>
+    </div>
+    <div style="padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:14px;">
+        <div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:10px;">Opérations</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+            {% if permissions.creer_garde %}<a href="{% url 'gardes:create' %}" class="btn-create" style="font-size:12px;padding:7px 12px;">+ Garde</a>{% endif %}
+            {% if permissions.creer_decompte %}<a href="{% url 'decomptes:create' %}" class="btn-create" style="font-size:12px;padding:7px 12px;">+ Décompte</a>{% endif %}
+            {% if permissions.creer_op %}<a href="{% url 'paiements:create' %}" class="btn-create" style="font-size:12px;padding:7px 12px;">+ OP</a>{% endif %}
+        </div>
+    </div>
+    <div style="padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:14px;">
+        <div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:10px;">Consultation</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+            {% if permissions.voir_rapports %}<a href="{% url 'rapports:index' %}" class="btn-secondary" style="font-size:12px;padding:7px 12px;">Rapports</a>{% endif %}
+            {% if permissions.voir_audit %}<a href="{% url 'audit:list' %}" class="btn-secondary" style="font-size:12px;padding:7px 12px;">Journal d'audit</a>{% endif %}
+        </div>
+    </div>
 </div>
 
 {# ==================== GRAPHIQUE + ACTIVITÉ ==================== #}
 <div class="detail-grid">
     <div>
         <div class="detail-card">
-            <h2 class="detail-card__title">Évolution des paiements (12 derniers mois)</h2>
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
+                <h2 class="detail-card__title" style="margin:0;padding:0;border:none;">Évolution des paiements</h2>
+                <div style="display:inline-flex;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:2px;">
+                    <a href="?periode=3{% if filtre_activite %}&activite={{ filtre_activite }}{% endif %}" style="padding:5px 12px;font-size:12px;font-weight:600;border-radius:6px;text-decoration:none;color:{% if periode == 3 %}#fff{% else %}#475569{% endif %};background:{% if periode == 3 %}#6366f1{% else %}transparent{% endif %};">3 mois</a>
+                    <a href="?periode=6{% if filtre_activite %}&activite={{ filtre_activite }}{% endif %}" style="padding:5px 12px;font-size:12px;font-weight:600;border-radius:6px;text-decoration:none;color:{% if periode == 6 %}#fff{% else %}#475569{% endif %};background:{% if periode == 6 %}#6366f1{% else %}transparent{% endif %};">6 mois</a>
+                    <a href="?periode=12{% if filtre_activite %}&activite={{ filtre_activite }}{% endif %}" style="padding:5px 12px;font-size:12px;font-weight:600;border-radius:6px;text-decoration:none;color:{% if periode == 12 %}#fff{% else %}#475569{% endif %};background:{% if periode == 12 %}#6366f1{% else %}transparent{% endif %};">12 mois</a>
+                </div>
+            </div>
+
             {% if evolution_mensuelle %}
-            <div style="display:grid;grid-template-columns:repeat(12,1fr);gap:6px;height:200px;padding:12px 4px 0;border-bottom:1px solid #e5e7eb;">
+            <div style="display:grid;grid-template-columns:repeat({{ evolution_mensuelle|length }},1fr);gap:6px;height:200px;padding:12px 4px 0;border-bottom:1px solid #e5e7eb;">
                 {% for m in evolution_mensuelle %}
-                <div style="display:flex;flex-direction:column;align-items:center;height:100%;"
-                     title="{{ m.mois }}/{{ m.annee }} : {{ m.total|format_ar }} Ar">
+                <div style="display:flex;flex-direction:column;align-items:center;height:100%;" title="{{ m.mois }}/{{ m.annee }} : {{ m.total|format_ar }} Ar">
                     <div style="flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center;">
-                        <div style="width:70%;height:{{ m.hauteur_pct }}%;min-height:3px;background:linear-gradient(180deg,#6366f1,#8b5cf6);border-radius:4px 4px 0 0;box-shadow:0 1px 4px rgba(99,102,241,0.2);"></div>
+                        <div style="width:70%;height:{{ m.hauteur_pct }}%;min-height:3px;background:linear-gradient(180deg,#6366f1,#8b5cf6);border-radius:4px 4px 0 0;"></div>
                     </div>
-                    <div style="font-size:10px;font-weight:600;color:#94a3b8;padding-top:6px;text-align:center;line-height:1;">{{ m.mois }}</div>
+                    <div style="font-size:10px;font-weight:600;color:#94a3b8;padding-top:6px;line-height:1;">{{ m.mois }}</div>
                 </div>
                 {% endfor %}
             </div>
             <p style="font-size:11px;color:#94a3b8;margin:12px 0 0 0;text-align:center;">
-                12 derniers mois glissants. Survolez une barre pour le détail.
+                {{ periode }} derniers mois glissants. Survolez une barre pour le détail.
             </p>
             {% else %}
             <p class="empty-state__hint">Aucun paiement enregistré.</p>
@@ -242,6 +229,15 @@
     <div>
         <div class="detail-card">
             <h2 class="detail-card__title">Activité récente</h2>
+
+            <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border);">
+                <a href="?periode={{ periode }}" style="padding:4px 10px;font-size:11.5px;font-weight:600;border-radius:14px;text-decoration:none;background:{% if not filtre_activite %}#6366f1{% else %}#f1f5f9{% endif %};color:{% if not filtre_activite %}#fff{% else %}#475569{% endif %};">Tout ({{ compteurs_activite.total }})</a>
+                <a href="?periode={{ periode }}&activite=CREATION" style="padding:4px 10px;font-size:11.5px;font-weight:600;border-radius:14px;text-decoration:none;background:{% if filtre_activite == 'CREATION' %}#6366f1{% else %}#f1f5f9{% endif %};color:{% if filtre_activite == 'CREATION' %}#fff{% else %}#475569{% endif %};">Créations ({{ compteurs_activite.CREATION }})</a>
+                <a href="?periode={{ periode }}&activite=MODIFICATION" style="padding:4px 10px;font-size:11.5px;font-weight:600;border-radius:14px;text-decoration:none;background:{% if filtre_activite == 'MODIFICATION' %}#6366f1{% else %}#f1f5f9{% endif %};color:{% if filtre_activite == 'MODIFICATION' %}#fff{% else %}#475569{% endif %};">Modifs ({{ compteurs_activite.MODIFICATION }})</a>
+                <a href="?periode={{ periode }}&activite=EXPORT" style="padding:4px 10px;font-size:11.5px;font-weight:600;border-radius:14px;text-decoration:none;background:{% if filtre_activite == 'EXPORT' %}#6366f1{% else %}#f1f5f9{% endif %};color:{% if filtre_activite == 'EXPORT' %}#fff{% else %}#475569{% endif %};">Exports ({{ compteurs_activite.EXPORT }})</a>
+                <a href="?periode={{ periode }}&activite=ANNULATION" style="padding:4px 10px;font-size:11.5px;font-weight:600;border-radius:14px;text-decoration:none;background:{% if filtre_activite == 'ANNULATION' %}#6366f1{% else %}#f1f5f9{% endif %};color:{% if filtre_activite == 'ANNULATION' %}#fff{% else %}#475569{% endif %};">Annulations ({{ compteurs_activite.ANNULATION }})</a>
+            </div>
+
             {% if activite %}
             <div class="timeline">
                 {% for entry in activite %}
@@ -250,7 +246,7 @@
                     <div class="timeline__content">
                         <div class="timeline__title">
                             <strong>{{ entry.get_action_display }}</strong>
-                            <span style="color: var(--text-muted); font-weight: 400;">— {{ entry.entite_concernee }}</span>
+                            <span style="color: var(--text-muted);">— {{ entry.entite_concernee }}</span>
                         </div>
                         <div class="timeline__meta">
                             {{ entry.id_utilisateur.username }} · {{ entry.date_action|date:"d/m/Y H:i" }}
@@ -262,23 +258,40 @@
                 </div>
                 {% endfor %}
             </div>
+            {% if permissions.voir_audit %}
             <div style="text-align: center; margin-top: 12px;">
-                {% if permissions.voir_audit %}
                 <a href="{% url 'audit:list' %}" class="btn-secondary" style="font-size: 12px;">Voir tout le journal</a>
-                {% endif %}
             </div>
+            {% endif %}
             {% else %}
-            <p class="empty-state__hint">Aucune activité enregistrée.</p>
+            <p class="empty-state__hint">Aucune activité pour ce filtre.</p>
             {% endif %}
         </div>
     </div>
 </div>
 
-{% if stats.total_donnees == 0 %}
-<div class="info-box info-box--info" style="margin-top: 20px;">
-    <strong>Base vide.</strong> Commencez par créer des agents, puis des missions et des gardes.
-    Le tableau de bord se remplira automatiquement.
-</div>
-{% endif %}
+{% endblock %}
 
+{% block extra_js %}
+<script>
+(function () {
+    var prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReduced) return;
+
+    document.querySelectorAll('.counter').forEach(function (el) {
+        var target = parseInt(el.dataset.target, 10) || 0;
+        if (target === 0) return;
+        var start = performance.now();
+        function step(now) {
+            var progress = Math.min((now - start) / 600, 1);
+            var eased = 1 - Math.pow(1 - progress, 3);
+            el.textContent = Math.floor(eased * target);
+            if (progress < 1) requestAnimationFrame(step);
+            else el.textContent = target;
+        }
+        el.textContent = '0';
+        requestAnimationFrame(step);
+    });
+})();
+</script>
 {% endblock %}

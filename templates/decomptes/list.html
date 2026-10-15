@@ -4,19 +4,30 @@
 {% block title %}Décomptes — Perception Marovoay{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div class="page-header__titles">
-        <h1 class="page-title">Décomptes</h1>
-        <p class="page-subtitle">{{ total }} décompte{{ total|pluralize }} enregistré{{ total|pluralize }}.</p>
-    </div>
-    <div style="display: flex; gap: 8px;">
-        {% if perms.decomptes.view_decompte %}
-        <a href="{% url 'rapports:filtres_decomptes_mensuels' %}" class="btn-secondary">
-            Récapitulatif mensuel
-        </a>
-        {% endif %}
+{# ==================== EN-TÊTE PAGE ==================== #}
+<div style="position:relative;background:linear-gradient(135deg,#ffffff 0%,#fafbff 100%);border:1px solid #e5e7eb;border-radius:16px;padding:20px 24px;margin-bottom:20px;overflow:hidden;">
+    <div style="position:absolute;top:0;right:0;width:200px;height:100%;background:radial-gradient(circle at right center,rgba(99,102,241,0.08) 0%,transparent 70%);pointer-events:none;"></div>
+
+    <div style="position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;">
+
+        <div style="display:flex;align-items:center;gap:16px;flex:1 1 300px;min-width:0;">
+            <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#8b5cf6,#ec4899);display:grid;place-items:center;flex-shrink:0;box-shadow:0 4px 14px rgba(99,102,241,0.30);">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/>
+                </svg>
+            </div>
+            <div style="min-width:0;">
+                <h1 style="font-size:24px;font-weight:800;color:#0f172a;letter-spacing:-0.025em;margin:0 0 4px;line-height:1.15;">
+                    Décomptes
+                </h1>
+                <p style="font-size:13px;color:#64748b;margin:0;">
+                    <strong style="color:#4f46e5">{{ total }}</strong> décompte{{ total|pluralize }} enregistré{{ total|pluralize }}
+                </p>
+            </div>
+        </div>
+
         {% if perms.decomptes.add_decompte %}
-        <a href="{% url 'decomptes:create' %}" class="btn-create">
+        <a href="{% url 'decomptes:create' %}" class="btn-create" style="flex-shrink:0;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <line x1="12" y1="5" x2="12" y2="19"/>
                 <line x1="5" y1="12" x2="19" y2="12"/>
@@ -24,6 +35,7 @@
             Nouveau décompte
         </a>
         {% endif %}
+
     </div>
 </div>
 
