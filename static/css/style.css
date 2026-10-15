@@ -54,7 +54,7 @@
     /* Texte */
     --text:       #0f172a;
     --text-2:     #475569;
-    --text-muted: #94a3b8;
+    --text-muted: #64748b;  /* WCAG AA sur blanc */
 
     /* Sidebar claire */
     --sb-bg:        #ffffff;
@@ -582,10 +582,10 @@ a:hover { color: var(--primary-700); }
 
 .card__label {
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--text-muted);
+    color: #334155;
     margin-bottom: 8px;
 }
 
@@ -599,7 +599,7 @@ a:hover { color: var(--primary-700); }
 
 .card__hint {
     font-size: 12.5px;
-    color: var(--text-2);
+    color: #475569;
     margin-top: 6px;
     line-height: 1.5;
 }
@@ -1019,7 +1019,7 @@ table.data-table tfoot td {
 
 .cell-user__info { min-width: 0; }
 .cell-user__name { font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.cell-user__meta { font-size: 11.5px; color: var(--text-muted); }
+.cell-user__meta { font-size: 11.5px; font-weight: 500; color: #475569; }
 
 /* ============================================================
    12. TAGS
@@ -2484,4 +2484,20 @@ html {
 }
 .skip-link:focus {
     top: 0;
+}
+
+/* ============================================================
+   29. FIX CIBLÉ — sidebar__logo-tagline (contraste WCAG AA)
+   ============================================================ */
+
+.sidebar .sidebar__logo .sidebar__logo-text .sidebar__logo-tagline,
+aside.sidebar .sidebar__logo-tagline,
+.sidebar__logo-tagline {
+    color: #334155 !important;
+    font-weight: 600 !important;
+}
+
+/* S'assurer du contraste sur le point violet */
+.sidebar__logo-tagline::before {
+    background: #6366f1 !important;
 }
