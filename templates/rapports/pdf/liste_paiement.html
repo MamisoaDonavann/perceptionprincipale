@@ -4,10 +4,16 @@
 {% block titre %}Ordre de paiement {{ op.numero_op }}{% endblock %}
 
 {% block entete %}
-<div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 10px;">
+<div style="position: relative; text-align: center; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 10px; min-height: 70px;">
     <div style="font-size: 13px; font-weight: 700; letter-spacing: 1px;">
         {{ p_republique }}
     </div>
+    {% if qr_code %}
+    <div style="position: absolute; top: -4px; right: 0; text-align: center;">
+        <img src="{{ qr_code }}" alt="QR code OP" style="width: 60px; height: 60px; border: 1px solid #ddd; padding: 2px; background: #fff;">
+        <div style="font-size: 7px; color: #666; margin-top: 2px;">Vérification</div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
 

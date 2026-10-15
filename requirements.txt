@@ -14,6 +14,7 @@ psycopg-binary==3.3.6
 pycparser==3.11
 pydyf==0.12.1
 pyphen==0.18.1
+segno==1.6.6
 sqlparse==0.6.0
 tinycss2==1.5.1
 tinyhtml5==2.1.0

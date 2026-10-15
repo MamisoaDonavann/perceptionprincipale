@@ -214,9 +214,19 @@ def generer_liste_paiement_pdf(op):
     else:
         periode_texte = "—"
 
+    # QR code avec les informations clés de l'OP
+    qr_data = (
+        f"OP: {op.numero_op}\n"
+        f"Agent: {agent.matricule} - {agent.nom} {agent.prenoms}\n"
+        f"Montant: {op.montant_total} Ar\n"
+        f"Émis le: {op.date_creation.strftime('%d/%m/%Y')}"
+    )
+    qr_data_url = _generer_qr_base64(qr_data, taille_px=4)
+
     context = {
         'op': op,
         'agent': agent,
+        'qr_code': qr_data_url,
         'date_edition': _date_edition(),
 
         # Titulaire (fallback)
@@ -1053,3 +1063,32 @@ def generer_historique_agent_csv(agent, date_debut=None, date_fin=None):
                 ])
 
     return _csv_response_ready(buffer)
+
+
+# ===================================================================
+# QR CODE (Lot UX-1.2)
+# ===================================================================
+
+import base64
+from io import BytesIO as _BytesIO
+
+
+def _generer_qr_base64(data, taille_px=6):
+    """
+    Génère un QR code en PNG et le retourne encodé en base64.
+
+    Paramètres :
+    - data : texte à encoder
+    - taille_px : taille de chaque module en pixels (défaut 6)
+
+    Retourne : chaîne 'data:image/png;base64,...' prête à utiliser dans un
+    template HTML (WeasyPrint accepte les images base64).
+    """
+    import segno
+
+    qr = segno.make(data, error='M')
+    buffer = _BytesIO()
+    qr.save(buffer, kind='png', scale=taille_px, border=1)
+    buffer.seek(0)
+    encoded = base64.b64encode(buffer.getvalue()).decode('ascii')
+    return f"data:image/png;base64,{encoded}"
