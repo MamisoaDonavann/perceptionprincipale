@@ -207,21 +207,25 @@
             </div>
 
             {% if evolution_mensuelle %}
-            <div style="display:grid;grid-template-columns:repeat({{ evolution_mensuelle|length }},1fr);gap:6px;height:200px;padding:12px 4px 0;border-bottom:1px solid #e5e7eb;">
-                {% for m in evolution_mensuelle %}
-                <div style="display:flex;flex-direction:column;align-items:center;height:100%;" title="{{ m.mois }}/{{ m.annee }} : {{ m.total|format_ar }} Ar">
-                    <div style="flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center;">
-                        <div style="width:70%;height:{{ m.hauteur_pct }}%;min-height:3px;background:linear-gradient(180deg,#6366f1,#8b5cf6);border-radius:4px 4px 0 0;"></div>
-                    </div>
-                    <div style="font-size:10px;font-weight:600;color:#475569;padding-top:6px;line-height:1;">{{ m.mois }}</div>
-                </div>
-                {% endfor %}
+            <div style="position:relative;height:240px;margin-top:8px;">
+                <canvas id="chart-evolution"></canvas>
             </div>
-            <p style="font-size:11px;color:#475569;margin:12px 0 0 0;text-align:center;">
-                {{ periode }} derniers mois glissants. Survolez une barre pour le détail.
+            <p style="font-size:11px;color:#94a3b8;margin:12px 0 0 0;text-align:center;">
+                {{ periode }} derniers mois glissants. Survolez une courbe pour le détail.
             </p>
             {% else %}
             <p class="empty-state__hint">Aucun paiement enregistré.</p>
+            {% endif %}
+        </div>
+
+        <div class="detail-card" style="margin-top:20px;">
+            <h2 class="detail-card__title">Répartition des OP par statut</h2>
+            {% if stats.ordres_en_cours or stats.ordres_payes %}
+            <div style="position:relative;height:220px;margin-top:8px;">
+                <canvas id="chart-statuts"></canvas>
+            </div>
+            {% else %}
+            <p class="empty-state__hint">Aucun ordre de paiement enregistré.</p>
             {% endif %}
         </div>
     </div>
@@ -291,6 +295,132 @@
         }
         el.textContent = '0';
         requestAnimationFrame(step);
+    });
+})();
+
+// ============================================================
+// Chart.js — Évolution des paiements (12 derniers mois)
+// ============================================================
+(function () {
+    var canvas = document.getElementById('chart-evolution');
+    if (!canvas) return;
+
+    // Données injectées depuis Django
+    var labels = [{% for m in evolution_mensuelle %}'{{ m.mois }}/{{ m.annee|slice:"2:" }}'{% if not forloop.last %},{% endif %}{% endfor %}];
+    var values = [{% for m in evolution_mensuelle %}{{ m.total }}{% if not forloop.last %},{% endif %}{% endfor %}];
+
+    new Chart(canvas, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Paiements (Ar)',
+                data: values,
+                borderColor: '#6366f1',
+                backgroundColor: 'rgba(99, 102, 241, 0.10)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.35,
+                pointBackgroundColor: '#6366f1',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+            }],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#0f172a',
+                    padding: 10,
+                    titleFont: { size: 12, weight: '600' },
+                    bodyFont: { size: 13 },
+                    displayColors: false,
+                    callbacks: {
+                        label: function (ctx) {
+                            return new Intl.NumberFormat('fr-FR').format(ctx.parsed.y) + ' Ar';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: '#e5e7eb', drawBorder: false },
+                    ticks: {
+                        font: { size: 10 },
+                        color: '#94a3b8',
+                        callback: function (value) {
+                            if (value >= 1000000) return (value / 1000000).toFixed(1) + 'M';
+                            if (value >= 1000) return (value / 1000).toFixed(0) + 'k';
+                            return value;
+                        }
+                    }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: {
+                        font: { size: 10 },
+                        color: '#94a3b8',
+                    }
+                }
+            }
+        }
+    });
+})();
+
+
+// ============================================================
+// Chart.js — Répartition des OP par statut (doughnut)
+// ============================================================
+(function () {
+    var canvas = document.getElementById('chart-statuts');
+    if (!canvas) return;
+
+    var totalEnCours = {{ stats.ordres_en_cours }};
+    var totalPayes = {{ stats.ordres_payes }};
+
+    new Chart(canvas, {
+        type: 'doughnut',
+        data: {
+            labels: ['En cours', 'Payés'],
+            datasets: [{
+                data: [totalEnCours, totalPayes],
+                backgroundColor: ['#6366f1', '#10b981'],
+                borderColor: '#ffffff',
+                borderWidth: 3,
+                hoverOffset: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '65%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        font: { size: 11 },
+                        color: '#475569',
+                        padding: 12,
+                        usePointStyle: true,
+                        pointStyle: 'circle'
+                    }
+                },
+                tooltip: {
+                    backgroundColor: '#0f172a',
+                    padding: 10,
+                    callbacks: {
+                        label: function (ctx) {
+                            return ctx.label + ' : ' + ctx.parsed + ' OP';
+                        }
+                    }
+                }
+            }
+        }
     });
 })();
 </script>

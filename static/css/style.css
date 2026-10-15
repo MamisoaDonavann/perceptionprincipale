@@ -2739,3 +2739,27 @@ aside.sidebar .sidebar__logo-tagline,
     .user-menu__item:hover { transform: none; }
     .user-menu__item:hover .user-menu__arrow { transform: none; }
 }
+
+/* ============================================================
+   33. CHARTS (Chart.js)
+   ============================================================ */
+
+canvas {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Chart.js gère ses propres dimensions, on empêche tout débordement */
+.chart-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+/* Préférence accessibilité : désactiver les animations Chart.js */
+@media (prefers-reduced-motion: reduce) {
+    canvas {
+        transition: none !important;
+        animation: none !important;
+    }
+}
