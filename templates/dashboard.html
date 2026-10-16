@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load format_ar %}
+{% load l10n %}
 
 {% block title %}Tableau de bord — Perception Marovoay{% endblock %}
 
@@ -307,7 +308,7 @@
 
     // Données injectées depuis Django
     var labels = [{% for m in evolution_mensuelle %}'{{ m.mois }}/{{ m.annee|slice:"2:" }}'{% if not forloop.last %},{% endif %}{% endfor %}];
-    var values = [{% for m in evolution_mensuelle %}{{ m.total }}{% if not forloop.last %},{% endif %}{% endfor %}];
+    var values = [{% for m in evolution_mensuelle %}{{ m.total|unlocalize }}{% if not forloop.last %},{% endif %}{% endfor %}];
 
     new Chart(canvas, {
         type: 'line',
