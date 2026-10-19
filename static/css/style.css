@@ -2763,3 +2763,41 @@ canvas {
         animation: none !important;
     }
 }
+
+/* ============================================================
+   CORRECTIONS FINALES FORMULAIRES (Pleine largeur & Aération)
+   ============================================================ */
+
+/* 1. Le formulaire prend TOUTE la largeur de l'écran (plus de max-width) */
+.form-card {
+    max-width: 100% !important;
+    width: 100% !important;
+}
+
+/* 2. On enlève le fond gris des sections pour un effet plus propre */
+.form-section {
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 1px solid var(--border) !important;
+    border-radius: 0 !important;
+    padding: 0 0 24px 0 !important;
+    margin-bottom: 24px !important;
+}
+
+/* 3. On enlève la ligne de séparation sur la toute dernière section */
+.form-section:last-of-type {
+    border-bottom: none !important;
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/* 4. On modernise le titre des sections (Identification, etc.) */
+.form-section legend {
+    background: transparent !important;
+    padding: 0 !important;
+    margin-bottom: 16px !important;
+    font-size: 12px !important;
+    color: var(--primary-700) !important;
+    letter-spacing: 0.05em !important;
+    border-bottom: none !important;
+}

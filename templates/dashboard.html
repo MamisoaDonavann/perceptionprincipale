@@ -22,24 +22,12 @@
             </p>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;flex-shrink:0;">
-            <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:#ffffff;border:1px solid #e5e7eb;border-radius:14px;min-width:170px;">
-                <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:grid;place-items:center;color:white;">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-                </div>
-                <div>
-                    <div style="font-size:10.5px;font-weight:600;text-transform:uppercase;color:#475569;">Agents actifs</div>
-                    <div class="counter" data-target="{{ stats.agents_actifs }}" style="font-size:20px;font-weight:700;color:#0f172a;line-height:1;">{{ stats.agents_actifs }}</div>
-                </div>
-            </div>
-            <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:#ffffff;border:1px solid #e5e7eb;border-radius:14px;min-width:170px;">
-                <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#10b981,#06b6d4);display:grid;place-items:center;color:white;">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                </div>
-                <div>
-                    <div style="font-size:10.5px;font-weight:600;text-transform:uppercase;color:#475569;">Ordres payés</div>
-                    <div class="counter" data-target="{{ stats.ordres_payes }}" style="font-size:20px;font-weight:700;color:#0f172a;line-height:1;">{{ stats.ordres_payes }}</div>
-                </div>
-            </div>
+            {% if permissions.creer_decompte %}
+            <a href="{% url 'decomptes:create' %}" class="btn-create" style="padding:10px 20px;font-size:13px;border-radius:12px;box-shadow:0 4px 12px rgba(99,102,241,0.3);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Nouveau décompte
+            </a>
+            {% endif %}
         </div>
     </div>
 </div>
@@ -56,15 +44,15 @@
         </div>
     </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;">
-        <a href="{% url 'agents:create' %}" style="padding:14px 16px;background:white;border:1px solid #c7d2fe;border-radius:10px;text-decoration:none;color:inherit;">
+        <a href="{% url 'agents:create' %}" style="padding:14px 16px;background:white;border:1px solid #c7d2fe;border-radius:10px;text-decoration:none;color:inherit;transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
             <div style="font-size:11px;font-weight:700;color:#6366f1;">ÉTAPE 1</div>
             <div style="font-size:13.5px;font-weight:600;color:#0f172a;margin-top:4px;">Créer un agent</div>
         </a>
-        <a href="{% url 'gardes:create' %}" style="padding:14px 16px;background:white;border:1px solid #c7d2fe;border-radius:10px;text-decoration:none;color:inherit;">
+        <a href="{% url 'gardes:create' %}" style="padding:14px 16px;background:white;border:1px solid #c7d2fe;border-radius:10px;text-decoration:none;color:inherit;transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
             <div style="font-size:11px;font-weight:700;color:#6366f1;">ÉTAPE 2</div>
             <div style="font-size:13.5px;font-weight:600;color:#0f172a;margin-top:4px;">Saisir les gardes</div>
         </a>
-        <a href="{% url 'decomptes:create' %}" style="padding:14px 16px;background:white;border:1px solid #c7d2fe;border-radius:10px;text-decoration:none;color:inherit;">
+        <a href="{% url 'decomptes:create' %}" style="padding:14px 16px;background:white;border:1px solid #c7d2fe;border-radius:10px;text-decoration:none;color:inherit;transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
             <div style="font-size:11px;font-weight:700;color:#6366f1;">ÉTAPE 3</div>
             <div style="font-size:13.5px;font-weight:600;color:#0f172a;margin-top:4px;">Générer un décompte</div>
         </a>
@@ -72,63 +60,67 @@
 </div>
 {% endif %}
 
-{# ==================== CARTES CLIQUABLES ==================== #}
-<div class="cards">
-    <a href="{% url 'agents:list' %}" class="card card--info card--with-icon" style="text-decoration:none;color:inherit;">
-        <div class="card__content">
-            <div class="card__label">Agents actifs</div>
-            <div class="card__value counter" data-target="{{ stats.agents_actifs }}">{{ stats.agents_actifs }}</div>
-            <div class="card__hint">Enregistrés et actifs</div>
+{# ==================== CARTES CLIQUABLES (AVEC ICÔNES) ==================== #}
+<div class="cards" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+    <a href="{% url 'agents:list' %}" class="card card--info" style="text-decoration:none;color:inherit;">
+        <div class="card__icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         </div>
+        <div class="card__label">Agents actifs</div>
+        <div class="card__value counter" data-target="{{ stats.agents_actifs }}">{{ stats.agents_actifs }}</div>
+        <div class="card__hint">Enregistrés et actifs</div>
     </a>
-    <a href="{% url 'missions:list' %}" class="card card--info card--with-icon" style="text-decoration:none;color:inherit;">
-        <div class="card__content">
-            <div class="card__label">Missions</div>
-            <div class="card__value counter" data-target="{{ stats.missions }}">{{ stats.missions }}</div>
-            <div class="card__hint">Enregistrées</div>
+    
+    <a href="{% url 'missions:list' %}" class="card card--info" style="text-decoration:none;color:inherit;">
+        <div class="card__icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
         </div>
+        <div class="card__label">Missions</div>
+        <div class="card__value counter" data-target="{{ stats.missions }}">{{ stats.missions }}</div>
+        <div class="card__hint">Enregistrées</div>
     </a>
-    <a href="{% url 'gardes:list' %}" class="card card--info card--with-icon" style="text-decoration:none;color:inherit;">
-        <div class="card__content">
-            <div class="card__label">Gardes validées</div>
-            <div class="card__value counter" data-target="{{ stats.gardes_validees }}">{{ stats.gardes_validees }}</div>
-            <div class="card__hint">Statut VALIDEE</div>
+
+    <a href="{% url 'gardes:list' %}" class="card card--info" style="text-decoration:none;color:inherit;">
+        <div class="card__icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 6v6c0 5 3.5 9.5 8 10 4.5-.5 8-5 8-10V6l-8-4z"/></svg>
         </div>
+        <div class="card__label">Gardes validées</div>
+        <div class="card__value counter" data-target="{{ stats.gardes_validees }}">{{ stats.gardes_validees }}</div>
+        <div class="card__hint">Statut VALIDEE</div>
     </a>
-    <a href="{% url 'decomptes:list' %}" class="card card--success card--with-icon" style="text-decoration:none;color:inherit;">
-        <div class="card__content">
-            <div class="card__label">Décomptes validés</div>
-            <div class="card__value counter" data-target="{{ stats.decomptes_valides }}">{{ stats.decomptes_valides }}</div>
-            <div class="card__hint">Statut VALIDE</div>
+
+    <a href="{% url 'decomptes:list' %}" class="card card--success" style="text-decoration:none;color:inherit;">
+        <div class="card__icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
         </div>
+        <div class="card__label">Décomptes validés</div>
+        <div class="card__value counter" data-target="{{ stats.decomptes_valides }}">{{ stats.decomptes_valides }}</div>
+        <div class="card__hint">Statut VALIDE</div>
     </a>
-    <a href="{% url 'paiements:list' %}" class="card card--warning card--with-icon" style="text-decoration:none;color:inherit;">
-        <div class="card__content">
-            <div class="card__label">Ordres en cours</div>
-            <div class="card__value counter" data-target="{{ stats.ordres_en_cours }}">{{ stats.ordres_en_cours }}</div>
-            <div class="card__hint">BROUILLON ou VALIDE</div>
+
+    <a href="{% url 'paiements:list' %}" class="card card--warning" style="text-decoration:none;color:inherit;">
+        <div class="card__icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
         </div>
+        <div class="card__label">Ordres en cours</div>
+        <div class="card__value counter" data-target="{{ stats.ordres_en_cours }}">{{ stats.ordres_en_cours }}</div>
+        <div class="card__hint">BROUILLON ou VALIDE</div>
     </a>
-    <a href="{% url 'paiements:list' %}" class="card card--success card--with-icon" style="text-decoration:none;color:inherit;">
-        <div class="card__content">
-            <div class="card__label">Ordres payés</div>
-            <div class="card__value counter" data-target="{{ stats.ordres_payes }}">{{ stats.ordres_payes }}</div>
-            <div class="card__hint">Statut PAYE</div>
+
+    <a href="{% url 'paiements:list' %}" class="card card--success" style="text-decoration:none;color:inherit;">
+        <div class="card__icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
         </div>
-    </a>
-    <a href="{% url 'paiements:list' %}" class="card card--info card--with-icon" style="text-decoration:none;color:inherit;">
-        <div class="card__content">
-            <div class="card__label">Paiements enregistrés</div>
-            <div class="card__value counter" data-target="{{ stats.paiements_enregistres }}">{{ stats.paiements_enregistres }}</div>
-            <div class="card__hint">Actifs (non annulés)</div>
-        </div>
+        <div class="card__label">Ordres payés</div>
+        <div class="card__value counter" data-target="{{ stats.ordres_payes }}">{{ stats.ordres_payes }}</div>
+        <div class="card__hint">Statut PAYE</div>
     </a>
 </div>
 
 {# ==================== MONTANTS CLÉS ==================== #}
 <h2 class="detail-card__title" style="margin-top: 8px; font-size: 12px;">Montants clés</h2>
 
-<div class="cards">
+<div class="cards" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
     <div class="card" style="border-left: 3px solid var(--warning);">
         <div class="card__label">Reste à payer (OP validés)</div>
         <div class="card__value amount" style="font-size: 22px;">{{ montants.reste_a_payer|format_ar }} Ar</div>
@@ -195,9 +187,9 @@
 </div>
 
 {# ==================== GRAPHIQUE + ACTIVITÉ ==================== #}
-<div class="detail-grid">
-    <div>
-        <div class="detail-card">
+<div class="detail-grid" style="align-items: stretch;">
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+        <div class="detail-card" style="flex: 1; display: flex; flex-direction: column;">
             <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
                 <h2 class="detail-card__title" style="margin:0;padding:0;border:none;">Évolution des paiements</h2>
                 <div style="display:inline-flex;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:2px;">
@@ -208,31 +200,43 @@
             </div>
 
             {% if evolution_mensuelle %}
-            <div style="position:relative;height:240px;margin-top:8px;">
+            <div style="position:relative;height:240px;margin-top:8px;flex: 1;">
                 <canvas id="chart-evolution"></canvas>
             </div>
             <p style="font-size:11px;color:#94a3b8;margin:12px 0 0 0;text-align:center;">
                 {{ periode }} derniers mois glissants. Survolez une courbe pour le détail.
             </p>
             {% else %}
-            <p class="empty-state__hint">Aucun paiement enregistré.</p>
+            <div class="empty-state" style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+                <div class="empty-state__icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                </div>
+                <p class="empty-state__title">Aucun paiement enregistré</p>
+                <p class="empty-state__hint">L'évolution de vos paiements apparaîtra ici.</p>
+            </div>
             {% endif %}
         </div>
 
-        <div class="detail-card" style="margin-top:20px;">
+        <div class="detail-card" style="flex: 1; display: flex; flex-direction: column;">
             <h2 class="detail-card__title">Répartition des OP par statut</h2>
             {% if stats.ordres_en_cours or stats.ordres_payes %}
-            <div style="position:relative;height:220px;margin-top:8px;">
+            <div style="position:relative;height:220px;margin-top:8px;flex: 1;">
                 <canvas id="chart-statuts"></canvas>
             </div>
             {% else %}
-            <p class="empty-state__hint">Aucun ordre de paiement enregistré.</p>
+            <div class="empty-state" style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+                <div class="empty-state__icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                </div>
+                <p class="empty-state__title">Aucun ordre de paiement</p>
+                <p class="empty-state__hint">Créez un OP pour voir sa répartition.</p>
+            </div>
             {% endif %}
         </div>
     </div>
 
-    <div>
-        <div class="detail-card">
+    <div style="display: flex; flex-direction: column;">
+        <div class="detail-card" style="flex: 1;">
             <h2 class="detail-card__title">Activité récente</h2>
 
             <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border);">
@@ -265,11 +269,17 @@
             </div>
             {% if permissions.voir_audit %}
             <div style="text-align: center; margin-top: 12px;">
-                <a href="{% url 'audit:list' %}" class="btn-secondary" style="font-size: 12px;">Voir tout le journal</a>
+                <a href="{% url 'audit:list' %}" class="btn-secondary" style="font-size: 12px; width: 100%;">Voir tout le journal</a>
             </div>
             {% endif %}
             {% else %}
-            <p class="empty-state__hint">Aucune activité pour ce filtre.</p>
+            <div class="empty-state">
+                <div class="empty-state__icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </div>
+                <p class="empty-state__title">Aucune activité</p>
+                <p class="empty-state__hint">Aucune action enregistrée pour ce filtre.</p>
+            </div>
             {% endif %}
         </div>
     </div>
@@ -299,14 +309,10 @@
     });
 })();
 
-// ============================================================
-// Chart.js — Évolution des paiements (12 derniers mois)
-// ============================================================
 (function () {
     var canvas = document.getElementById('chart-evolution');
     if (!canvas) return;
 
-    // Données injectées depuis Django
     var labels = [{% for m in evolution_mensuelle %}'{{ m.mois }}/{{ m.annee|slice:"2:" }}'{% if not forloop.last %},{% endif %}{% endfor %}];
     var values = [{% for m in evolution_mensuelle %}{{ m.total|unlocalize }}{% if not forloop.last %},{% endif %}{% endfor %}];
 
@@ -373,10 +379,6 @@
     });
 })();
 
-
-// ============================================================
-// Chart.js — Répartition des OP par statut (doughnut)
-// ============================================================
 (function () {
     var canvas = document.getElementById('chart-statuts');
     if (!canvas) return;

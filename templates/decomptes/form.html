@@ -3,29 +3,19 @@
 {% block title %}{{ titre }} — Perception Marovoay{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div class="page-header__titles">
-        <h1 class="page-title">{{ titre }}</h1>
-        <p class="page-subtitle">
-            Un décompte regroupe les gardes conformes d'un agent sur un mois civil.
-        </p>
-    </div>
-    <div style="display: flex; gap: 8px;">
-        <a href="{% url 'decomptes:list' %}" class="btn-secondary">Retour</a>
-    </div>
-</div>
+{% include "partials/page_header.html" with title=titre subtitle="Un décompte regroupe les gardes conformes d'un agent sur un mois civil." icon="decompte" back_url="/decomptes/" %}
 
-<div class="info-box info-box--info">
-    Les gardes conformes (multiples de 12 heures) sur le mois choisi seront
-    automatiquement sélectionnées. Le montant est calculé avec le tarif
-    historique de chaque garde. Les gardes non conformes sont signalées mais exclues.
-</div>
-
-<form method="post" novalidate>
+<form method="post" novalidate class="form-card">
     {% csrf_token %}
 
+    <div class="info-box info-box--info" style="margin-bottom: 24px;">
+        Les gardes conformes (multiples de 12 heures) sur le mois choisi seront
+        automatiquement sélectionnées. Le montant est calculé avec le tarif
+        historique de chaque garde. Les gardes non conformes sont signalées mais exclues.
+    </div>
+
     {% if form.non_field_errors %}
-        <div class="info-box info-box--warning" style="border-color: var(--danger); background: #fef2f2; color: #991b1b;">
+        <div class="info-box info-box--warning" style="margin-bottom: 24px;">
             {% for error in form.non_field_errors %}{{ error }}{% endfor %}
         </div>
     {% endif %}

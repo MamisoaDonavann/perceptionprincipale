@@ -3,26 +3,48 @@
 {% block title %}{{ titre }} — Perception Marovoay{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div class="page-header__titles">
-        <h1 class="page-title">{{ titre }}</h1>
-        <p class="page-subtitle">
-            {% if mode == 'creation' %}
-                Création d'un nouvel agent dans la base.
-            {% else %}
-                Modification de la fiche agent — les changements sont journalisés.
+<!-- ==================== EN-TÊTE PAGE (Identique à la page Agents) ==================== -->
+<div style="position:relative;background:linear-gradient(135deg,#ffffff 0%,#fafbff 100%);border:1px solid #e5e7eb;border-radius:16px;padding:20px 24px;margin-bottom:20px;overflow:hidden;">
+    <div style="position:absolute;top:0;right:0;width:200px;height:100%;background:radial-gradient(circle at right center,rgba(99,102,241,0.08) 0%,transparent 70%);pointer-events:none;"></div>
+
+    <div style="position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;">
+
+        <div style="display:flex;align-items:center;gap:16px;flex:1 1 300px;min-width:0;">
+            <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:grid;place-items:center;flex-shrink:0;box-shadow:0 4px 14px rgba(99,102,241,0.30);">
+                <!-- Icône Utilisateur + Plus -->
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <line x1="19" y1="8" x2="19" y2="14"/>
+                    <line x1="16" y1="11" x2="22" y2="11"/>
+                </svg>
+            </div>
+            <div style="min-width:0;">
+                <h1 style="font-size:24px;font-weight:800;color:#0f172a;letter-spacing:-0.025em;margin:0 0 4px;line-height:1.15;">
+                    {{ titre }}
+                </h1>
+                <p style="font-size:13px;color:#64748b;margin:0;">
+                    {% if mode == 'creation' %}
+                        Création d'un nouvel agent dans la base.
+                    {% else %}
+                        Modification de la fiche agent — les changements sont journalisés.
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        <!-- Boutons d'action -->
+        <div style="display:flex;gap:8px;flex-shrink:0;">
+            <a href="{% url 'agents:list' %}" class="btn-secondary">Retour</a>
+            {% if agent %}
+                <a href="{% url 'agents:detail' agent.pk %}" class="btn-secondary">Voir la fiche</a>
             {% endif %}
-        </p>
-    </div>
-    <div style="display: flex; gap: 8px;">
-        <a href="{% url 'agents:list' %}" class="btn-secondary">Retour</a>
-        {% if agent %}
-            <a href="{% url 'agents:detail' agent.pk %}" class="btn-secondary">Voir la fiche</a>
-        {% endif %}
+        </div>
     </div>
 </div>
 
-<form method="post" novalidate
+<!-- ==================== FORMULAIRE (Utilisation de la classe form-card de ton CSS) ==================== -->
+<form method="post" novalidate class="form-card"
       {% if mode == 'modification' %}
       data-confirm="Les modifications seront enregistrées sur la fiche de l'agent. Cette action est traçable dans le journal d'audit."
       data-confirm-title="Enregistrer les modifications ?"
@@ -33,7 +55,7 @@
     {% csrf_token %}
 
     {% if form.non_field_errors %}
-        <div class="info-box info-box--warning" style="border-color: var(--danger); background: #fef2f2; color: #991b1b;">
+        <div class="info-box info-box--warning">
             {% for error in form.non_field_errors %}{{ error }}{% endfor %}
         </div>
     {% endif %}

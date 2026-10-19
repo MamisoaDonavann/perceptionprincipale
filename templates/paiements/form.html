@@ -3,29 +3,19 @@
 {% block title %}{{ titre }} — Perception Marovoay{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div class="page-header__titles">
-        <h1 class="page-title">{{ titre }}</h1>
-        <p class="page-subtitle">
-            Sélectionnez un agent et un ou plusieurs décomptes validés.
-        </p>
-    </div>
-    <div style="display: flex; gap: 8px;">
-        <a href="{% url 'paiements:list' %}" class="btn-secondary">Retour</a>
-    </div>
-</div>
+{% include "partials/page_header.html" with title=titre subtitle="Sélectionnez un agent et un ou plusieurs décomptes validés." icon="paiement" back_url="/paiements/" %}
 
-<div class="info-box info-box--info">
-    Un Ordre de Paiement concerne un seul agent bénéficiaire et peut regrouper
-    plusieurs décomptes validés du même agent. Les décomptes déjà réservés par
-    un autre OP actif ne sont pas affichés.
-</div>
-
-<form method="post" novalidate>
+<form method="post" novalidate class="form-card">
     {% csrf_token %}
 
+    <div class="info-box info-box--info" style="margin-bottom: 24px;">
+        Un Ordre de Paiement concerne un seul agent bénéficiaire et peut regrouper
+        plusieurs décomptes validés du même agent. Les décomptes déjà réservés par
+        un autre OP actif ne sont pas affichés.
+    </div>
+
     {% if form.non_field_errors %}
-        <div class="info-box info-box--warning" style="border-color: var(--danger); background: #fef2f2; color: #991b1b;">
+        <div class="info-box info-box--warning" style="margin-bottom: 24px;">
             {% for error in form.non_field_errors %}{{ error }}{% endfor %}
         </div>
     {% endif %}

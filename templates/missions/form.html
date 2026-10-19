@@ -3,26 +3,13 @@
 {% block title %}{{ titre }} — Perception Marovoay{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div class="page-header__titles">
-        <h1 class="page-title">{{ titre }}</h1>
-        <p class="page-subtitle">
-            {% if mode == 'creation' %}
-                Création d'une nouvelle mission.
-            {% else %}
-                Modification de la mission — les changements sont journalisés.
-            {% endif %}
-        </p>
-    </div>
-    <div style="display: flex; gap: 8px;">
-        <a href="{% url 'missions:list' %}" class="btn-secondary">Retour</a>
-        {% if mission %}
-            <a href="{% url 'missions:detail' mission.pk %}" class="btn-secondary">Voir la fiche</a>
-        {% endif %}
-    </div>
-</div>
+{% if mode == 'creation' %}
+    {% include "partials/page_header.html" with title=titre subtitle="Création d'une nouvelle mission." icon="mission" back_url="/missions/" %}
+{% else %}
+    {% include "partials/page_header.html" with title=titre subtitle="Modification de la mission — les changements sont journalisés." icon="mission" back_url="/missions/" extra_url="/missions/" extra_text="Voir la fiche" %}
+{% endif %}
 
-<form method="post" novalidate
+<form method="post" novalidate class="form-card"
       {% if mode == 'modification' %}
       data-confirm="Les modifications seront enregistrées sur la mission. Cette action est traçable dans le journal d'audit."
       data-confirm-title="Enregistrer les modifications ?"
@@ -33,7 +20,7 @@
     {% csrf_token %}
 
     {% if form.non_field_errors %}
-        <div class="info-box info-box--warning" style="border-color: var(--danger); background: #fef2f2; color: #991b1b;">
+        <div class="info-box info-box--warning" style="margin-bottom: 24px;">
             {% for error in form.non_field_errors %}{{ error }}{% endfor %}
         </div>
     {% endif %}
@@ -43,9 +30,7 @@
         <legend>Identification</legend>
         <div class="form-grid">
             <div class="form-group">
-                <label for="{{ form.numero_officiel.id_for_label }}">
-                    {{ form.numero_officiel.label }}
-                </label>
+                <label for="{{ form.numero_officiel.id_for_label }}">{{ form.numero_officiel.label }}</label>
                 {{ form.numero_officiel }}
                 {% if form.numero_officiel.help_text %}<span class="help">{{ form.numero_officiel.help_text }}</span>{% endif %}
                 {% if form.numero_officiel.errors %}<div class="errors"><ul>{% for e in form.numero_officiel.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
@@ -58,9 +43,7 @@
             </div>
 
             <div class="form-group form-grid__full">
-                <label for="{{ form.libelle.id_for_label }}">
-                    {{ form.libelle.label }} <span class="required">*</span>
-                </label>
+                <label for="{{ form.libelle.id_for_label }}">{{ form.libelle.label }} <span class="required">*</span></label>
                 {{ form.libelle }}
                 {% if form.libelle.errors %}<div class="errors"><ul>{% for e in form.libelle.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
             </div>
@@ -78,17 +61,13 @@
         <legend>Période</legend>
         <div class="form-grid">
             <div class="form-group">
-                <label for="{{ form.date_debut.id_for_label }}">
-                    {{ form.date_debut.label }} <span class="required">*</span>
-                </label>
+                <label for="{{ form.date_debut.id_for_label }}">{{ form.date_debut.label }} <span class="required">*</span></label>
                 {{ form.date_debut }}
                 {% if form.date_debut.errors %}<div class="errors"><ul>{% for e in form.date_debut.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
             </div>
 
             <div class="form-group">
-                <label for="{{ form.date_fin.id_for_label }}">
-                    {{ form.date_fin.label }} <span class="required">*</span>
-                </label>
+                <label for="{{ form.date_fin.id_for_label }}">{{ form.date_fin.label }} <span class="required">*</span></label>
                 {{ form.date_fin }}
                 {% if form.date_fin.errors %}<div class="errors"><ul>{% for e in form.date_fin.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
             </div>
@@ -100,9 +79,7 @@
         <legend>Statut</legend>
         <div class="form-grid">
             <div class="form-group form-grid__full">
-                <label for="{{ form.statut.id_for_label }}">
-                    {{ form.statut.label }} <span class="required">*</span>
-                </label>
+                <label for="{{ form.statut.id_for_label }}">{{ form.statut.label }} <span class="required">*</span></label>
                 {{ form.statut }}
                 {% if form.statut.help_text %}<span class="help">{{ form.statut.help_text }}</span>{% endif %}
                 {% if form.statut.errors %}<div class="errors"><ul>{% for e in form.statut.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}

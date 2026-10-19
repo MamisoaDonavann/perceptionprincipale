@@ -3,33 +3,13 @@
 {% block title %}{{ titre }} — Perception Marovoay{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div class="page-header__titles">
-        <h1 class="page-title">{{ titre }}</h1>
-        <p class="page-subtitle">
-            {% if mode == 'creation' %}
-                Création d'un nouveau tarif. Le tarif ne doit pas chevaucher une période existante.
-            {% else %}
-                Modification du tarif — les changements sont journalisés.
-            {% endif %}
-        </p>
-    </div>
-    <div style="display: flex; gap: 8px;">
-        <a href="{% url 'tarifs:list' %}" class="btn-secondary">Retour</a>
-        {% if tarif %}
-            <a href="{% url 'tarifs:detail' tarif.pk %}" class="btn-secondary">Voir la fiche</a>
-        {% endif %}
-    </div>
-</div>
-
 {% if mode == 'creation' %}
-<div class="info-box info-box--info">
-    Un tarif définit le montant d'un partiel de 12 heures. Il s'applique à toutes
-    les gardes dont la date de début est comprise dans la période de validité.
-</div>
+    {% include "partials/page_header.html" with title=titre subtitle="Création d'un nouveau tarif. Le tarif ne doit pas chevaucher une période existante." icon="tarif" back_url="/tarifs/" %}
+{% else %}
+    {% include "partials/page_header.html" with title=titre subtitle="Modification du tarif — les changements sont journalisés." icon="tarif" back_url="/tarifs/" extra_url="/tarifs/" extra_text="Voir la fiche" %}
 {% endif %}
 
-<form method="post" novalidate
+<form method="post" novalidate class="form-card"
       {% if mode == 'modification' %}
       data-confirm="Les modifications seront enregistrées sur le tarif. Cette action est traçable dans le journal d'audit."
       data-confirm-title="Enregistrer les modifications ?"
@@ -39,8 +19,15 @@
 
     {% csrf_token %}
 
+    {% if mode == 'creation' %}
+    <div class="info-box info-box--info" style="margin-bottom: 24px;">
+        Un tarif définit le montant d'un partiel de 12 heures. Il s'applique à toutes
+        les gardes dont la date de début est comprise dans la période de validité.
+    </div>
+    {% endif %}
+
     {% if form.non_field_errors %}
-        <div class="info-box info-box--warning" style="border-color: var(--danger); background: #fef2f2; color: #991b1b;">
+        <div class="info-box info-box--warning" style="margin-bottom: 24px;">
             {% for error in form.non_field_errors %}{{ error }}{% endfor %}
         </div>
     {% endif %}
@@ -50,9 +37,7 @@
         <legend>Tarif</legend>
         <div class="form-grid">
             <div class="form-group form-grid__full">
-                <label for="{{ form.montant_partiel.id_for_label }}">
-                    {{ form.montant_partiel.label }} <span class="required">*</span>
-                </label>
+                <label for="{{ form.montant_partiel.id_for_label }}">{{ form.montant_partiel.label }} <span class="required">*</span></label>
                 {{ form.montant_partiel }}
                 {% if form.montant_partiel.help_text %}<span class="help">{{ form.montant_partiel.help_text }}</span>{% endif %}
                 {% if form.montant_partiel.errors %}<div class="errors"><ul>{% for e in form.montant_partiel.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
@@ -65,17 +50,13 @@
         <legend>Période de validité</legend>
         <div class="form-grid">
             <div class="form-group">
-                <label for="{{ form.date_debut_validite.id_for_label }}">
-                    {{ form.date_debut_validite.label }} <span class="required">*</span>
-                </label>
+                <label for="{{ form.date_debut_validite.id_for_label }}">{{ form.date_debut_validite.label }} <span class="required">*</span></label>
                 {{ form.date_debut_validite }}
                 {% if form.date_debut_validite.errors %}<div class="errors"><ul>{% for e in form.date_debut_validite.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
             </div>
 
             <div class="form-group">
-                <label for="{{ form.date_fin_validite.id_for_label }}">
-                    {{ form.date_fin_validite.label }}
-                </label>
+                <label for="{{ form.date_fin_validite.id_for_label }}">{{ form.date_fin_validite.label }}</label>
                 {{ form.date_fin_validite }}
                 {% if form.date_fin_validite.help_text %}<span class="help">{{ form.date_fin_validite.help_text }}</span>{% endif %}
                 {% if form.date_fin_validite.errors %}<div class="errors"><ul>{% for e in form.date_fin_validite.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
