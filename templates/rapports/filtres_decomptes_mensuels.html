@@ -3,24 +3,22 @@
 {% block title %}Récapitulatif mensuel des décomptes — Rapports{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div class="page-header__titles">
-        <h1 class="page-title">Récapitulatif mensuel des décomptes</h1>
-        <p class="page-subtitle">
-            Document officiel regroupant tous les agents d'un mois, avec sous-totaux.
-        </p>
-    </div>
-    <div>
-        <a href="{% url 'rapports:index' %}" class="btn-secondary">Retour aux rapports</a>
-    </div>
-</div>
+<!-- En-tête moderne -->
+{% url 'rapports:index' as url_retour %}
+{% include "partials/page_header.html" with title="Récapitulatif mensuel des décomptes" subtitle="Document officiel regroupant tous les agents d'un mois, avec sous-totaux." icon="rapport" back_url=url_retour %}
 
-<div class="info-box info-box--info">
-    Le récapitulatif inclut uniquement les <strong>décomptes validés</strong> du mois sélectionné.
-    Format officiel : toutes les gardes, sous-totaux par agent et total général.
-</div>
+<!-- Formulaire dans une carte blanche -->
+<form method="get" novalidate id="form-decomptes-mensuels" class="form-card" style="max-width: 900px;">
+    
+    <!-- Message d'information -->
+    <div class="info-box info-box--info" style="margin-bottom: 24px; display: flex; align-items: flex-start; gap: 12px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <div>
+            Le récapitulatif inclut uniquement les <strong>décomptes validés</strong> du mois sélectionné. 
+            Format officiel : toutes les gardes, sous-totaux par agent et total général.
+        </div>
+    </div>
 
-<form method="get" novalidate id="form-decomptes-mensuels">
     <fieldset class="form-section">
         <legend>Mois concerné</legend>
         <div class="form-grid">
@@ -53,14 +51,18 @@
         </div>
     </fieldset>
 
-    <div class="form-actions">
-        <button type="submit" class="btn-create">Télécharger le PDF</button>
-        <a href="{% url 'rapports:index' %}" class="btn-secondary">Annuler</a>
+    <!-- Boutons d'action -->
+    <div class="form-actions" style="margin-top: 32px; display: flex; gap: 12px;">
+        <button type="submit" class="btn-create" style="display: inline-flex; align-items: center; gap: 6px; background: #dc2626; border-color: #dc2626; padding: 10px 20px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Télécharger le PDF
+        </button>
+        <a href="{% url 'rapports:index' %}" class="btn-secondary" style="padding: 10px 20px;">Annuler</a>
     </div>
 </form>
 
+<!-- Ton script JS pour construire l'URL -->
 <script>
-    // Construit l'URL /rapports/decomptes-mensuels/<annee>/<mois>/pdf/
     document.getElementById('form-decomptes-mensuels').addEventListener('submit', function(e) {
         e.preventDefault();
         var annee = document.getElementById('annee').value;

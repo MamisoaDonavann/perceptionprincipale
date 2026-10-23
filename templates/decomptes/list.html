@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load initials %}
+{% load format_ar %}
 
 {% block title %}Décomptes — Perception Marovoay{% endblock %}
 
@@ -71,7 +72,7 @@
                 <th>Agent</th>
                 <th>Période</th>
                 <th>Gardes</th>
-                <th class="text-right">Montant</th>
+                <th>Montant</th>
                 <th>Statut</th>
                 <th>Validé par</th>
                 <th></th>
@@ -93,17 +94,28 @@
                 </td>
                 <td><strong>{{ d.mois|stringformat:"02d" }}/{{ d.annee }}</strong></td>
                 <td>{{ d.nombre_gardes_retunes }}</td>
-                <td class="text-right amount">{{ d.montant_total }} Ar</td>
+                <td class="amount"><strong>{{ d.montant_total|format_ar }} Ar</strong></td>
                 <td>
                     {% if d.statut == 'VALIDE' %}
                         <span class="tag tag--valide">{{ d.get_statut_display }}</span>
+                    {% elif d.statut == 'PAYE' %}
+                        <span class="tag tag--paye">{{ d.get_statut_display }}</span>
                     {% else %}
                         <span class="tag tag--suspendu">{{ d.get_statut_display }}</span>
                     {% endif %}
                 </td>
-                <td>{{ d.id_utilisateur_validateur.username|default:"—" }}</td>
                 <td>
-                    <a href="{% url 'decomptes:detail' d.pk %}" class="btn-action">Voir</a>
+                    {% if d.id_utilisateur_validateur %}
+                        {{ d.id_utilisateur_validateur.username }}
+                    {% else %}
+                        <span class="text-muted">—</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'decomptes:detail' d.pk %}" class="btn-action">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        Voir
+                    </a>
                 </td>
             </tr>
             {% endfor %}

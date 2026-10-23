@@ -11,7 +11,7 @@
     <div style="position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;">
 
         <div style="display:flex;align-items:center;gap:16px;flex:1 1 300px;min-width:0;">
-            <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#10b981,#06b6d4);display:grid;place-items:center;flex-shrink:0;box-shadow:0 4px 14px rgba(99,102,241,0.30);">
+            <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:grid;place-items:center;flex-shrink:0;box-shadow:0 4px 14px rgba(99,102,241,0.30);">
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M12 2 4 6v6c0 5 3.5 9.5 8 10 4.5-.5 8-5 8-10V6l-8-4z"/>
                 </svg>
@@ -97,7 +97,7 @@
                 </td>
                 <td>{{ g.mission.libelle|default:"—"|truncatechars:30 }}</td>
                 <td>
-                    <div class="cell-user__name">{{ g.date_heure_debut|date:"d/m/Y H:i" }}</div>
+                    <div class="cell-user__name" style="font-weight: 500;">{{ g.date_heure_debut|date:"d/m/Y H:i" }}</div>
                     <div class="cell-user__meta">au {{ g.date_heure_fin|date:"d/m/Y H:i" }}</div>
                 </td>
                 <td><strong>{{ g.nombre_partiels|default:"—" }}</strong></td>
@@ -116,7 +116,10 @@
                     {% endif %}
                 </td>
                 <td>
-                    <a href="{% url 'gardes:detail' g.pk %}" class="btn-action">Voir</a>
+                    <a href="{% url 'gardes:detail' g.pk %}" class="btn-action" style="display: inline-flex; align-items: center; gap: 4px;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        Voir
+                    </a>
                 </td>
             </tr>
             {% endfor %}

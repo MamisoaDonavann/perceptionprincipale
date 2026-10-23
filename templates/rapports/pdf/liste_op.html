@@ -16,79 +16,91 @@
 
 {% block contenu %}
 
-<div class="synthese">
-    <div class="synthese__cell">
-        <div class="synthese__label">Ordres</div>
-        <div class="synthese__value">{{ total }}</div>
+<!-- Bloc de synthèse (Cartes) -->
+<div style="display: flex; gap: 10px; margin-bottom: 24px;">
+    <div style="flex: 1; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px; text-align: center; background: #f8fafc;">
+        <div style="font-size: 9px; font-weight: 700; color: #475569; text-transform: uppercase;">Ordres</div>
+        <div style="font-size: 16px; font-weight: 800; color: #0d1b3e; margin-top: 4px;">{{ total }}</div>
     </div>
-    <div class="synthese__cell">
-        <div class="synthese__label">Montant total</div>
-        <div class="synthese__value">{{ total_montant|format_ar }}<span class="synthese__unit">Ar</span></div>
+    
+    <div style="flex: 1; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px; text-align: center; background: #f8fafc;">
+        <div style="font-size: 9px; font-weight: 700; color: #475569; text-transform: uppercase;">Montant total</div>
+        <div style="font-size: 14px; font-weight: 800; color: #0d1b3e; margin-top: 4px;">{{ total_montant|format_ar }} <span style="font-size: 10px; color: #64748b;">Ar</span></div>
     </div>
-    <div class="synthese__cell">
-        <div class="synthese__label">Net payé</div>
-        <div class="synthese__value">{{ total_paye|format_ar }}<span class="synthese__unit">Ar</span></div>
+    
+    <div style="flex: 1; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px; text-align: center; background: #f8fafc;">
+        <div style="font-size: 9px; font-weight: 700; color: #475569; text-transform: uppercase;">Net payé</div>
+        <div style="font-size: 14px; font-weight: 800; color: #059669; margin-top: 4px;">{{ total_paye|format_ar }} <span style="font-size: 10px; color: #64748b;">Ar</span></div>
     </div>
-    <div class="synthese__cell">
-        <div class="synthese__label">Reste à payer</div>
-        <div class="synthese__value">{{ reste_a_payer|format_ar }}<span class="synthese__unit">Ar</span></div>
+    
+    <div style="flex: 1; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px; text-align: center; background: #f8fafc;">
+        <div style="font-size: 9px; font-weight: 700; color: #475569; text-transform: uppercase;">Reste à payer</div>
+        <div style="font-size: 14px; font-weight: 800; color: #dc2626; margin-top: 4px;">{{ reste_a_payer|format_ar }} <span style="font-size: 10px; color: #64748b;">Ar</span></div>
     </div>
 </div>
 
-<h2 class="section">Détail des ordres de paiement</h2>
+<!-- Titre de section -->
+<h2 style="font-size: 11px; font-weight: 800; color: #0d1b3e; text-transform: uppercase; border-left: 3px solid #4f46e5; padding-left: 8px; margin-bottom: 12px; margin-top: 0;">
+    Détail des ordres de paiement
+</h2>
 
-<table class="data">
+<!-- Tableau des OP -->
+<table class="data" style="width: 100%; border-collapse: collapse; font-size: 10px;">
     <thead>
-        <tr>
-            <th style="width: 12%;">N° OP</th>
-            <th style="width: 22%;">Agent bénéficiaire</th>
-            <th style="width: 10%;">Créé le</th>
-            <th class="amount" style="width: 14%;">Montant total</th>
-            <th class="amount" style="width: 14%;">Net payé</th>
-            <th class="text-center" style="width: 14%;">Statut</th>
-            <th class="text-center" style="width: 14%;">Clôture</th>
+        <tr style="background-color: #f1f5f9; color: #0d1b3e;">
+            <th style="padding: 8px 6px; text-align: left; border-bottom: 2px solid #cbd5e1;">N° OP</th>
+            <th style="padding: 8px 6px; text-align: left; border-bottom: 2px solid #cbd5e1;">Agent bénéficiaire</th>
+            <th style="padding: 8px 6px; text-align: left; border-bottom: 2px solid #cbd5e1;">Créé le</th>
+            <th style="padding: 8px 6px; text-align: right; border-bottom: 2px solid #cbd5e1;">Montant total</th>
+            <th style="padding: 8px 6px; text-align: right; border-bottom: 2px solid #cbd5e1;">Net payé</th>
+            <th style="padding: 8px 6px; text-align: center; border-bottom: 2px solid #cbd5e1;">Statut</th>
+            <th style="padding: 8px 6px; text-align: center; border-bottom: 2px solid #cbd5e1;">Clôture</th>
         </tr>
     </thead>
     <tbody>
         {% for op in ops %}
-        <tr>
-            <td><strong>{{ op.numero_op }}</strong></td>
-            <td>{{ op.agent_beneficiaire.matricule }}<br><span style="color: #64748b; font-size: 8.5px;">{{ op.agent_beneficiaire.nom }} {{ op.agent_beneficiaire.prenoms }}</span></td>
-            <td>{{ op.date_creation|date:"d/m/Y" }}</td>
-            <td class="amount">{{ op.montant_total|format_ar }} Ar</td>
-            <td class="amount">{{ op.montant_net_paye|format_ar }} Ar</td>
-            <td class="text-center">
+        <tr style="border-bottom: 1px solid #e2e8f0;">
+            <td style="padding: 8px 6px;"><strong>{{ op.numero_op }}</strong></td>
+            <td style="padding: 8px 6px;">
+                <div style="font-weight: 600; color: #0f172a;">{{ op.agent_beneficiaire.matricule }}</div>
+                <div style="color: #64748b; font-size: 9px;">{{ op.agent_beneficiaire.nom }} {{ op.agent_beneficiaire.prenoms }}</div>
+            </td>
+            <td style="padding: 8px 6px; color: #475569;">{{ op.date_creation|date:"d/m/Y" }}</td>
+            <td style="padding: 8px 6px; text-align: right; font-weight: 600;">{{ op.montant_total|format_ar }} Ar</td>
+            <td style="padding: 8px 6px; text-align: right; font-weight: 600; color: #059669;">{{ op.montant_net_paye|format_ar }} Ar</td>
+            <td style="padding: 8px 6px; text-align: center;">
+                <!-- Badges en style inline pour garantir l'affichage PDF -->
                 {% if op.statut == 'PAYE' %}
-                    <span class="badge badge--paye">Payé</span>
+                    <span style="display: inline-block; padding: 3px 8px; background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; border-radius: 12px; font-size: 9px; font-weight: 700;">Payé</span>
                 {% elif op.statut == 'VALIDE' %}
-                    <span class="badge badge--valide">Validé</span>
+                    <span style="display: inline-block; padding: 3px 8px; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; border-radius: 12px; font-size: 9px; font-weight: 700;">Validé</span>
                 {% elif op.statut == 'ANNULE' %}
-                    <span class="badge badge--annule">Annulé</span>
+                    <span style="display: inline-block; padding: 3px 8px; background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 12px; font-size: 9px; font-weight: 700;">Annulé</span>
                 {% else %}
-                    <span class="badge badge--brouillon">Brouillon</span>
+                    <span style="display: inline-block; padding: 3px 8px; background: #f8fafc; color: #475569; border: 1px solid #cbd5e1; border-radius: 12px; font-size: 9px; font-weight: 700;">Brouillon</span>
                 {% endif %}
             </td>
-            <td class="text-center">
+            <td style="padding: 8px 6px; text-align: center;">
                 {% if op.cloture_administrative %}
-                    <span class="badge badge--valide">Clôturé</span>
+                    <span style="display: inline-block; padding: 3px 8px; background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; border-radius: 12px; font-size: 9px; font-weight: 700;">Clôturé</span>
                 {% else %}
-                    <span style="color: #94a3b8; font-size: 8.5px;">—</span>
+                    <span style="color: #94a3b8; font-size: 10px;">—</span>
                 {% endif %}
             </td>
         </tr>
         {% empty %}
         <tr>
-            <td colspan="7" class="text-center" style="padding: 20px; color: #94a3b8; font-style: italic;">
+            <td colspan="7" style="padding: 20px; text-align: center; color: #64748b; font-style: italic;">
                 Aucun OP trouvé pour ces critères.
             </td>
         </tr>
         {% endfor %}
     </tbody>
     <tfoot>
-        <tr>
-            <td colspan="3" class="text-right">TOTAL GÉNÉRAL</td>
-            <td class="amount"><strong>{{ total_montant|format_ar }} Ar</strong></td>
-            <td class="amount"><strong>{{ total_paye|format_ar }} Ar</strong></td>
+        <tr style="background-color: #f1f5f9; border-top: 2px solid #0d1b3e;">
+            <td colspan="3" style="padding: 10px 6px; text-align: right; font-weight: 800; color: #0d1b3e; font-size: 11px;">TOTAL GÉNÉRAL</td>
+            <td style="padding: 10px 6px; text-align: right; font-weight: 800; color: #0d1b3e;">{{ total_montant|format_ar }} Ar</td>
+            <td style="padding: 10px 6px; text-align: right; font-weight: 800; color: #059669;">{{ total_paye|format_ar }} Ar</td>
             <td colspan="2"></td>
         </tr>
     </tfoot>

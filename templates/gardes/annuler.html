@@ -3,44 +3,53 @@
 {% block title %}Annuler la garde #{{ garde.pk }}{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div class="page-header__titles">
-        <h1 class="page-title">Annuler la garde</h1>
-        <p class="page-subtitle">
-            {{ garde.agent.nom }} {{ garde.agent.prenoms }} —
-            {{ garde.date_heure_debut|date:"d/m/Y H:i" }}
-        </p>
-    </div>
+<!-- En-tête moderne avec l'icône de garde -->
+{% url 'gardes:detail' garde.pk as url_retour %}
+{% include "partials/page_header.html" with title="Annuler la garde" subtitle=garde.agent.nom|add:" "|add:garde.agent.prenoms|add:" — "|add:garde.date_heure_debut|date:"d/m/Y H:i" icon="garde" back_url=url_retour %}
+
+<!-- Alerte d'avertissement avec icône -->
+<div class="info-box info-box--warning" style="margin-bottom: 24px; display: flex; align-items: flex-start; gap: 12px;">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
     <div>
-        <a href="{% url 'gardes:detail' garde.pk %}" class="btn-secondary">Retour</a>
+        L'annulation d'une garde est <strong>définitive</strong>. 
+        La garde sera conservée pour traçabilité mais exclue des décomptes.
     </div>
 </div>
 
-<div class="info-box info-box--warning">
-    L'annulation d'une garde est <strong>définitive</strong>.
-    La garde sera conservée pour traçabilité mais exclue des décomptes.
-</div>
-
-<form method="post" class="form-card" novalidate>
+<!-- Formulaire dans une carte blanche -->
+<form method="post" class="form-card" novalidate style="max-width: 900px;">
     {% csrf_token %}
-    {% for field in form %}
-        <div class="form-group">
-            <label for="{{ field.id_for_label }}">
-                {{ field.label }}
-                {% if field.field.required %}<span class="required">*</span>{% endif %}
-            </label>
-            {{ field }}
-            {% if field.errors %}
-                <div class="errors"><ul>
-                    {% for error in field.errors %}<li>{{ error }}</li>{% endfor %}
-                </ul></div>
-            {% endif %}
-        </div>
-    {% endfor %}
+    
+    <fieldset class="form-section" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0;">
+        <!-- On garde TA boucle magique qui affiche tous les champs correctement -->
+        {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">
+                    {{ field.label }}
+                    {% if field.field.required %}<span class="required">*</span>{% endif %}
+                </label>
+                {{ field }}
+                {% if field.errors %}
+                    <div class="errors"><ul>
+                        {% for error in field.errors %}<li>{{ error }}</li>{% endfor %}
+                    </ul></div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </fieldset>
 
-    <div class="form-actions">
-        <button type="submit" class="btn-create">Confirmer l'annulation</button>
-        <a href="{% url 'gardes:detail' garde.pk %}" class="btn-secondary">Annuler</a>
+    <!-- Actions -->
+    <div class="form-actions" style="margin-top: 32px;">
+        <!-- Bouton de confirmation en ROUGE (Danger) -->
+        <button type="submit" class="btn-create" style="background: #dc2626; border-color: #dc2626; display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            Confirmer l'annulation
+        </button>
+        
+        <!-- Bouton Annuler (Retour) -->
+        <a href="{% url 'gardes:detail' garde.pk %}" class="btn-secondary" style="padding: 10px 20px;">
+            Annuler
+        </a>
     </div>
 </form>
 {% endblock %}

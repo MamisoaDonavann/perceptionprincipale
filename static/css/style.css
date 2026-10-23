@@ -2801,3 +2801,48 @@ canvas {
     letter-spacing: 0.05em !important;
     border-bottom: none !important;
 }
+
+/* ============================================================
+   34. AMÉLIORATIONS SIDEBAR (Aération & Interactivité)
+   ============================================================ */
+
+/* 1. Plus d'espace entre les sections pour aérer la navigation */
+.sidebar__section {
+    margin-top: 20px !important;
+    margin-bottom: 6px !important;
+    padding-left: 10px !important;
+}
+
+/* 2. Effet de survol (Hover) plus moderne et premium */
+.sidebar__link {
+    transition: all 0.2s ease-in-out !important;
+}
+
+.sidebar__link:hover {
+    background: var(--primary-50) !important; /* Un violet très clair */
+    color: var(--primary-700) !important;
+    transform: translateX(2px); /* Léger décalage vers la droite */
+}
+
+/* L'icône prend la couleur principale au survol */
+.sidebar__link:hover .sidebar__icon {
+    color: var(--primary-600) !important;
+    opacity: 1 !important;
+    transform: scale(1.1); /* L'icône grandit très légèrement */
+    transition: all 0.2s ease-in-out;
+}
+
+/* 3. Ligne de séparation subtile sous le logo */
+.sidebar__logo {
+    border-bottom: 1px solid transparent !important;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.03);
+    margin-bottom: 8px !important;
+    padding-bottom: 20px !important;
+}
+
+/* 4. (Bonus) Amélioration de l'élément actif (la page où on se trouve) */
+.sidebar__link--active {
+    background: linear-gradient(90deg, var(--primary-50) 0%, rgba(238,242,255,0) 100%) !important;
+    border-left: 3px solid var(--primary-600) !important;
+    font-weight: 600 !important;
+}

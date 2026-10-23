@@ -3,35 +3,10 @@
 {% block title %}Rapports — Perception Marovoay{% endblock %}
 
 {% block content %}
-{# ==================== EN-TÊTE PAGE ==================== #}
-<div style="position:relative;background:linear-gradient(135deg,#ffffff 0%,#fafbff 100%);border:1px solid #e5e7eb;border-radius:16px;padding:20px 24px;margin-bottom:20px;overflow:hidden;">
-    <div style="position:absolute;top:0;right:0;width:200px;height:100%;background:radial-gradient(circle at right center,rgba(99,102,241,0.08) 0%,transparent 70%);pointer-events:none;"></div>
+<!-- En-tête moderne avec l'icône rapport -->
+{% include "partials/page_header.html" with title="Rapports" subtitle="7 types de rapports disponibles · Exports PDF et Excel" icon="rapport" %}
 
-    <div style="position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;">
-
-        <div style="display:flex;align-items:center;gap:16px;flex:1 1 300px;min-width:0;">
-            <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:grid;place-items:center;flex-shrink:0;box-shadow:0 4px 14px rgba(99,102,241,0.30);">
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                    <polyline points="14 2 14 8 20 8"/>
-                    <line x1="9" y1="13" x2="15" y2="13"/>
-                    <line x1="9" y1="17" x2="15" y2="17"/>
-                </svg>
-            </div>
-            <div style="min-width:0;">
-                <h1 style="font-size:24px;font-weight:800;color:#0f172a;letter-spacing:-0.025em;margin:0 0 4px;line-height:1.15;">
-                    Rapports
-                </h1>
-                <p style="font-size:13px;color:#64748b;margin:0;">
-                    <strong style="color:#4f46e5;">7</strong> types de rapports disponibles · Exports PDF et Excel
-                </p>
-            </div>
-        </div>
-
-    </div>
-</div>
-
-<div class="info-box info-box--info">
+<div class="info-box info-box--info" style="margin-bottom: 24px;">
     Les rapports sont générés en mémoire et téléchargés directement au format PDF ou Excel.
     Aucun fichier n'est conservé sur le serveur.
 </div>
@@ -42,57 +17,48 @@
     Ces rapports nécessitent de sélectionner d'abord un agent, un décompte ou un OP.
 </p>
 
-<div class="cards">
-    <div class="card card--info card--with-icon">
+<div class="cards" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-bottom: 32px;">
+    <div class="card card--info" style="display: flex; flex-direction: column;">
         <div class="card__icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <polyline points="14 2 14 8 20 8"/>
-            </svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
         </div>
-        <div class="card__content">
+        <div class="card__content" style="flex: 1; display: flex; flex-direction: column;">
             <div class="card__label">État de décompte</div>
-            <div class="card__hint">
+            <div class="card__hint" style="flex: 1;">
                 Depuis la fiche d'un décompte <strong>validé</strong>, bouton « Télécharger le PDF ».
             </div>
-            <div style="margin-top: 12px;">
-                <a href="{% url 'decomptes:list' %}" class="btn-secondary">Voir les décomptes</a>
+            <div style="margin-top: 16px;">
+                <a href="{% url 'decomptes:list' %}" class="btn-secondary" style="width: 100%; justify-content: center;">Voir les décomptes</a>
             </div>
         </div>
     </div>
 
-    <div class="card card--info card--with-icon">
+    <div class="card card--info" style="display: flex; flex-direction: column;">
         <div class="card__icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <rect x="2" y="5" width="20" height="14" rx="2"/>
-                <line x1="2" y1="10" x2="22" y2="10"/>
-            </svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
         </div>
-        <div class="card__content">
+        <div class="card__content" style="flex: 1; display: flex; flex-direction: column;">
             <div class="card__label">Ordre de paiement officiel</div>
-            <div class="card__hint">
+            <div class="card__hint" style="flex: 1;">
                 Depuis la fiche d'un OP <strong>validé ou payé</strong>, bouton « Imprimer la liste ».
             </div>
-            <div style="margin-top: 12px;">
-                <a href="{% url 'paiements:list' %}" class="btn-secondary">Voir les OP</a>
+            <div style="margin-top: 16px;">
+                <a href="{% url 'paiements:list' %}" class="btn-secondary" style="width: 100%; justify-content: center;">Voir les OP</a>
             </div>
         </div>
     </div>
 
-    <div class="card card--info card--with-icon">
+    <div class="card card--info" style="display: flex; flex-direction: column;">
         <div class="card__icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                <circle cx="9" cy="7" r="4"/>
-            </svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
         </div>
-        <div class="card__content">
+        <div class="card__content" style="flex: 1; display: flex; flex-direction: column;">
             <div class="card__label">Historique agent</div>
-            <div class="card__hint">
+            <div class="card__hint" style="flex: 1;">
                 Depuis la fiche d'un agent, boutons « Historique PDF » et « Historique Excel ».
             </div>
-            <div style="margin-top: 12px;">
-                <a href="{% url 'agents:list' %}" class="btn-secondary">Voir les agents</a>
+            <div style="margin-top: 16px;">
+                <a href="{% url 'agents:list' %}" class="btn-secondary" style="width: 100%; justify-content: center;">Voir les agents</a>
             </div>
         </div>
     </div>
@@ -104,76 +70,63 @@
     Configurez les filtres (période, agent, mission, statut) puis téléchargez le rapport.
 </p>
 
-<div class="cards">
-    <div class="card card--success card--with-icon">
+<div class="cards" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
+    <div class="card card--success" style="display: flex; flex-direction: column;">
         <div class="card__icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M12 2 4 6v6c0 5 3.5 9.5 8 10 4.5-.5 8-5 8-10V6l-8-4z"/>
-            </svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 6v6c0 5 3.5 9.5 8 10 4.5-.5 8-5 8-10V6l-8-4z"/></svg>
         </div>
-        <div class="card__content">
+        <div class="card__content" style="flex: 1; display: flex; flex-direction: column;">
             <div class="card__label">État détaillé des gardes</div>
-            <div class="card__hint">
+            <div class="card__hint" style="flex: 1;">
                 Liste filtrable des gardes sur une période, par agent, mission ou conformité.
             </div>
-            <div style="margin-top: 12px;">
-                <a href="{% url 'rapports:filtres_gardes' %}" class="btn-create">Configurer</a>
+            <div style="margin-top: 16px;">
+                <a href="{% url 'rapports:filtres_gardes' %}" class="btn-create" style="width: 100%; justify-content: center;">Configurer</a>
             </div>
         </div>
     </div>
 
-    <div class="card card--success card--with-icon">
+    <div class="card card--success" style="display: flex; flex-direction: column;">
         <div class="card__icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <rect x="2" y="5" width="20" height="14" rx="2"/>
-                <line x1="2" y1="10" x2="22" y2="10"/>
-            </svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
         </div>
-        <div class="card__content">
+        <div class="card__content" style="flex: 1; display: flex; flex-direction: column;">
             <div class="card__label">Liste des OP</div>
-            <div class="card__hint">
+            <div class="card__hint" style="flex: 1;">
                 Liste filtrable des ordres de paiement par période et statut.
             </div>
-            <div style="margin-top: 12px;">
-                <a href="{% url 'rapports:filtres_op' %}" class="btn-create">Configurer</a>
+            <div style="margin-top: 16px;">
+                <a href="{% url 'rapports:filtres_op' %}" class="btn-create" style="width: 100%; justify-content: center;">Configurer</a>
             </div>
         </div>
     </div>
 
-    <div class="card card--success card--with-icon">
+    <div class="card card--success" style="display: flex; flex-direction: column;">
         <div class="card__icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M3 3v18h18"/>
-                <path d="m19 9-5 5-4-4-3 3"/>
-            </svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
         </div>
-        <div class="card__content">
-            <div class="card__label">Récapitulatif mensuel des décomptes</div>
-            <div class="card__hint">
+        <div class="card__content" style="flex: 1; display: flex; flex-direction: column;">
+            <div class="card__label">Récapitulatif mensuel</div>
+            <div class="card__hint" style="flex: 1;">
                 Document officiel regroupant tous les agents d'un mois, avec sous-totaux.
             </div>
-            <div style="margin-top: 12px;">
-                <a href="{% url 'rapports:filtres_decomptes_mensuels' %}" class="btn-create">Configurer</a>
+            <div style="margin-top: 16px;">
+                <a href="{% url 'rapports:filtres_decomptes_mensuels' %}" class="btn-create" style="width: 100%; justify-content: center;">Configurer</a>
             </div>
         </div>
     </div>
 
-    <div class="card card--success card--with-icon">
+    <div class="card card--success" style="display: flex; flex-direction: column;">
         <div class="card__icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <rect x="3" y="4" width="18" height="18" rx="2"/>
-                <line x1="16" y1="2" x2="16" y2="6"/>
-                <line x1="8" y1="2" x2="8" y2="6"/>
-                <line x1="3" y1="10" x2="21" y2="10"/>
-            </svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         </div>
-        <div class="card__content">
+        <div class="card__content" style="flex: 1; display: flex; flex-direction: column;">
             <div class="card__label">Rapport sur période</div>
-            <div class="card__hint">
+            <div class="card__hint" style="flex: 1;">
                 Synthèse globale (gardes, décomptes, OP, paiements) sur une période libre.
             </div>
-            <div style="margin-top: 12px;">
-                <a href="{% url 'rapports:filtres_periode' %}" class="btn-create">Configurer</a>
+            <div style="margin-top: 16px;">
+                <a href="{% url 'rapports:filtres_periode' %}" class="btn-create" style="width: 100%; justify-content: center;">Configurer</a>
             </div>
         </div>
     </div>

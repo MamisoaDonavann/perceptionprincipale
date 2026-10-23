@@ -1,126 +1,169 @@
 {% extends "base.html" %}
 {% load initials %}
+{% load format_ar %}
 
 {% block title %}Décompte {{ decompte.mois|stringformat:"02d" }}/{{ decompte.annee }}{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div class="page-header__titles">
-        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 8px;">
-            <span class="avatar avatar--lg {{ decompte.agent.pk|avatar_color }}">
-                {{ decompte.agent.nom|initials:decompte.agent.prenoms }}
-            </span>
-            <div>
-                <h1 class="page-title" style="margin: 0;">
-                    Décompte {{ decompte.mois|stringformat:"02d" }}/{{ decompte.annee }}
-                </h1>
-                <p class="page-subtitle" style="padding-left: 0; margin: 4px 0 0;">
-                    {{ decompte.agent.matricule }} — {{ decompte.agent.nom }} {{ decompte.agent.prenoms }}
-                </p>
-            </div>
-        </div>
-    </div>
-    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-        {% if decompte.statut == 'VALIDE' %}
-            <a href="{% url 'rapports:etat_decompte_pdf' decompte.pk %}" class="btn-secondary" target="_blank">
-                Télécharger le PDF
-            </a>
-        {% endif %}
-        {% if decompte.statut == 'BROUILLON' and perms.decomptes.change_decompte %}
-            <a href="{% url 'decomptes:valider' decompte.pk %}" class="btn-create">Valider le décompte</a>
-        {% endif %}
-        <a href="{% url 'decomptes:list' %}" class="btn-secondary">Retour</a>
-    </div>
+{% include "partials/page_header.html" with title="Décompte "|add:decompte.mois|stringformat:"02d"|add:"/"|add:decompte.annee subtitle=decompte.agent.matricule|add:" — "|add:decompte.agent.nom|add:" "|add:decompte.agent.prenoms icon="decompte" back_url="/decomptes/" %}
+
+<!-- Boutons d'action -->
+<div class="actions-bar" style="display: flex; justify-content: flex-end; gap: 12px; margin-bottom: 20px; background: transparent; border: none; padding: 0; box-shadow: none;">
+    {% if decompte.statut == 'VALIDE' %}
+        <a href="{% url 'rapports:etat_decompte_pdf' decompte.pk %}" class="btn-secondary" target="_blank" style="display: flex; align-items: center; gap: 6px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Télécharger le PDF
+        </a>
+    {% endif %}
+    
+    {% if decompte.statut == 'BROUILLON' and perms.decomptes.change_decompte %}
+        <form method="post" action="{% url 'decomptes:valider' decompte.pk %}" style="margin: 0;">
+            {% csrf_token %}
+            <button type="submit" class="btn-create" style="padding: 10px 20px; display: flex; align-items: center; gap: 6px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Valider le décompte
+            </button>
+        </form>
+    {% endif %}
 </div>
 
+<!-- Alertes d'information -->
 {% if decompte.nombre_gardes_non_conformes_exclues > 0 %}
-<div class="info-box info-box--warning">
-    <strong>Attention :</strong>
-    {{ decompte.nombre_gardes_non_conformes_exclues }} garde(s) non conforme(s)
-    ont été exclues du calcul. Elles doivent être examinées séparément.
+<div class="info-box info-box--warning" style="margin-bottom: 24px;">
+    <strong>Attention :</strong> {{ decompte.nombre_gardes_non_conformes_exclues }} garde(s) non conforme(s) ont été exclues du calcul. Elles doivent être examinées séparément.
 </div>
 {% endif %}
 
 {% if decompte.statut == 'VALIDE' %}
-<div class="info-box info-box--success">
-    Décompte validé le {{ decompte.date_validation|date:"d/m/Y H:i" }}
-    par {{ decompte.id_utilisateur_validateur.username }}.
+<div class="info-box info-box--success" style="margin-bottom: 24px;">
+    Décompte validé le {{ decompte.date_validation|date:"d/m/Y H:i" }} par {{ decompte.id_utilisateur_validateur.username }}.
 </div>
 {% endif %}
 
-<div class="op-summary">
-    <div class="op-summary__item">
-        <div class="op-summary__label">Statut</div>
-        <div class="op-summary__value">
-            {% if decompte.statut == 'VALIDE' %}
-                <span class="tag tag--valide">{{ decompte.get_statut_display }}</span>
-            {% else %}
-                <span class="tag tag--suspendu">{{ decompte.get_statut_display }}</span>
-            {% endif %}
+<!-- Cartes KPI -->
+<div class="cards" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+    <div class="card {% if decompte.statut == 'VALIDE' %}card--success{% else %}card--warning{% endif %}">
+        <div class="card__icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         </div>
+        <div class="card__label">Statut</div>
+        <div class="card__value" style="font-size: 20px; margin-top: 4px;">
+            <span class="tag {% if decompte.statut == 'VALIDE' %}tag--valide{% else %}tag--suspendu{% endif %}">
+                {{ decompte.get_statut_display }}
+            </span>
+        </div>
+        <div class="card__hint">État actuel du décompte</div>
     </div>
-    <div class="op-summary__item">
-        <div class="op-summary__label">Montant total</div>
-        <div class="op-summary__value amount">{{ decompte.montant_total }} Ar</div>
+
+    <div class="card card--info">
+        <div class="card__icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+        </div>
+        <div class="card__label">Montant total</div>
+        <div class="card__value amount">{{ decompte.montant_total|format_ar }} Ar</div>
+        <div class="card__hint">Montant calculé des gardes</div>
     </div>
-    <div class="op-summary__item">
-        <div class="op-summary__label">Gardes retenues</div>
-        <div class="op-summary__value">{{ decompte.nombre_gardes_retunes }}</div>
+
+    <div class="card card--info">
+        <div class="card__icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 6v6c0 5 3.5 9.5 8 10 4.5-.5 8-5 8-10V6l-8-4z"/></svg>
+        </div>
+        <div class="card__label">Gardes retenues</div>
+        <div class="card__value">{{ decompte.nombre_gardes_retunes }}</div>
+        <div class="card__hint">Gardes conformes incluses</div>
     </div>
-    <div class="op-summary__item">
-        <div class="op-summary__label">Non conformes exclues</div>
-        <div class="op-summary__value">{{ decompte.nombre_gardes_non_conformes_exclues }}</div>
+
+    <div class="card" style="border-left: 3px solid var(--danger);">
+        <div class="card__icon" style="background: linear-gradient(135deg, #fee2e2, #fecaca); color: #dc2626;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        </div>
+        <div class="card__label">Non conformes exclues</div>
+        <div class="card__value">{{ decompte.nombre_gardes_non_conformes_exclues }}</div>
+        <div class="card__hint">Gardes rejetées du calcul</div>
     </div>
 </div>
 
-<div class="detail-card">
-    <h2 class="detail-card__title">Lignes du décompte ({{ lignes|length }})</h2>
+<!-- Tableau des lignes (Alignement standard à gauche) -->
+<div class="table-wrapper" style="margin-bottom: 24px;">
+    <div style="padding: 18px 20px; border-bottom: 1px solid var(--border); background: var(--surface);">
+        <h2 class="detail-card__title" style="margin: 0; padding: 0; border: none; font-size: 13px;">Lignes du décompte ({{ lignes|length }})</h2>
+    </div>
+    
     {% if lignes %}
     <table class="data-table">
         <thead>
             <tr>
                 <th>Garde</th>
                 <th>Début</th>
-                <th class="text-right">Durée</th>
-                <th class="text-right">Partiels</th>
-                <th class="text-right">Montant partiel</th>
-                <th class="text-right">Montant ligne</th>
+                <th>Durée</th>
+                <th>Partiels</th>
+                <th>Montant partiel</th>
+                <th>Montant ligne</th>
             </tr>
         </thead>
         <tbody>
             {% for l in lignes %}
             <tr>
-                <td><a href="{% url 'gardes:detail' l.garde.pk %}">Garde #{{ l.garde.pk }}</a></td>
+                <td>
+                    <a href="{% url 'gardes:detail' l.garde.pk %}" style="font-weight: 600;">
+                        Garde #{{ l.garde.pk }}
+                    </a>
+                </td>
                 <td>{{ l.garde.date_heure_debut|date:"d/m/Y H:i" }}</td>
-                <td class="text-right">{{ l.duree_minutes_snapshot }} min</td>
-                <td class="text-right"><strong>{{ l.nombre_partiels_snapshot }}</strong></td>
-                <td class="text-right amount">{{ l.montant_partiel_snapshot }} Ar</td>
-                <td class="text-right amount"><strong>{{ l.montant_ligne }} Ar</strong></td>
+                <td>{{ l.duree_minutes_snapshot }} min</td>
+                <td><strong>{{ l.nombre_partiels_snapshot }}</strong></td>
+                <td class="amount">{{ l.montant_partiel_snapshot|format_ar }} Ar</td>
+                <td class="amount"><strong>{{ l.montant_ligne|format_ar }} Ar</strong></td>
             </tr>
             {% endfor %}
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="5" class="text-right"><strong>Total</strong></td>
-                <td class="text-right amount"><strong>{{ decompte.montant_total }} Ar</strong></td>
+                <td colspan="5" style="text-align: right; font-weight: 600; color: var(--text-2);">Total</td>
+                <td class="amount"><strong>{{ decompte.montant_total|format_ar }} Ar</strong></td>
             </tr>
         </tfoot>
     </table>
     {% else %}
-    <p class="empty-state__hint">Aucune ligne (aucune garde conforme sur la période).</p>
+    <div class="empty-state">
+        <div class="empty-state__icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </div>
+        <p class="empty-state__title">Aucune ligne</p>
+        <p class="empty-state__hint">Aucune garde conforme n'a été trouvée sur cette période.</p>
+    </div>
     {% endif %}
 </div>
 
+<!-- Traçabilité -->
 <div class="detail-card">
     <h2 class="detail-card__title">Traçabilité</h2>
-    <dl class="detail-list">
+    <div class="detail-list" style="grid-template-columns: 150px 1fr;">
         <dt>Créé par</dt>
-        <dd>{{ decompte.id_utilisateur_createur.get_full_name|default:decompte.id_utilisateur_createur.username }}</dd>
-        <dt>Créé le</dt><dd>{{ decompte.date_creation|date:"d/m/Y H:i" }}</dd>
+        <dd>
+            <div class="cell-user" style="gap: 6px;">
+                <span class="avatar avatar--sm {{ decompte.agent.pk|avatar_color }}">
+                    {{ decompte.id_utilisateur_createur.username|slice:":1"|upper }}
+                </span>
+                <span>{{ decompte.id_utilisateur_createur.get_full_name|default:decompte.id_utilisateur_createur.username }}</span>
+            </div>
+        </dd>
+        <dt>Créé le</dt>
+        <dd>{{ decompte.date_creation|date:"d/m/Y à H:i" }}</dd>
+        
         {% if decompte.id_utilisateur_validateur %}
-        <dt>Validé par</dt><dd>{{ decompte.id_utilisateur_validateur.username }}</dd>
-        <dt>Validé le</dt><dd>{{ decompte.date_validation|date:"d/m/Y H:i" }}</dd>
+        <dt>Validé par</dt>
+        <dd>
+            <div class="cell-user" style="gap: 6px;">
+                <span class="avatar avatar--sm avatar--c2">
+                    {{ decompte.id_utilisateur_validateur.username|slice:":1"|upper }}
+                </span>
+                <span>{{ decompte.id_utilisateur_validateur.username }}</span>
+            </div>
+        </dd>
+        <dt>Validé le</dt>
+        <dd>{{ decompte.date_validation|date:"d/m/Y à H:i" }}</dd>
         {% endif %}
-    </dl>
+    </div>
 </div>
 {% endblock %}

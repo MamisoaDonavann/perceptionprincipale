@@ -3,24 +3,21 @@
 {% block title %}État des gardes — Rapports{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div class="page-header__titles">
-        <h1 class="page-title">État détaillé des gardes</h1>
-        <p class="page-subtitle">
-            Filtrez puis exportez la liste des gardes en PDF ou Excel.
-        </p>
-    </div>
-    <div>
-        <a href="{% url 'rapports:index' %}" class="btn-secondary">Retour aux rapports</a>
-    </div>
-</div>
+<!-- Correction de l'erreur : on stocke l'URL dans une variable avant de l'envoyer -->
+{% url 'rapports:index' as url_retour %}
+{% include "partials/page_header.html" with title="État détaillé des gardes" subtitle="Filtrez puis exportez la liste des gardes en PDF ou Excel." icon="rapport" back_url=url_retour %}
 
-<div class="info-box info-box--info">
-    Toutes les gardes sont incluses (validées et annulées). Utilisez la conformité
-    pour filtrer les gardes exclues des décomptes. Les filtres sont facultatifs.
-</div>
+<!-- Formulaire dans une carte blanche -->
+<form method="get" novalidate class="form-card">
+    
+    <!-- Message d'information -->
+    <div class="info-box info-box--info" style="margin-bottom: 24px; display: flex; align-items: flex-start; gap: 12px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <div>
+            Toutes les gardes sont incluses (validées et annulées). Utilisez la conformité pour filtrer les gardes exclues des décomptes. Les filtres sont facultatifs.
+        </div>
+    </div>
 
-<form method="get" novalidate>
     <fieldset class="form-section">
         <legend>Période</legend>
         <div class="form-grid">
@@ -75,17 +72,28 @@
         </div>
     </fieldset>
 
-    <div class="form-actions">
-        <button type="submit" formaction="{% url 'rapports:etat_gardes_pdf' %}" class="btn-create">
-            Télécharger PDF
-        </button>
-        <button type="submit" formaction="{% url 'rapports:etat_gardes_excel' %}" class="btn-secondary">
-            Télécharger Excel
-        </button>
-        <button type="submit" formaction="{% url 'rapports:etat_gardes_csv' %}" class="btn-secondary">
-            Télécharger CSV
-        </button>
-        <a href="{% url 'rapports:filtres_gardes' %}" class="btn-secondary">Réinitialiser</a>
+    <!-- Boutons d'export avec couleurs et icônes -->
+    <div class="form-actions" style="margin-top: 32px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+        
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button type="submit" formaction="{% url 'rapports:etat_gardes_pdf' %}" class="btn-create" style="display: inline-flex; align-items: center; gap: 6px; background: #dc2626; border-color: #dc2626;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                PDF
+            </button>
+            
+            <button type="submit" formaction="{% url 'rapports:etat_gardes_excel' %}" class="btn-create" style="display: inline-flex; align-items: center; gap: 6px; background: #16a34a; border-color: #16a34a;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+                Excel
+            </button>
+            
+            <button type="submit" formaction="{% url 'rapports:etat_gardes_csv' %}" class="btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                CSV
+            </button>
+        </div>
+
+        <!-- Bouton Annuler/Réinitialiser -->
+        <a href="{% url 'rapports:filtres_gardes' %}" class="btn-secondary" style="padding: 10px 20px;">Réinitialiser</a>
     </div>
 </form>
 {% endblock %}

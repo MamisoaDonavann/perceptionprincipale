@@ -5,8 +5,7 @@
 {% block sous_titre %}
     <div class="entete__sous-titre">
         {% if date_debut or date_fin %}
-            Période :
-            {{ date_debut|date:"d/m/Y"|default:"—" }} → {{ date_fin|date:"d/m/Y"|default:"—" }}
+            Période : {{ date_debut|date:"d/m/Y"|default:"—" }} → {{ date_fin|date:"d/m/Y"|default:"—" }}
         {% else %}
             Toutes les gardes
         {% endif %}
@@ -16,60 +15,79 @@
 
 {% block contenu %}
 
+<!-- Bloc des filtres appliqués -->
 {% if agent_filtre or mission_filtre or conforme_filtre is not None %}
-<div class="bloc-info">
+<div class="bloc-info" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 10px; margin-bottom: 20px;">
     {% if agent_filtre %}
-    <div class="bloc-info__ligne">
-        <div class="bloc-info__label">Agent</div>
-        <div class="bloc-info__valeur">{{ agent_filtre.matricule }} — {{ agent_filtre.nom }} {{ agent_filtre.prenoms }}</div>
+    <div class="bloc-info__ligne" style="margin-bottom: 4px;">
+        <div class="bloc-info__label" style="font-weight: 700; color: #475569; font-size: 10px; text-transform: uppercase;">Agent :</div>
+        <div class="bloc-info__valeur" style="color: #0f172a;">{{ agent_filtre.matricule }} — {{ agent_filtre.nom }} {{ agent_filtre.prenoms }}</div>
     </div>
     {% endif %}
     {% if mission_filtre %}
-    <div class="bloc-info__ligne">
-        <div class="bloc-info__label">Mission</div>
-        <div class="bloc-info__valeur">{{ mission_filtre.libelle }}</div>
+    <div class="bloc-info__ligne" style="margin-bottom: 4px;">
+        <div class="bloc-info__label" style="font-weight: 700; color: #475569; font-size: 10px; text-transform: uppercase;">Mission :</div>
+        <div class="bloc-info__valeur" style="color: #0f172a;">{{ mission_filtre.libelle }}</div>
     </div>
     {% endif %}
     {% if conforme_filtre is not None %}
     <div class="bloc-info__ligne">
-        <div class="bloc-info__label">Conformité</div>
-        <div class="bloc-info__valeur">{% if conforme_filtre %}Conformes{% else %}Non conformes{% endif %}</div>
+        <div class="bloc-info__label" style="font-weight: 700; color: #475569; font-size: 10px; text-transform: uppercase;">Conformité :</div>
+        <div class="bloc-info__valeur" style="color: #0f172a;">{% if conforme_filtre %}Conformes uniquement{% else %}Non conformes uniquement{% endif %}</div>
     </div>
     {% endif %}
 </div>
 {% endif %}
 
-<table class="data">
+<!-- Tableau des gardes (SANS la colonne #) -->
+<table class="data" style="width: 100%; border-collapse: collapse; font-size: 10px;">
     <thead>
-        <tr>
-            <th>#</th>
-            <th>Agent</th>
-            <th>Mission</th>
-            <th>Début</th>
-            <th>Fin</th>
-            <th class="text-right">Durée</th>
-            <th class="text-right">Partiels</th>
-            <th class="text-center">Conf.</th>
-            <th class="text-center">Statut</th>
+        <tr style="background-color: #f1f5f9; color: #0d1b3e;">
+            <th style="padding: 8px 6px; text-align: left; border-bottom: 2px solid #cbd5e1;">Agent</th>
+            <th style="padding: 8px 6px; text-align: left; border-bottom: 2px solid #cbd5e1;">Mission</th>
+            <th style="padding: 8px 6px; text-align: left; border-bottom: 2px solid #cbd5e1;">Début</th>
+            <th style="padding: 8px 6px; text-align: left; border-bottom: 2px solid #cbd5e1;">Fin</th>
+            <th style="padding: 8px 6px; text-align: right; border-bottom: 2px solid #cbd5e1;">Durée</th>
+            <th style="padding: 8px 6px; text-align: right; border-bottom: 2px solid #cbd5e1;">Partiels</th>
+            <th style="padding: 8px 6px; text-align: center; border-bottom: 2px solid #cbd5e1;">Conf.</th>
+            <th style="padding: 8px 6px; text-align: center; border-bottom: 2px solid #cbd5e1;">Statut</th>
         </tr>
     </thead>
     <tbody>
         {% for g in gardes %}
-        <tr>
-            <td>#{{ g.pk }}</td>
-            <td>{{ g.agent.matricule }} — {{ g.agent.nom }}</td>
-            <td>{{ g.mission.libelle|default:"—" }}</td>
-            <td>{{ g.date_heure_debut|date:"d/m/Y H:i" }}</td>
-            <td>{{ g.date_heure_fin|date:"d/m/Y H:i" }}</td>
-            <td class="text-right">{{ g.duree_minutes }} min</td>
-            <td class="text-right">{{ g.nombre_partiels|default:"—" }}</td>
-            <td class="text-center">{% if g.conforme %}Oui{% else %}Non{% endif %}</td>
-            <td class="text-center">{{ g.get_statut_display }}</td>
+        <tr style="border-bottom: 1px solid #e2e8f0;">
+            <td style="padding: 6px; font-weight: 500;">{{ g.agent.matricule }} — {{ g.agent.nom }}</td>
+            <td style="padding: 6px; color: #475569;">{{ g.mission.libelle|default:"—" }}</td>
+            <td style="padding: 6px; color: #475569;">{{ g.date_heure_debut|date:"d/m/Y H:i" }}</td>
+            <td style="padding: 6px; color: #475569;">{{ g.date_heure_fin|date:"d/m/Y H:i" }}</td>
+            <td style="padding: 6px; text-align: right;">{{ g.duree_minutes }} min</td>
+            <td style="padding: 6px; text-align: right; font-weight: 600;">{{ g.nombre_partiels|default:"—" }}</td>
+            <td style="padding: 6px; text-align: center;">
+                {% if g.conforme %}
+                    <span style="color: #059669; font-weight: 600;">Oui</span>
+                {% else %}
+                    <span style="color: #dc2626; font-weight: 600;">Non</span>
+                {% endif %}
+            </td>
+            <td style="padding: 6px; text-align: center; color: #475569;">{{ g.get_statut_display }}</td>
         </tr>
         {% empty %}
-        <tr><td colspan="9" class="text-center">Aucune garde trouvée.</td></tr>
+        <tr>
+            <!-- Colspan passé à 8 -->
+            <td colspan="8" style="padding: 20px; text-align: center; color: #64748b; font-style: italic;">
+                Aucune garde trouvée pour ces critères.
+            </td>
+        </tr>
         {% endfor %}
     </tbody>
+    <tfoot>
+        <tr style="background-color: #f8fafc; border-top: 2px solid #cbd5e1;">
+            <!-- Colspan passé à 8 -->
+            <td colspan="8" style="padding: 10px 6px; text-align: right; font-weight: 700; color: #0d1b3e; font-size: 11px;">
+                Total : {{ total }} garde{{ total|pluralize }}
+            </td>
+        </tr>
+    </tfoot>
 </table>
 
 {% endblock %}

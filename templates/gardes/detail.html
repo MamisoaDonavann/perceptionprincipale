@@ -1,74 +1,106 @@
 {% extends "base.html" %}
 {% load initials %}
+{% load format_ar %}
 
 {% block title %}Garde #{{ garde.pk }} — Perception Marovoay{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div class="page-header__titles">
-        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 8px;">
-            <span class="avatar avatar--lg {{ garde.agent.pk|avatar_color }}">
+<!-- ==================== EN-TÊTE MODERNE ==================== -->
+<div style="position:relative;background:linear-gradient(135deg,#ffffff 0%,#fafbff 100%);border:1px solid #e5e7eb;border-radius:16px;padding:20px 24px;margin-bottom:20px;overflow:hidden;">
+    <div style="position:absolute;top:0;right:0;width:200px;height:100%;background:radial-gradient(circle at right center,rgba(99,102,241,0.08) 0%,transparent 70%);pointer-events:none;"></div>
+
+    <div style="position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;">
+        
+        <!-- Partie gauche : Avatar + Titre -->
+        <div style="display:flex;align-items:center;gap:16px;flex:1 1 300px;min-width:0;">
+            <span class="avatar avatar--lg {{ garde.agent.pk|avatar_color }}" style="width: 56px; height: 56px; font-size: 18px; border-radius: 14px; box-shadow: 0 4px 14px rgba(99,102,241,0.3); flex-shrink: 0;">
                 {{ garde.agent.nom|initials:garde.agent.prenoms }}
             </span>
-            <div>
-                <h1 class="page-title" style="margin: 0;">
+            <div style="min-width:0;">
+                <h1 style="font-size:24px;font-weight:800;color:#0f172a;letter-spacing:-0.025em;margin:0 0 4px;line-height:1.15;">
                     {{ garde.agent.nom }} {{ garde.agent.prenoms }}
                 </h1>
-                <p class="page-subtitle" style="padding-left: 0; margin: 4px 0 0;">
+                <p style="font-size:13px;color:#64748b;margin:0;">
                     Garde du {{ garde.date_heure_debut|date:"d/m/Y H:i" }}
                 </p>
             </div>
         </div>
-    </div>
-    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-        {% if garde.statut == 'VALIDEE' and perms.gardes.annuler_garde %}
-            <a href="{% url 'gardes:annuler' garde.pk %}" class="btn-secondary">Annuler la garde</a>
-        {% endif %}
-        <a href="{% url 'gardes:list' %}" class="btn-secondary">Retour</a>
+
+        <!-- Partie droite : Boutons d'action -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0;">
+            {% if garde.statut == 'VALIDEE' and perms.gardes.annuler_garde %}
+                <a href="{% url 'gardes:annuler' garde.pk %}" class="btn-secondary" style="color: #dc2626; border-color: #fecaca; background: #fef2f2; padding: 8px 16px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                    Annuler la garde
+                </a>
+            {% endif %}
+            <a href="{% url 'gardes:list' %}" class="btn-secondary" style="padding: 8px 16px; font-size: 13px;">Retour</a>
+        </div>
     </div>
 </div>
 
+<!-- ==================== ALERTES ==================== -->
 {% if not garde.conforme %}
-<div class="info-box info-box--warning">
-    <strong>Garde non conforme :</strong> {{ garde.motif_anomalie }}.
-    Cette garde sera exclue des décomptes tant qu'elle n'est pas corrigée.
+<div class="info-box info-box--warning" style="margin-bottom: 24px; display: flex; align-items: flex-start; gap: 12px;">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    <div>
+        <strong>Garde non conforme :</strong> {{ garde.motif_anomalie }}.<br>
+        Cette garde sera exclue des décomptes tant qu'elle n'est pas corrigée.
+    </div>
 </div>
 {% endif %}
 
 {% if garde.statut == 'ANNULEE' %}
-<div class="info-box info-box--warning">
-    <strong>Garde annulée.</strong> Conservée pour traçabilité.
+<div class="info-box info-box--warning" style="margin-bottom: 24px; display: flex; align-items: flex-start; gap: 12px;">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+    <div>
+        <strong>Garde annulée.</strong> Conservée pour traçabilité.
+    </div>
 </div>
 {% endif %}
 
+<!-- ==================== GRILLE D'INFORMATIONS ==================== -->
 <div class="detail-grid">
-    <div>
+    <!-- Colonne de gauche -->
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+        
         <div class="detail-card">
             <h2 class="detail-card__title">Agent et mission</h2>
-            <dl class="detail-list">
+            <div class="detail-list" style="grid-template-columns: 150px 1fr;">
                 <dt>Agent</dt>
                 <dd>
-                    <a href="{% url 'agents:detail' garde.agent.pk %}">
+                    <a href="{% url 'agents:detail' garde.agent.pk %}" style="color: var(--primary-600); font-weight: 600; text-decoration: none;">
                         {{ garde.agent.matricule }} — {{ garde.agent.nom }} {{ garde.agent.prenoms }}
                     </a>
                 </dd>
                 <dt>Mission</dt>
                 <dd>
                     {% if garde.mission %}
-                        <a href="{% url 'missions:detail' garde.mission.pk %}">{{ garde.mission.libelle }}</a>
-                    {% else %}—{% endif %}
+                        <a href="{% url 'missions:detail' garde.mission.pk %}" style="color: var(--primary-600); font-weight: 600; text-decoration: none;">
+                            {{ garde.mission.libelle }}
+                        </a>
+                    {% else %}
+                        <span style="color: var(--text-muted);">—</span>
+                    {% endif %}
                 </dd>
-            </dl>
+            </div>
         </div>
 
         <div class="detail-card">
             <h2 class="detail-card__title">Période et calculs</h2>
-            <dl class="detail-list">
-                <dt>Début</dt><dd>{{ garde.date_heure_debut|date:"d/m/Y H:i" }}</dd>
-                <dt>Fin</dt><dd>{{ garde.date_heure_fin|date:"d/m/Y H:i" }}</dd>
-                <dt>Durée</dt><dd>{{ garde.duree_minutes }} minutes</dd>
+            <div class="detail-list" style="grid-template-columns: 150px 1fr;">
+                <dt>Début</dt>
+                <dd>{{ garde.date_heure_debut|date:"d/m/Y H:i" }}</dd>
+                
+                <dt>Fin</dt>
+                <dd>{{ garde.date_heure_fin|date:"d/m/Y H:i" }}</dd>
+                
+                <dt>Durée</dt>
+                <dd><strong>{{ garde.duree_minutes }} minutes</strong></dd>
+                
                 <dt>Nombre de partiels</dt>
                 <dd><strong>{{ garde.nombre_partiels|default:"—" }}</strong></dd>
+                
                 <dt>Conforme</dt>
                 <dd>
                     {% if garde.conforme %}
@@ -77,51 +109,73 @@
                         <span class="tag tag--radie">Non</span>
                     {% endif %}
                 </dd>
+                
                 {% if garde.motif_anomalie %}
-                    <dt>Motif anomalie</dt><dd>{{ garde.motif_anomalie }}</dd>
+                    <dt>Motif anomalie</dt>
+                    <dd style="color: #dc2626;">{{ garde.motif_anomalie }}</dd>
                 {% endif %}
-            </dl>
+            </div>
         </div>
 
         <div class="detail-card">
             <h2 class="detail-card__title">Tarif appliqué</h2>
-            <dl class="detail-list">
+            <div class="detail-list" style="grid-template-columns: 150px 1fr;">
                 <dt>Tarif</dt>
                 <dd>
                     {% if garde.tarif %}
-                        <a href="{% url 'tarifs:detail' garde.tarif.pk %}">
-                            {{ garde.tarif.montant_partiel }} Ar / partiel
+                        <a href="{% url 'tarifs:detail' garde.tarif.pk %}" style="color: var(--primary-600); font-weight: 600; text-decoration: none;" class="amount">
+                            {{ garde.tarif.montant_partiel|format_ar }} Ar / partiel
                         </a>
-                    {% else %}—{% endif %}
+                    {% else %}
+                        <span style="color: var(--text-muted);">—</span>
+                    {% endif %}
                 </dd>
-                <dt>Observation</dt><dd>{{ garde.observation|default:"—" }}</dd>
-            </dl>
+                
+                <dt>Observation</dt>
+                <dd>{{ garde.observation|default:"—" }}</dd>
+            </div>
         </div>
     </div>
 
-    <div>
+    <!-- Colonne de droite -->
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+        
         <div class="detail-card">
             <h2 class="detail-card__title">Statut</h2>
-            <dl class="detail-list">
+            <div class="detail-list" style="grid-template-columns: 100px 1fr;">
                 <dt>Statut</dt>
                 <dd>
                     {% if garde.statut == 'VALIDEE' %}
                         <span class="tag tag--valide">{{ garde.get_statut_display }}</span>
-                    {% else %}
+                    {% elif garde.statut == 'ANNULEE' %}
                         <span class="tag tag--annule">{{ garde.get_statut_display }}</span>
+                    {% else %}
+                        <span class="tag tag--suspendu">{{ garde.get_statut_display }}</span>
                     {% endif %}
                 </dd>
-            </dl>
+            </div>
         </div>
 
         <div class="detail-card">
             <h2 class="detail-card__title">Traçabilité</h2>
-            <dl class="detail-list">
+            <div class="detail-list" style="grid-template-columns: 100px 1fr;">
                 <dt>Saisie par</dt>
-                <dd>{{ garde.id_utilisateur_saisie.get_full_name|default:garde.id_utilisateur_saisie.username }}</dd>
-                <dt>Saisie le</dt><dd>{{ garde.date_saisie|date:"d/m/Y H:i" }}</dd>
-                <dt>Modifiée le</dt><dd>{{ garde.date_maj|date:"d/m/Y H:i" }}</dd>
-            </dl>
+                <dd>
+                    <div class="cell-user" style="gap: 6px;">
+                        <!-- J'ai ajouté un petit avatar pour le créateur -->
+                        <span class="avatar avatar--sm avatar--c1">
+                            {{ garde.id_utilisateur_saisie.username|slice:":1"|upper }}
+                        </span>
+                        <span>{{ garde.id_utilisateur_saisie.get_full_name|default:garde.id_utilisateur_saisie.username }}</span>
+                    </div>
+                </dd>
+                
+                <dt>Saisie le</dt>
+                <dd>{{ garde.date_saisie|date:"d/m/Y à H:i" }}</dd>
+                
+                <dt>Modifiée le</dt>
+                <dd>{{ garde.date_maj|date:"d/m/Y à H:i"|default:"—" }}</dd>
+            </div>
         </div>
     </div>
 </div>

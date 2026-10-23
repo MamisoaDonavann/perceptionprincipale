@@ -1,153 +1,183 @@
 {% extends "base.html" %}
 {% load initials %}
+{% load format_ar %}
 
 {% block title %}{{ agent.matricule }} — Agent{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div class="page-header__titles">
-        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 8px;">
-            <span class="avatar avatar--lg {{ agent.pk|avatar_color }}">
+<!-- En-tête moderne avec l'avatar de l'agent -->
+<div style="position:relative;background:linear-gradient(135deg,#ffffff 0%,#fafbff 100%);border:1px solid #e5e7eb;border-radius:16px;padding:20px 24px;margin-bottom:20px;overflow:hidden;">
+    <div style="position:absolute;top:0;right:0;width:200px;height:100%;background:radial-gradient(circle at right center,rgba(99,102,241,0.08) 0%,transparent 70%);pointer-events:none;"></div>
+
+    <div style="position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;">
+        
+        <!-- Partie gauche : Avatar + Nom -->
+        <div style="display:flex;align-items:center;gap:16px;flex:1 1 300px;min-width:0;">
+            <span class="avatar avatar--lg {{ agent.pk|avatar_color }}" style="width: 56px; height: 56px; font-size: 18px; border-radius: 14px; box-shadow: 0 4px 14px rgba(99,102,241,0.3); flex-shrink: 0;">
                 {{ agent.nom|initials:agent.prenoms }}
             </span>
-            <div>
-                <h1 class="page-title" style="margin: 0;">{{ agent.nom }} {{ agent.prenoms }}</h1>
-                <p class="page-subtitle" style="padding-left: 0; margin: 4px 0 0;">
+            <div style="min-width:0;">
+                <h1 style="font-size:24px;font-weight:800;color:#0f172a;letter-spacing:-0.025em;margin:0 0 4px;line-height:1.15;">
+                    {{ agent.nom }} {{ agent.prenoms }}
+                </h1>
+                <p style="font-size:13px;color:#64748b;margin:0;">
                     Matricule <strong>{{ agent.matricule }}</strong>
                     {% if agent.grade %} — {{ agent.grade }}{% endif %}
                 </p>
             </div>
         </div>
-    </div>
-    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-        <a href="{% url 'rapports:historique_agent_pdf' agent.pk %}" class="btn-secondary" target="_blank">
-            Historique PDF
-        </a>
-        <a href="{% url 'rapports:historique_agent_excel' agent.pk %}" class="btn-secondary" target="_blank">
-            Historique Excel
-        </a>
-        <a href="{% url 'rapports:historique_agent_csv' agent.pk %}" class="btn-secondary" target="_blank">
-            Historique CSV
-        </a>
-        {% if perms.agents.change_agent %}
-        <a href="{% url 'agents:update' agent.pk %}" class="btn-create">Modifier</a>
-        {% endif %}
-        {% if perms.agents.change_agent %}
-            {% if agent.actif %}
-                <form method="post"
-                      action="{% url 'agents:toggle_actif' agent.pk %}"
-                      style="display:inline;"
-                      data-confirm="Il ne pourra plus être saisi dans de nouvelles gardes. Son historique est conservé."
-                      data-confirm-title="Désactiver l'agent {{ agent.matricule }} ?"
-                      data-confirm-label="Désactiver"
-                      data-confirm-variant="warning">
-                    {% csrf_token %}
-                    <button type="submit" class="btn-secondary">Désactiver</button>
-                </form>
-            {% elif agent.statut_agent != 'RADIE' %}
-                <form method="post"
-                      action="{% url 'agents:toggle_actif' agent.pk %}"
-                      style="display:inline;"
-                      data-confirm="L'agent redeviendra disponible pour de nouvelles affectations et gardes."
-                      data-confirm-title="Réactiver l'agent {{ agent.matricule }} ?"
-                      data-confirm-label="Réactiver"
-                      data-confirm-variant="info">
-                    {% csrf_token %}
-                    <button type="submit" class="btn-create">Réactiver</button>
-                </form>
+
+        <!-- Partie droite : Boutons d'action -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0; align-items: center;">
+            <!-- Boutons d'export -->
+            <a href="{% url 'rapports:historique_agent_pdf' agent.pk %}" class="btn-secondary" target="_blank" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; font-size: 12px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                PDF
+            </a>
+            <a href="{% url 'rapports:historique_agent_excel' agent.pk %}" class="btn-secondary" target="_blank" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; font-size: 12px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+                Excel
+            </a>
+            <a href="{% url 'rapports:historique_agent_csv' agent.pk %}" class="btn-secondary" target="_blank" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; font-size: 12px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                CSV
+            </a>
+
+            <div style="width: 1px; height: 24px; background: #e5e7eb; margin: 0 4px;"></div>
+
+            <!-- Boutons d'action -->
+            {% if perms.agents.change_agent %}
+                <a href="{% url 'agents:update' agent.pk %}" class="btn-create" style="padding: 8px 16px; font-size: 13px;">Modifier</a>
+                
+                {% if agent.actif %}
+                    <form method="post" action="{% url 'agents:toggle_actif' agent.pk %}" style="display:inline; margin: 0;"
+                          data-confirm="Il ne pourra plus être saisi dans de nouvelles gardes. Son historique est conservé."
+                          data-confirm-title="Désactiver l'agent {{ agent.matricule }} ?"
+                          data-confirm-label="Désactiver"
+                          data-confirm-variant="warning">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-secondary" style="color: #dc2626; border-color: #fecaca; background: #fef2f2; padding: 8px 16px; font-size: 13px;">
+                            Désactiver
+                        </button>
+                    </form>
+                {% elif agent.statut_agent != 'RADIE' %}
+                    <form method="post" action="{% url 'agents:toggle_actif' agent.pk %}" style="display:inline; margin: 0;"
+                          data-confirm="L'agent redeviendra disponible pour de nouvelles affectations et gardes."
+                          data-confirm-title="Réactiver l'agent {{ agent.matricule }} ?"
+                          data-confirm-label="Réactiver"
+                          data-confirm-variant="info">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-create" style="background: #10b981; border-color: #10b981; padding: 8px 16px; font-size: 13px;">
+                            Réactiver
+                        </button>
+                    </form>
+                {% endif %}
             {% endif %}
-        {% endif %}
-        <a href="{% url 'agents:list' %}" class="btn-secondary">Retour</a>
+            
+            <a href="{% url 'agents:list' %}" class="btn-secondary" style="padding: 8px 16px; font-size: 13px;">Retour</a>
+        </div>
     </div>
 </div>
 
+<!-- Alerte si l'agent est inactif -->
 {% if not agent.actif %}
-<div class="info-box info-box--warning">
-    <strong>Agent inactif.</strong> Il n'apparaît plus dans les listes déroulantes
-    mais conserve tout son historique.
+<div class="info-box info-box--warning" style="margin-bottom: 24px; display: flex; align-items: flex-start; gap: 12px;">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    <div>
+        <strong>Agent inactif.</strong> Il n'apparaît plus dans les listes déroulantes mais conserve tout son historique.
+    </div>
 </div>
 {% endif %}
 
+<!-- Grille principale (2 colonnes) -->
 <div class="detail-grid">
-    <div>
+    <!-- Colonne de gauche (Informations principales) -->
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+        
         <div class="detail-card">
             <h2 class="detail-card__title">Identification</h2>
-            <dl class="detail-list">
-                <dt>Matricule</dt><dd>{{ agent.matricule }}</dd>
+            <div class="detail-list" style="grid-template-columns: 150px 1fr;">
+                <dt>Matricule</dt><dd class="amount">{{ agent.matricule }}</dd>
                 <dt>Nom</dt><dd>{{ agent.nom }}</dd>
                 <dt>Prénoms</dt><dd>{{ agent.prenoms }}</dd>
                 <dt>CIN</dt><dd>{{ agent.cin|default:"—" }}</dd>
                 <dt>Grade</dt><dd>{{ agent.grade|default:"—" }}</dd>
-            </dl>
+            </div>
         </div>
 
         <div class="detail-card">
             <h2 class="detail-card__title">Informations personnelles</h2>
-            <dl class="detail-list">
+            <div class="detail-list" style="grid-template-columns: 150px 1fr;">
                 <dt>Date de naissance</dt><dd>{{ agent.date_naissance|date:"d/m/Y"|default:"—" }}</dd>
                 <dt>Lieu de naissance</dt><dd>{{ agent.lieu_naissance|default:"—" }}</dd>
                 <dt>Sexe</dt><dd>{{ agent.get_sexe_display|default:"—" }}</dd>
                 <dt>Téléphone</dt><dd>{{ agent.telephone|default:"—" }}</dd>
                 <dt>Adresse</dt><dd>{{ agent.adresse|default:"—" }}</dd>
-            </dl>
+            </div>
         </div>
 
         <div class="detail-card">
             <h2 class="detail-card__title">Affectations récentes</h2>
             {% if affectations %}
-            <table class="data-table">
-                <thead>
-                    <tr><th>Unité</th><th>Début</th><th>Fin</th></tr>
-                </thead>
-                <tbody>
-                    {% for a in affectations %}
-                    <tr>
-                        <td>{{ a.unite.code }} — {{ a.unite.libelle }}</td>
-                        <td>{{ a.date_debut|date:"d/m/Y" }}</td>
-                        <td>{{ a.date_fin|date:"d/m/Y"|default:"en cours" }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Unité</th><th>Début</th><th>Fin</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for a in affectations %}
+                        <tr>
+                            <td>{{ a.unite.code }} — {{ a.unite.libelle }}</td>
+                            <td>{{ a.date_debut|date:"d/m/Y" }}</td>
+                            <td>{{ a.date_fin|date:"d/m/Y"|default:"<em>en cours</em>" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
             {% else %}
-            <p class="empty-state__hint">Aucune affectation enregistrée.</p>
+            <p class="empty-state__hint" style="margin: 0;">Aucune affectation enregistrée.</p>
             {% endif %}
         </div>
 
         <div class="detail-card">
             <h2 class="detail-card__title">Gardes récentes</h2>
             {% if gardes %}
-            <table class="data-table">
-                <thead>
-                    <tr><th>Début</th><th>Fin</th><th>Partiels</th><th>Conforme</th></tr>
-                </thead>
-                <tbody>
-                    {% for g in gardes %}
-                    <tr>
-                        <td>{{ g.date_heure_debut|date:"d/m/Y H:i" }}</td>
-                        <td>{{ g.date_heure_fin|date:"d/m/Y H:i" }}</td>
-                        <td>{{ g.nombre_partiels|default:"—" }}</td>
-                        <td>
-                            {% if g.conforme %}
-                                <span class="tag tag--actif">Oui</span>
-                            {% else %}
-                                <span class="tag tag--radie">Non</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Début</th><th>Fin</th><th>Partiels</th><th>Conforme</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for g in gardes %}
+                        <tr>
+                            <td>{{ g.date_heure_debut|date:"d/m/Y H:i" }}</td>
+                            <td>{{ g.date_heure_fin|date:"d/m/Y H:i" }}</td>
+                            <td><strong>{{ g.nombre_partiels|default:"—" }}</strong></td>
+                            <td>
+                                {% if g.conforme %}
+                                    <span class="tag tag--actif">Oui</span>
+                                {% else %}
+                                    <span class="tag tag--radie">Non</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
             {% else %}
-            <p class="empty-state__hint">Aucune garde enregistrée.</p>
+            <p class="empty-state__hint" style="margin: 0;">Aucune garde enregistrée.</p>
             {% endif %}
         </div>
     </div>
 
-    <div>
+    <!-- Colonne de droite (Résumés et Traçabilité) -->
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+        
         <div class="detail-card">
             <h2 class="detail-card__title">Statut</h2>
-            <dl class="detail-list">
+            <div class="detail-list" style="grid-template-columns: 1fr auto;">
                 <dt>Statut administratif</dt>
                 <dd>
                     {% if agent.statut_agent == 'ACTIF' %}
@@ -168,25 +198,25 @@
                         <span class="tag tag--inactif">Inactif</span>
                     {% endif %}
                 </dd>
-            </dl>
+            </div>
         </div>
 
         <div class="detail-card">
             <h2 class="detail-card__title">Décomptes récents</h2>
             {% if decomptes %}
             <table class="data-table">
-                <thead><tr><th>Période</th><th class="text-right">Montant</th></tr></thead>
+                <thead><tr><th>Période</th><th style="text-align: right;">Montant</th></tr></thead>
                 <tbody>
                     {% for d in decomptes %}
                     <tr>
                         <td>{{ d.mois|stringformat:"02d" }}/{{ d.annee }}</td>
-                        <td class="text-right amount">{{ d.montant_total }} Ar</td>
+                        <td style="text-align: right;" class="amount"><strong>{{ d.montant_total|format_ar }} Ar</strong></td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
             {% else %}
-            <p class="empty-state__hint">Aucun décompte.</p>
+            <p class="empty-state__hint" style="margin: 0;">Aucun décompte.</p>
             {% endif %}
         </div>
 
@@ -215,16 +245,16 @@
                 </tbody>
             </table>
             {% else %}
-            <p class="empty-state__hint">Aucun ordre.</p>
+            <p class="empty-state__hint" style="margin: 0;">Aucun ordre.</p>
             {% endif %}
         </div>
 
         <div class="detail-card">
             <h2 class="detail-card__title">Traçabilité</h2>
-            <dl class="detail-list">
-                <dt>Créé le</dt><dd>{{ agent.date_creation|date:"d/m/Y H:i" }}</dd>
-                <dt>Modifié le</dt><dd>{{ agent.date_maj|date:"d/m/Y H:i" }}</dd>
-            </dl>
+            <div class="detail-list" style="grid-template-columns: 100px 1fr;">
+                <dt>Créé le</dt><dd>{{ agent.date_creation|date:"d/m/Y à H:i" }}</dd>
+                <dt>Modifié le</dt><dd>{{ agent.date_maj|date:"d/m/Y à H:i"|default:"—" }}</dd>
+            </div>
         </div>
     </div>
 </div>
