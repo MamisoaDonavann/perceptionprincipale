@@ -71,7 +71,10 @@
         <!-- Tableau des participants -->
         <div class="table-wrapper">
             <div style="padding: 18px 20px; border-bottom: 1px solid var(--border); background: var(--surface);">
-                <h2 class="detail-card__title" style="margin: 0; padding: 0; border: none; font-size: 13px;">Participants ({{ participations|length }})</h2>
+                <!-- Modification ici : on utilise paginator.count pour afficher le total -->
+                <h2 class="detail-card__title" style="margin: 0; padding: 0; border: none; font-size: 13px;">
+                    Participants ({{ participations.paginator.count }})
+                </h2>
             </div>
             
             {% if participations %}
@@ -113,6 +116,28 @@
                     {% endfor %}
                 </tbody>
             </table>
+
+             <!-- 👇 PAGINATION CENTRÉE (Style standard) 👇 -->
+            {% if participations.has_other_pages %}
+            <div class="pagination" style="margin-top: 0; padding: 20px 0; border-top: 1px solid var(--border);">
+                {% if participations.has_previous %}
+                    <a href="?page={{ participations.previous_page_number }}">← Précédent</a>
+                {% else %}
+                    <span class="disabled">← Précédent</span>
+                {% endif %}
+                
+                <span class="current">{{ participations.number }} / {{ participations.paginator.num_pages }}</span>
+                
+                {% if participations.has_next %}
+                    <a href="?page={{ participations.next_page_number }}">Suivant →</a>
+                {% else %}
+                    <span class="disabled">Suivant →</span>
+                {% endif %}
+            </div>
+            <p class="pagination__info">{{ participations.paginator.count }} résultat{{ participations.paginator.count|pluralize }}</p>
+            {% endif %}
+            <!-- 👆 FIN DE LA PAGINATION 👆 -->
+
             {% else %}
             <div class="empty-state" style="padding: 40px 20px;">
                 <div class="empty-state__icon">

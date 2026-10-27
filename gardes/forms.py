@@ -1,9 +1,5 @@
 """
 Formulaires de l'application gardes.
-
-Important : la création d'une Garde passe par le service
-`gardes.services.creer_garde()`, pas par un ModelForm.save() direct.
-Le formulaire collecte donc uniquement les champs d'entrée.
 """
 
 from django import forms
@@ -18,28 +14,27 @@ from .models import Garde
 class GardeForm(forms.Form):
     """
     Formulaire de saisie d'une garde.
-
-    Le champ `tarif` est facultatif : s'il est vide, le service
-    `creer_garde` sélectionne automatiquement le tarif applicable
-    à la date de début de la garde.
     """
 
     agent = forms.ModelChoiceField(
         queryset=Agent.objects.filter(actif=True),
         label="Agent",
         required=True,
+        empty_label="Sélectionner un agent...", # 👈 MODIFIÉ ICI
     )
     mission = forms.ModelChoiceField(
         queryset=Mission.objects.all(),
         label="Mission",
         required=False,
         help_text="Facultatif.",
+        empty_label="Sélectionner une mission...", # 👈 MODIFIÉ ICI
     )
     tarif = forms.ModelChoiceField(
         queryset=Tarif.objects.filter(actif=True),
         label="Tarif applicable",
         required=False,
         help_text="Laisser vide pour sélection automatique selon la date.",
+        empty_label="Sélectionner un tarif...", # 👈 MODIFIÉ ICI
     )
     date_heure_debut = forms.DateTimeField(
         label="Date et heure de début",

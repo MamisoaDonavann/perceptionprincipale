@@ -13,6 +13,10 @@ from django.views.decorators.http import require_POST
 from .forms import MissionForm, ParticipationMissionForm
 from .models import Mission, ParticipationMission
 
+# 👇 IMPORTS POUR L'AUDIT 👇
+from audit.models import JournalAudit
+from audit.services import journaliser
+
 
 @login_required
 @permission_required('missions.view_mission', raise_exception=True)
@@ -51,20 +55,27 @@ def mission_list(request):
 @login_required
 @permission_required('missions.view_mission', raise_exception=True)
 def mission_detail(request, pk):
-    """Fiche détaillée d'une mission avec ses participants."""
+    """Fiche détaillée d'une mission avec ses participants (paginés)."""
     mission = get_object_or_404(Mission, pk=pk)
 
-    participations = (
+    # 1. On récupère toutes les participations
+    participations_list = (
         mission.participations
         .select_related('agent')
         .order_by('agent__nom', 'agent__prenoms')
     )
 
+    # 2. On configure la pagination (5 participants par page)
+    paginator = Paginator(participations_list, 5)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     form = ParticipationMissionForm(mission=mission)
 
     return render(request, 'missions/detail.html', {
         'mission': mission,
-        'participations': participations,
+        'participations': page_obj, # On passe la page paginée
+        'page_obj': page_obj,       # On passe aussi page_obj pour le template
         'form': form,
     })
 
@@ -77,6 +88,17 @@ def mission_create(request):
         form = MissionForm(request.POST)
         if form.is_valid():
             mission = form.save()
+            
+            # 👇 AJOUT JOURNALISATION CREATION 👇
+            journaliser(
+                user=request.user,
+                action=JournalAudit.ACTION_CREATION,
+                entite='missions.Mission',
+                id_entite=mission.pk,
+                apres={'libelle': mission.libelle, 'lieu': mission.lieu},
+                commentaire=f"Création de la mission « {mission.libelle} »",
+            )
+            
             messages.success(
                 request,
                 f"Mission « {mission.libelle} » créée."
@@ -103,6 +125,16 @@ def mission_update(request, pk):
         form = MissionForm(request.POST, instance=mission)
         if form.is_valid():
             mission = form.save()
+            
+            # 👇 AJOUT JOURNALISATION MODIFICATION 👇
+            journaliser(
+                user=request.user,
+                action=JournalAudit.ACTION_MODIFICATION,
+                entite='missions.Mission',
+                id_entite=mission.pk,
+                commentaire=f"Modification de la mission « {mission.libelle} »",
+            )
+            
             messages.success(
                 request,
                 f"Mission « {mission.libelle} » mise à jour."
@@ -133,6 +165,16 @@ def participation_create(request, pk):
             try:
                 participation.full_clean()
                 participation.save()
+                
+                # 👇 AJOUT JOURNALISATION AJOUT PARTICIPANT 👇
+                journaliser(
+                    user=request.user,
+                    action=JournalAudit.ACTION_MODIFICATION,
+                    entite='missions.Mission',
+                    id_entite=mission.pk,
+                    commentaire=f"Ajout du participant {participation.agent.nom} {participation.agent.prenoms} à la mission",
+                )
+                
                 messages.success(
                     request,
                     f"{participation.agent.nom} {participation.agent.prenoms} "
@@ -158,6 +200,20 @@ def participation_delete(request, pk, participation_pk):
         ParticipationMission, pk=participation_pk, mission=mission
     )
     agent_nom = f"{participation.agent.nom} {participation.agent.prenoms}"
+    
+    # On sauvegarde l'ID de l'agent avant de le supprimer
+    agent_id = participation.agent.pk
+    
     participation.delete()
+    
+    # 👇 AJOUT JOURNALISATION RETRAIT PARTICIPANT 👇
+    journaliser(
+        user=request.user,
+        action=JournalAudit.ACTION_MODIFICATION,
+        entite='missions.Mission',
+        id_entite=mission.pk,
+        commentaire=f"Retrait du participant {agent_nom} de la mission",
+    )
+    
     messages.success(request, f"{agent_nom} retiré de la mission.")
     return redirect(reverse('missions:detail', args=[mission.pk]))

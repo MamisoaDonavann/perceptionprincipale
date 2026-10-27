@@ -1,59 +1,78 @@
 {% extends "base.html" %}
 {% load initials %}
+{% load format_ar %}
 
 {% block title %}{{ op.numero_op }} — Ordre de paiement{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div class="page-header__titles">
-        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 8px;">
-            <span class="avatar avatar--lg {{ op.agent_beneficiaire.pk|avatar_color }}">
-                {{ op.agent_beneficiaire.nom|initials:op.agent_beneficiaire.prenoms }}
-            </span>
-            <div>
-                <h1 class="page-title" style="margin: 0;">OP {{ op.numero_op }}</h1>
-                <p class="page-subtitle" style="padding-left: 0; margin: 4px 0 0;">
-                    {{ op.agent_beneficiaire.matricule }} — {{ op.agent_beneficiaire.nom }} {{ op.agent_beneficiaire.prenoms }}
-                </p>
-            </div>
-        </div>
-    </div>
-    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-        {% if op.statut == 'VALIDE' or op.statut == 'PAYE' %}
-            <a href="{% url 'rapports:liste_paiement_pdf' op.pk %}" class="btn-secondary" target="_blank">
-                Imprimer la liste
-            </a>
-        {% endif %}
-        <a href="{% url 'paiements:list' %}" class="btn-secondary">Retour</a>
-    </div>
-</div>
+<!-- ==================== EN-TÊTE MODERNE ==================== -->
+{% url 'paiements:list' as url_retour %}
+{% include "partials/page_header.html" with title=op.numero_op subtitle=op.agent_beneficiaire.matricule|add:" — "|add:op.agent_beneficiaire.nom|add:" "|add:op.agent_beneficiaire.prenoms icon="paiement" back_url=url_retour %}
 
-<div class="actions-bar">
+<!-- ==================== BARRE D'ACTIONS ==================== -->
+<div class="actions-bar" style="display: flex; justify-content: flex-end; gap: 12px; margin-bottom: 20px; background: transparent; border: none; padding: 0; box-shadow: none; flex-wrap: wrap;">
+    
+    {% if op.statut == 'VALIDE' or op.statut == 'PAYE' %}
+        <!-- 👇 BOUTON CORRIGÉ ICI 👇 -->
+        <a href="{% url 'paiements:op_excel_officiel' op.pk %}" class="btn-secondary" target="_blank" style="display: inline-flex; align-items: center; gap: 6px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            Télécharger l'OP (Excel)
+        </a>
+    {% endif %}
+
     {% if peut_valider and perms.paiements.valider_ordre_paiement %}
-        <a href="{% url 'paiements:valider' op.pk %}" class="btn-action btn-action--primary">Valider</a>
-        <a href="{% url 'paiements:retirer_periode' op.pk %}" class="btn-action">Retirer une période</a>
+        <a href="{% url 'paiements:valider' op.pk %}" class="btn-create" style="display: inline-flex; align-items: center; gap: 6px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Valider l'OP
+        </a>
     {% endif %}
+
+    {% if peut_valider and perms.paiements.valider_ordre_paiement %}
+        <a href="{% url 'paiements:retirer_periode' op.pk %}" class="btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+            Retirer une période
+        </a>
+    {% endif %}
+
     {% if peut_payer and perms.paiements.enregistrer_paiement %}
-        <a href="{% url 'paiements:paiement_create' op.pk %}" class="btn-action btn-action--primary">+ Enregistrer un paiement</a>
+        <a href="{% url 'paiements:paiement_create' op.pk %}" class="btn-create" style="background: #10b981; border-color: #10b981; display: inline-flex; align-items: center; gap: 6px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            Enregistrer un paiement
+        </a>
     {% endif %}
+
     {% if peut_cloturer and perms.paiements.cloturer_ordre_paiement %}
-        <a href="{% url 'paiements:cloturer' op.pk %}" class="btn-action btn-action--success">Clôturer</a>
+        <a href="{% url 'paiements:cloturer' op.pk %}" class="btn-create" style="background: #4f46e5; border-color: #4f46e5; display: inline-flex; align-items: center; gap: 6px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            Clôturer
+        </a>
     {% endif %}
+
     {% if peut_annuler and perms.paiements.annuler_ordre_paiement %}
-        <a href="{% url 'paiements:annuler' op.pk %}" class="btn-action btn-action--danger">Annuler l'OP</a>
+        <a href="{% url 'paiements:annuler' op.pk %}" class="btn-secondary" style="color: #dc2626; border-color: #fecaca; background: #fef2f2; display: inline-flex; align-items: center; gap: 6px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            Annuler l'OP
+        </a>
     {% endif %}
 </div>
 
+<!-- ==================== ALERTES ==================== -->
 {% if op.statut == 'ANNULE' and op.motif_annulation %}
-<div class="info-box info-box--warning">
-    <strong>Motif d'annulation :</strong> {{ op.motif_annulation }}
+<div class="info-box info-box--warning" style="margin-bottom: 24px; display: flex; align-items: flex-start; gap: 12px; border-color: #fecaca; background: #fef2f2; color: #b91c1c;">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+    <div><strong>Motif d'annulation :</strong> {{ op.motif_annulation }}</div>
 </div>
 {% endif %}
 
-<div class="op-summary">
-    <div class="op-summary__item">
-        <div class="op-summary__label">Statut</div>
-        <div class="op-summary__value">
+<!-- ==================== CARTES KPI (HAUT) ==================== -->
+<div class="cards" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+    
+    <div class="card {% if op.statut == 'VALIDE' %}card--info{% elif op.statut == 'PAYE' %}card--success{% elif op.statut == 'ANNULE' %}card--warning{% else %}card--warning{% endif %}">
+        <div class="card__icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="card__label">Statut</div>
+        <div class="card__value" style="font-size: 20px; margin-top: 4px;">
             {% if op.statut == 'PAYE' %}
                 <span class="tag tag--paye">{{ op.get_statut_display }}</span>
             {% elif op.statut == 'VALIDE' %}
@@ -61,149 +80,234 @@
             {% elif op.statut == 'ANNULE' %}
                 <span class="tag tag--annule">{{ op.get_statut_display }}</span>
             {% else %}
-                <span class="tag tag--brouillon">{{ op.get_statut_display }}</span>
+                <span class="tag tag--suspendu">{{ op.get_statut_display }}</span>
             {% endif %}
         </div>
     </div>
-    <div class="op-summary__item">
-        <div class="op-summary__label">Montant total</div>
-        <div class="op-summary__value amount">{{ op.montant_total }} Ar</div>
+
+    <div class="card card--info">
+        <div class="card__icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+        </div>
+        <div class="card__label">Montant total</div>
+        <div class="card__value amount">{{ op.montant_total|format_ar }} Ar</div>
     </div>
-    <div class="op-summary__item">
-        <div class="op-summary__label">Net payé</div>
-        <div class="op-summary__value amount">{{ op.montant_net_paye }} Ar</div>
+
+    <div class="card card--success">
+        <div class="card__icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="card__label">Net payé</div>
+        <div class="card__value amount">{{ op.montant_net_paye|format_ar }} Ar</div>
     </div>
-    <div class="op-summary__item">
-        <div class="op-summary__label">Clôture administrative</div>
-        <div class="op-summary__value">
+
+    <div class="card {% if op.cloture_administrative %}card--success{% else %}card--warning{% endif %}">
+        <div class="card__icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div class="card__label">Clôture administrative</div>
+        <div class="card__value" style="font-size: 20px; margin-top: 4px;">
             {% if op.cloture_administrative %}
-                <span class="tag tag--valide">Clôturé</span>
+                <span class="tag tag--actif">Clôturé</span>
             {% else %}
-                <span class="tag tag--brouillon">Ouvert</span>
+                <span class="tag tag--inactif">Ouvert</span>
             {% endif %}
         </div>
     </div>
 </div>
 
-<div class="detail-card">
-    <h2 class="detail-card__title">Informations administratives</h2>
-    <dl class="detail-list">
-        <dt>Date d'émission</dt><dd>{{ op.date_emission|date:"d/m/Y"|default:"—" }}</dd>
-        <dt>Numéro BE</dt><dd>{{ op.numero_be|default:"—" }}</dd>
-        <dt>Titulaire</dt><dd>{{ op.titulaire_nom|default:op.agent_beneficiaire.nom }} {{ op.titulaire_nom|yesno:",," }}{{ op.titulaire_nom|default:op.agent_beneficiaire.prenoms }}</dd>
-        <dt>N° identification</dt><dd>{{ op.titulaire_numero|default:op.agent_beneficiaire.matricule }}</dd>
-        <dt>Montant en lettres</dt><dd>{{ op.montant_lettres|default:"—" }}</dd>
-        <dt>Modalité de règlement</dt><dd>{{ op.get_modalite_reglement_display|default:"—" }}</dd>
-    </dl>
-</div>
-
-<div class="detail-card">
-    <h2 class="detail-card__title">Périodes (décomptes inclus) — {{ periodes|length }}</h2>
-    {% if periodes %}
-    <table class="data-table">
-        <thead>
-            <tr><th>Décompte</th><th>Période</th><th class="text-right">Montant source</th><th>Réservation</th></tr>
-        </thead>
-        <tbody>
-            {% for p in periodes %}
-            <tr>
-                <td><a href="{% url 'decomptes:detail' p.decompte.pk %}">Décompte #{{ p.decompte.pk }}</a></td>
-                <td>{{ p.decompte.mois|stringformat:"02d" }}/{{ p.decompte.annee }}</td>
-                <td class="text-right amount">{{ p.montant_source }} Ar</td>
-                <td>
-                    {% if p.reservation_active %}
-                        <span class="tag tag--valide">Active</span>
+<!-- ==================== GRILLE PRINCIPALE ==================== -->
+<div class="detail-grid">
+    
+    <!-- Colonne de Gauche : Infos, Périodes, Paiements -->
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+        
+        <!-- Infos Administratives -->
+        <div class="detail-card">
+            <h2 class="detail-card__title">Informations administratives</h2>
+            <div class="detail-list" style="grid-template-columns: 150px 1fr;">
+                <dt>Date d'émission</dt>
+                <dd>{{ op.date_emission|date:"d/m/Y"|default:"—" }}</dd>
+                
+                <dt>Numéro BE</dt>
+                <dd>{{ op.numero_be|default:"—" }}</dd>
+                
+                <dt>Titulaire</dt>
+                <dd>
+                    {% if op.titulaire_nom %}
+                        {{ op.titulaire_nom }}
                     {% else %}
-                        <span class="tag tag--brouillon">Libérée</span>
+                        {{ op.agent_beneficiaire.nom }} {{ op.agent_beneficiaire.prenoms }}
                     {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-        <tfoot>
-            <tr>
-                <td colspan="2" class="text-right"><strong>Total</strong></td>
-                <td class="text-right amount"><strong>{{ op.montant_total }} Ar</strong></td>
-                <td></td>
-            </tr>
-        </tfoot>
-    </table>
-    {% else %}
-    <p class="empty-state__hint">Aucune période active.</p>
-    {% endif %}
-</div>
+                </dd>
+                
+                <dt>N° identification</dt>
+                <dd>{{ op.titulaire_numero|default:op.agent_beneficiaire.matricule }}</dd>
+                
+                <dt>Montant en lettres</dt>
+                <dd>{{ op.montant_lettres|default:"—" }}</dd>
+                
+                <dt>Modalité de règlement</dt>
+                <dd>{{ op.get_modalite_reglement_display|default:"—" }}</dd>
+            </div>
+        </div>
 
-<div class="detail-card">
-    <h2 class="detail-card__title">Paiements — {{ paiements|length }}</h2>
-    {% if paiements %}
-    <table class="data-table">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th class="text-right">Montant</th>
-                <th>Mode</th>
-                <th>Référence</th>
-                <th>Statut</th>
-                <th>Confirmation</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for p in paiements %}
-            <tr>
-                <td>{{ p.date_paiement|date:"d/m/Y H:i" }}</td>
-                <td class="text-right amount">{{ p.montant }} Ar</td>
-                <td>{{ p.get_mode_paiement_display }}</td>
-                <td>{{ p.reference|default:"—" }}</td>
-                <td>
-                    {% if p.statut == 'ENREGISTRE' %}
-                        <span class="tag tag--valide">Enregistré</span>
-                    {% else %}
-                        <span class="tag tag--annule">Annulé</span>
-                    {% endif %}
-                </td>
-                <td>
-                    {% with confirme=p.confirmations.all %}
-                        {% if confirme %}
-                            <span class="tag tag--valide">Confirmé</span>
-                        {% else %}
-                            <span class="tag tag--brouillon">En attente</span>
-                        {% endif %}
-                    {% endwith %}
-                </td>
-                <td>
-                    {% if p.statut == 'ENREGISTRE' %}
-                        {% if perms.paiements.confirmer_reception and not p.confirmations.all %}
-                            <a href="{% url 'paiements:confirmation_create' op.pk p.pk %}" class="btn-action btn-action--primary">Confirmer</a>
-                        {% endif %}
-                        {% if perms.paiements.annuler_paiement and not op.cloture_administrative %}
-                            <a href="{% url 'paiements:paiement_annuler' op.pk p.pk %}" class="btn-action btn-action--danger">Annuler</a>
-                        {% endif %}
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <p class="empty-state__hint">Aucun paiement enregistré.</p>
-    {% endif %}
-</div>
+        <!-- Périodes -->
+        <div class="table-wrapper">
+            <div style="padding: 18px 20px; border-bottom: 1px solid var(--border); background: var(--surface);">
+                <h2 class="detail-card__title" style="margin: 0; padding: 0; border: none; font-size: 13px;">Périodes (décomptes inclus) — {{ periodes|length }}</h2>
+            </div>
+            
+            {% if periodes %}
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Décompte</th>
+                        <th>Période</th>
+                        <th style="text-align: right;">Montant source</th>
+                        <th style="text-align: center;">Réservation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in periodes %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'decomptes:detail' p.decompte.pk %}" style="font-weight: 600; color: var(--primary-600);">
+                                Décompte #{{ p.decompte.pk }}
+                            </a>
+                        </td>
+                        <td>{{ p.decompte.mois|stringformat:"02d" }}/{{ p.decompte.annee }}</td>
+                        <td style="text-align: right;" class="amount"><strong>{{ p.montant_source|format_ar }} Ar</strong></td>
+                        <td style="text-align: center;">
+                            {% if p.reservation_active %}
+                                <span class="tag tag--actif">Active</span>
+                            {% else %}
+                                <span class="tag tag--inactif">Libérée</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="2" style="text-align: right; font-weight: 600; color: var(--text-2);">Total</td>
+                        <td style="text-align: right; font-weight: 700; color: var(--primary-700);" class="amount">{{ op.montant_total|format_ar }} Ar</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+            {% else %}
+            <div class="empty-state" style="padding: 40px 20px;">
+                <p class="empty-state__hint">Aucune période active.</p>
+            </div>
+            {% endif %}
+        </div>
 
-<div class="detail-card">
-    <h2 class="detail-card__title">Traçabilité</h2>
-    <dl class="detail-list">
-        <dt>Créé par</dt>
-        <dd>{{ op.id_utilisateur_createur.get_full_name|default:op.id_utilisateur_createur.username }}</dd>
-        <dt>Créé le</dt><dd>{{ op.date_creation|date:"d/m/Y H:i" }}</dd>
-        {% if op.id_utilisateur_validateur %}
-        <dt>Validé par</dt><dd>{{ op.id_utilisateur_validateur.username }}</dd>
-        <dt>Validé le</dt><dd>{{ op.date_validation|date:"d/m/Y H:i" }}</dd>
-        {% endif %}
-        {% if op.cloture_administrative %}
-        <dt>Clôturé par</dt><dd>{{ op.id_utilisateur_cloture.username }}</dd>
-        <dt>Clôturé le</dt><dd>{{ op.date_cloture|date:"d/m/Y H:i" }}</dd>
-        {% endif %}
-    </dl>
+        <!-- Paiements -->
+        <div class="table-wrapper">
+            <div style="padding: 18px 20px; border-bottom: 1px solid var(--border); background: var(--surface);">
+                <h2 class="detail-card__title" style="margin: 0; padding: 0; border: none; font-size: 13px;">Paiements — {{ paiements|length }}</h2>
+            </div>
+            
+            {% if paiements %}
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th style="text-align: right;">Montant</th>
+                        <th>Mode</th>
+                        <th>Référence</th>
+                        <th style="text-align: center;">Statut</th>
+                        <th style="text-align: center;">Confirmation</th>
+                        <th style="text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in paiements %}
+                    <tr>
+                        <td>{{ p.date_paiement|date:"d/m/Y H:i" }}</td>
+                        <td style="text-align: right;" class="amount"><strong>{{ p.montant|format_ar }} Ar</strong></td>
+                        <td>{{ p.get_mode_paiement_display }}</td>
+                        <td>{{ p.reference|default:"—" }}</td>
+                        <td style="text-align: center;">
+                            {% if p.statut == 'ENREGISTRE' %}
+                                <span class="tag tag--actif">Enregistré</span>
+                            {% else %}
+                                <span class="tag tag--radie">Annulé</span>
+                            {% endif %}
+                        </td>
+                        <td style="text-align: center;">
+                            {% with confirme=p.confirmations.all %}
+                                {% if confirme %}
+                                    <span class="tag tag--valide">Confirmé</span>
+                                {% else %}
+                                    <span class="tag tag--suspendu">En attente</span>
+                                {% endif %}
+                            {% endwith %}
+                        </td>
+                        <td style="text-align: right;">
+                            {% if p.statut == 'ENREGISTRE' %}
+                                {% if perms.paiements.confirmer_reception and not p.confirmations.all %}
+                                    <a href="{% url 'paiements:confirmation_create' op.pk p.pk %}" class="btn-action btn-action--primary" style="margin-bottom: 2px;">Confirmer</a>
+                                {% endif %}
+                                {% if perms.paiements.annuler_paiement and not op.cloture_administrative %}
+                                    <a href="{% url 'paiements:paiement_annuler' op.pk p.pk %}" class="btn-action btn-action--danger">Annuler</a>
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state" style="padding: 40px 20px;">
+                <p class="empty-state__hint">Aucun paiement enregistré.</p>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <!-- Colonne de Droite : Traçabilité -->
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+        <div class="detail-card">
+            <h2 class="detail-card__title">Traçabilité</h2>
+            <div class="detail-list" style="grid-template-columns: 100px 1fr;">
+                <dt>Créé par</dt>
+                <dd>
+                    <div class="cell-user" style="gap: 6px;">
+                        <span class="avatar avatar--sm avatar--c1">{{ op.id_utilisateur_createur.username|slice:":1"|upper }}</span>
+                        <span>{{ op.id_utilisateur_createur.get_full_name|default:op.id_utilisateur_createur.username }}</span>
+                    </div>
+                </dd>
+                <dt>Créé le</dt>
+                <dd>{{ op.date_creation|date:"d/m/Y à H:i" }}</dd>
+
+                {% if op.id_utilisateur_validateur %}
+                    <dt>Validé par</dt>
+                    <dd>
+                        <div class="cell-user" style="gap: 6px;">
+                            <span class="avatar avatar--sm avatar--c2">{{ op.id_utilisateur_validateur.username|slice:":1"|upper }}</span>
+                            <span>{{ op.id_utilisateur_validateur.username }}</span>
+                        </div>
+                    </dd>
+                    <dt>Validé le</dt>
+                    <dd>{{ op.date_validation|date:"d/m/Y à H:i" }}</dd>
+                {% endif %}
+
+                {% if op.cloture_administrative %}
+                    <dt>Clôturé par</dt>
+                    <dd>
+                        <div class="cell-user" style="gap: 6px;">
+                            <span class="avatar avatar--sm avatar--c3">{{ op.id_utilisateur_cloture.username|slice:":1"|upper }}</span>
+                            <span>{{ op.id_utilisateur_cloture.username }}</span>
+                        </div>
+                    </dd>
+                    <dt>Clôturé le</dt>
+                    <dd>{{ op.date_cloture|date:"d/m/Y à H:i" }}</dd>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load initials %}
+{% load format_ar %}
 
 {% block title %}Ordres de paiement — Perception Marovoay{% endblock %}
 
@@ -26,15 +27,25 @@
             </div>
         </div>
 
-        {% if perms.paiements.creer_ordre_paiement %}
-        <a href="{% url 'paiements:create' %}" class="btn-create" style="flex-shrink:0;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <line x1="12" y1="5" x2="12" y2="19"/>
-                <line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-            Nouvel OP
-        </a>
-        {% endif %}
+        <div style="display: flex; gap: 8px; flex-shrink: 0;">
+            {% if perms.paiements.consulter_ordre_paiement %}
+            <!-- 👇 NOUVEAU BOUTON D'EXPORT GROUPÉ 👇 -->
+            <button type="submit" form="form-bulk-export" class="btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                États de décompte (Excel)
+            </button>
+            {% endif %}
+            
+            {% if perms.paiements.creer_ordre_paiement %}
+            <a href="{% url 'paiements:create' %}" class="btn-create" style="flex-shrink:0;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                Nouvel OP
+            </a>
+            {% endif %}
+        </div>
 
     </div>
 </div>
@@ -64,65 +75,85 @@
 </form>
 
 {% if page.object_list %}
-<div class="table-wrapper">
-    <table class="data-table">
-        <thead>
-            <tr>
-                <th>N° OP</th>
-                <th>Agent bénéficiaire</th>
-                <th class="text-right">Montant</th>
-                <th class="text-right">Net payé</th>
-                <th>Statut</th>
-                <th>Clôture</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for op in page.object_list %}
-            <tr>
-                <td><code style="font-weight: 600;">{{ op.numero_op }}</code></td>
-                <td>
-                    <div class="cell-user">
-                        <span class="avatar avatar--sm {{ forloop.counter|avatar_color }}">
-                            {{ op.agent_beneficiaire.nom|initials:op.agent_beneficiaire.prenoms }}
-                        </span>
-                        <div class="cell-user__info">
-                            <div class="cell-user__name">{{ op.agent_beneficiaire.nom }} {{ op.agent_beneficiaire.prenoms }}</div>
-                            <div class="cell-user__meta">{{ op.agent_beneficiaire.matricule }}</div>
+<!-- 👇 DEBUT DU FORMULAIRE POUR L'EXPORT GROUPÉ 👇 -->
+<form method="post" action="{% url 'paiements:excel_etat_decompte_bulk' %}" id="form-bulk-export">
+    {% csrf_token %}
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <!-- 👇 COLONNE CHECKBOX 👇 -->
+                    <th style="width: 40px; text-align: center;">
+                        <input type="checkbox" id="check-all" style="cursor: pointer;">
+                    </th>
+                    <th>N° OP</th>
+                    <th>Agent bénéficiaire</th>
+                    <th style="text-align: right;">Montant</th>
+                    <th style="text-align: right;">Net payé</th>
+                    <th style="text-align: center;">Statut</th>
+                    <th style="text-align: center;">Clôture</th>
+                    <th style="text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for op in page.object_list %}
+                <tr>
+                    <!-- 👇 CASE A COCHER 👇 -->
+                    <td style="text-align: center;">
+                        <input type="checkbox" name="op_ids" value="{{ op.pk }}" class="check-op" style="cursor: pointer;">
+                    </td>
+                    <td>
+                        <code style="background: var(--primary-50); color: var(--primary-700); padding: 4px 8px; border-radius: 6px; font-weight: 600; font-size: 12px; border: 1px solid var(--primary-200);">
+                            {{ op.numero_op }}
+                        </code>
+                    </td>
+                    <td>
+                        <div class="cell-user">
+                            <span class="avatar avatar--sm {{ forloop.counter|avatar_color }}">
+                                {{ op.agent_beneficiaire.nom|initials:op.agent_beneficiaire.prenoms }}
+                            </span>
+                            <div class="cell-user__info">
+                                <div class="cell-user__name">{{ op.agent_beneficiaire.nom }} {{ op.agent_beneficiaire.prenoms }}</div>
+                                <div class="cell-user__meta">{{ op.agent_beneficiaire.matricule }}</div>
+                            </div>
                         </div>
-                    </div>
-                </td>
-                <td class="text-right amount">{{ op.montant_total }} Ar</td>
-                <td class="text-right amount">{{ op.montant_net_paye }} Ar</td>
-                <td>
-                    {% if op.statut == 'PAYE' %}
-                        <span class="tag tag--paye">{{ op.get_statut_display }}</span>
-                    {% elif op.statut == 'VALIDE' %}
-                        <span class="tag tag--valide">{{ op.get_statut_display }}</span>
-                    {% elif op.statut == 'ANNULE' %}
-                        <span class="tag tag--annule">{{ op.get_statut_display }}</span>
-                    {% else %}
-                        <span class="tag tag--brouillon">{{ op.get_statut_display }}</span>
-                    {% endif %}
-                </td>
-                <td>
-                    {% if op.cloture_administrative %}
-                        <span class="tag tag--valide">Clôturé</span>
-                    {% else %}
-                        <span class="tag tag--brouillon">Ouvert</span>
-                    {% endif %}
-                </td>
-                <td>
-                    <a href="{% url 'paiements:detail' op.pk %}" class="btn-action" style="display: inline-flex; align-items: center; gap: 4px;">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-    Voir
-</a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+                    </td>
+                    <td style="text-align: right;" class="amount"><strong>{{ op.montant_total|format_ar }} Ar</strong></td>
+                    <td style="text-align: right;" class="amount">{{ op.montant_net_paye|format_ar }} Ar</td>
+                    
+                    <td style="text-align: center;">
+                        {% if op.statut == 'PAYE' %}
+                            <span class="tag tag--paye">{{ op.get_statut_display }}</span>
+                        {% elif op.statut == 'VALIDE' %}
+                            <span class="tag tag--valide">{{ op.get_statut_display }}</span>
+                        {% elif op.statut == 'ANNULE' %}
+                            <span class="tag tag--radie">{{ op.get_statut_display }}</span>
+                        {% else %}
+                            <span class="tag tag--suspendu">{{ op.get_statut_display }}</span>
+                        {% endif %}
+                    </td>
+                    
+                    <td style="text-align: center;">
+                        {% if op.cloture_administrative %}
+                            <span class="tag tag--actif">Clôturé</span>
+                        {% else %}
+                            <span class="tag tag--inactif">Ouvert</span>
+                        {% endif %}
+                    </td>
+                    
+                    <td style="text-align: right;">
+                        <a href="{% url 'paiements:detail' op.pk %}" class="btn-action" style="display: inline-flex; align-items: center; gap: 4px;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            Voir
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</form>
+<!-- 👆 FIN DU FORMULAIRE D'EXPORT 👆 -->
 
 {% if page.has_other_pages %}
 <div class="pagination">
@@ -151,4 +182,17 @@
     </div>
 </div>
 {% endif %}
+
+<!-- 👇 SCRIPT POUR LE BOUTON "TOUT COCHER" 👇 -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkAll = document.getElementById('check-all');
+        if (checkAll) {
+            checkAll.addEventListener('change', function() {
+                const checkboxes = document.querySelectorAll('.check-op');
+                checkboxes.forEach(cb => cb.checked = checkAll.checked);
+            });
+        }
+    });
+</script>
 {% endblock %}

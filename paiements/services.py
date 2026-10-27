@@ -18,39 +18,9 @@ from agents.models import Agent
 from decomptes.models import Decompte
 
 from .models import (
-    CompteurOP, OrdrePaiement, PeriodePaiement,
+    OrdrePaiement, PeriodePaiement,
     Paiement, ConfirmationReception,
 )
-
-
-# ---------------------------------------------------------------------
-# Numérotation
-# ---------------------------------------------------------------------
-
-def _next_numero_op(annee):
-    """
-    Génère un N° OP-AAAA-NNNN unique pour l'année.
-    Doit être appelé DANS une transaction active.
-
-    La tentative d'INSERT initial est protégée par un savepoint
-    pour ne pas invalider la transaction externe en cas de
-    IntegrityError.
-    """
-    try:
-        with transaction.atomic():
-            CompteurOP.objects.create(annee=annee, dernier_numero=1)
-        return f"OP-{annee}-0001"
-    except IntegrityError:
-        pass
-
-    compteur = (
-        CompteurOP.objects
-        .select_for_update()
-        .get(annee=annee)
-    )
-    compteur.dernier_numero += 1
-    compteur.save(update_fields=['dernier_numero'])
-    return f"OP-{annee}-{compteur.dernier_numero:04d}"
 
 
 # ---------------------------------------------------------------------
@@ -59,22 +29,12 @@ def _next_numero_op(annee):
 
 @transaction.atomic
 def creer_ordre_paiement(
-    agent, annee, decomptes, user, observation="",
-    date_emission=None, numero_be="", titulaire_nom="",
+    agent, annee, decomptes, user, numero_op, # 👈 NOUVEAU PARAMÈTRE
+    observation="", date_emission=None, numero_be="", titulaire_nom="",
     titulaire_numero="", montant_lettres="", modalite_reglement="",
 ):
     """
     Crée un OP BROUILLON avec réservation active des décomptes.
-
-    Sécurités :
-    - Décomptes VALIDE et du même agent.
-    - Verrouillage des Decompte existants pour sérialiser
-      les réservations concurrentes.
-    - Capture de IntegrityError résiduel.
-
-    Champs administratifs optionnels (format officiel OP) :
-    - date_emission, numero_be, titulaire_nom, titulaire_numero,
-      montant_lettres, modalite_reglement.
     """
     if not user.has_perm('paiements.creer_ordre_paiement'):
         raise PermissionDenied("Permission requise : paiements.creer_ordre_paiement.")
@@ -96,8 +56,7 @@ def creer_ordre_paiement(
                 f"Le décompte #{d.pk} n'appartient pas à l'agent."
             )
 
-    # Verrouillage des lignes Decompte (les lignes existent) → sérialise
-    # les créations concurrentes.
+    # Verrouillage des lignes Decompte
     list(
         Decompte.objects
         .select_for_update()
@@ -112,11 +71,10 @@ def creer_ordre_paiement(
             "Un ou plusieurs décomptes sont déjà réservés par un autre OP."
         )
 
-    numero = _next_numero_op(annee)
     montant_total = sum((d.montant_total for d in decomptes), Decimal('0.00'))
 
     ordre = OrdrePaiement.objects.create(
-        numero_op=numero,
+        numero_op=numero_op, # 👈 ON UTILISE LE NUMERO MANUEL
         agent_beneficiaire=agent,
         annee=annee,
         statut=OrdrePaiement.STATUT_BROUILLON,
@@ -165,10 +123,12 @@ def creer_ordre_paiement(
 
 @transaction.atomic
 def valider_ordre_paiement(ordre, user):
-    """BROUILLON → VALIDE par un user ≠ créateur."""
+    """BROUILLON → VALIDE par un user ≠ créateur (sauf si superuser)."""
     if not user.has_perm('paiements.valider_ordre_paiement'):
         raise PermissionDenied("Permission requise : paiements.valider_ordre_paiement.")
-    if user.pk == ordre.id_utilisateur_createur_id:
+    
+    # 👇 L'exception pour le superutilisateur est conservée
+    if user.pk == ordre.id_utilisateur_createur_id and not user.is_superuser:
         raise PermissionDenied("Le créateur ne peut pas valider son propre ordre.")
 
     ordre = OrdrePaiement.objects.select_for_update().get(pk=ordre.pk)
@@ -281,7 +241,6 @@ def enregistrer_paiement(ordre, montant, mode, user,
                          date_paiement=None, reference=""):
     """
     Enregistre un paiement. C1 : statut doit être VALIDE.
-    Verrouille l'OP, recalcule le net, refuse si dépassement.
     """
     if not user.has_perm('paiements.enregistrer_paiement'):
         raise PermissionDenied("Permission requise.")
@@ -298,7 +257,6 @@ def enregistrer_paiement(ordre, montant, mode, user,
         raise ValidationError("OP non validé : aucun paiement possible.")
     if ordre.cloture_administrative:
         raise ValidationError("OP clôturé : aucun paiement possible.")
-    # C1 : seul VALIDE accepte un paiement
     if ordre.statut != OrdrePaiement.STATUT_VALIDE:
         raise ValidationError(
             f"Seul un OP VALIDE peut recevoir un paiement (statut = {ordre.statut})."
@@ -347,7 +305,6 @@ def enregistrer_paiement(ordre, montant, mode, user,
 def annuler_paiement(paiement, user, motif):
     """
     Annule un paiement. C2 : refuse si l'OP est clôturé.
-    Recalcule le net et ramène l'OP à VALIDE si net < total.
     """
     if not user.has_perm('paiements.annuler_paiement'):
         raise PermissionDenied("Permission requise.")
@@ -361,7 +318,6 @@ def annuler_paiement(paiement, user, motif):
 
     if paiement.statut != Paiement.STATUT_ENREGISTRE:
         raise ValidationError("Ce paiement est déjà annulé.")
-    # C2 : refus si OP clôturé administrativement
     if ordre.cloture_administrative:
         raise ValidationError(
             "OP clôturé administrativement : annulation impossible "
@@ -379,7 +335,6 @@ def annuler_paiement(paiement, user, motif):
     net = _recalcul_net(ordre)
     ordre.montant_net_paye = net
     update_fields = ['montant_net_paye']
-    # Si net < total et statut PAYE → ramener à VALIDE
     if net < ordre.montant_total and ordre.statut == OrdrePaiement.STATUT_PAYE:
         ordre.statut = OrdrePaiement.STATUT_VALIDE
         update_fields.append('statut')
@@ -458,7 +413,6 @@ def annuler_confirmation(confirmation, user, motif):
     ordre = OrdrePaiement.objects.select_for_update().get(
         pk=confirmation.paiement.ordre_paiement_id
     )
-    # C2 : refus si OP clôturé
     if ordre.cloture_administrative:
         raise ValidationError(
             "OP clôturé administrativement : annulation impossible "

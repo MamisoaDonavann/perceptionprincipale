@@ -1,37 +1,93 @@
 {% extends "base.html" %}
-{% block title %}Nouveau paiement — {{ op.numero_op }}{% endblock %}
-{% block content %}
-<div class="page-header">
-    <div class="page-header__titles">
-        <h1 class="page-title">Enregistrer un paiement</h1>
-        <p class="page-subtitle">
-            {{ op.numero_op }} — reste à payer :
-            {{ op.montant_total|add:"-"|add:op.montant_net_paye }} Ar
-        </p>
-    </div>
-    <div><a href="{% url 'paiements:detail' op.pk %}" class="btn-secondary">Retour</a></div>
-</div>
+{% load format_ar %}
 
-<form method="post">
+{% block title %}Enregistrer un paiement — {{ op.numero_op }}{% endblock %}
+
+{% block content %}
+<!-- En-tête moderne -->
+{% url 'paiements:detail' op.pk as url_retour %}
+{% include "partials/page_header.html" with title="Enregistrer un paiement" subtitle="Règlement de l'Ordre de Paiement "|add:op.numero_op icon="paiement" back_url=url_retour %}
+
+<form method="post" novalidate class="form-card" style="max-width: 900px; margin: 0 auto;">
     {% csrf_token %}
+
+    <!-- Résumé financier -->
+    <div class="cards" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px;">
+        <div class="card card--info">
+            <div class="card__label">Montant total de l'OP</div>
+            <div class="card__value amount">{{ op.montant_total|format_ar }} Ar</div>
+        </div>
+        <div class="card card--success">
+            <div class="card__label">Déjà payé</div>
+            <div class="card__value amount">{{ op.montant_net_paye|format_ar }} Ar</div>
+        </div>
+        <div class="card card--warning">
+            <div class="card__label">Reste à payer</div>
+            <!-- On utilise la variable calculée dans la vue -->
+            <div class="card__value amount" style="color: #d97706; font-weight: 800;">
+                {{ reste_a_payer|format_ar }} Ar
+            </div>
+        </div>
+    </div>
+
+    {% if form.non_field_errors %}
+        <div class="info-box info-box--warning" style="margin-bottom: 24px;">
+            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+        </div>
+    {% endif %}
+
+    {# ==================== SECTION : DÉTAILS DU PAIEMENT ==================== #}
     <fieldset class="form-section">
         <legend>Détails du paiement</legend>
         <div class="form-grid">
-            {% for field in form %}
-                <div class="form-group">
-                    <label for="{{ field.id_for_label }}">
-                        {{ field.label }}{% if field.field.required %} <span class="required">*</span>{% endif %}
-                    </label>
-                    {{ field }}
-                    {% if field.help_text %}<span class="help">{{ field.help_text }}</span>{% endif %}
-                    {% if field.errors %}<div class="errors"><ul>{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
-                </div>
-            {% endfor %}
+            
+            <div class="form-group">
+                <label for="{{ form.montant.id_for_label }}">
+                    {{ form.montant.label }} <span class="required">*</span>
+                </label>
+                {{ form.montant }}
+                {% if form.montant.help_text %}<span class="help">{{ form.montant.help_text }}</span>{% endif %}
+                {% if form.montant.errors %}<div class="errors"><ul>{% for e in form.montant.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.mode_paiement.id_for_label }}">
+                    {{ form.mode_paiement.label }} <span class="required">*</span>
+                </label>
+                {{ form.mode_paiement }}
+                {% if form.mode_paiement.errors %}<div class="errors"><ul>{% for e in form.mode_paiement.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.date_paiement.id_for_label }}">
+                    {{ form.date_paiement.label }} <span class="required">*</span>
+                </label>
+                {{ form.date_paiement }}
+                {% if form.date_paiement.errors %}<div class="errors"><ul>{% for e in form.date_paiement.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.reference.id_for_label }}">
+                    {{ form.reference.label }}
+                </label>
+                {{ form.reference }}
+                {% if form.reference.help_text %}<span class="help">{{ form.reference.help_text }}</span>{% endif %}
+                {% if form.reference.errors %}<div class="errors"><ul>{% for e in form.reference.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+            </div>
+
         </div>
     </fieldset>
-    <div class="form-actions">
-        <button type="submit" class="btn-create">Enregistrer le paiement</button>
-        <a href="{% url 'paiements:detail' op.pk %}" class="btn-secondary">Annuler</a>
+
+    {# ==================== ACTIONS ==================== #}
+    <div class="form-actions" style="margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border);">
+        <button type="submit" class="btn-create" style="padding: 10px 24px; font-size: 14px; display: inline-flex; align-items: center; gap: 8px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Enregistrer le paiement
+        </button>
+        <a href="{% url 'paiements:detail' op.pk %}" class="btn-secondary" style="padding: 10px 24px; font-size: 14px;">
+            Annuler
+        </a>
     </div>
+
 </form>
 {% endblock %}

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Ordre de Paiement</title>
+    <style>
+        @page { 
+            size: A4; 
+            margin: 10mm; 
+        }
+        /* Configuration globale pour occuper toute la page */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            font-size: 7.5pt;
+            color: #000;
+            line-height: 1.1;
+        }
+        
+        /* Le tableau principal force la grille et la hauteur */
+        table.main-grid {
+            width: 100%;
+            height: 285mm; /* Hauteur fixe pour l'A4 */
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        
+        td {
+            border: 1px solid #000;
+            padding: 2px 4px;
+            vertical-align: top;
+        }
+        
+        /* Styles de textes */
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .font-bold { font-weight: bold; }
+        .bg-gray { background-color: #f2f2f2; }
+        .text-uppercase { text-transform: uppercase; }
+        .republique { font-size: 10pt; font-weight: bold; text-align: center; letter-spacing: 1px; }
+        .title-main { font-size: 15pt; font-weight: bold; text-align: center; padding: 8px 0; letter-spacing: 1px; }
+        .section-title { background-color: #e6e6e6; font-weight: bold; text-align: center; font-size: 8pt; text-transform: uppercase; }
+        
+        /* Cases à cocher */
+        .checkbox {
+            display: inline-block;
+            width: 9px;
+            height: 9px;
+            border: 1px solid #000;
+            margin-right: 4px;
+            vertical-align: middle;
+            background-color: #fff;
+        }
+
+        /* Lignes pointillées pour les signatures */
+        .dotted-line {
+            display: inline-block;
+            border-bottom: 1px dotted #000;
+            width: 80%;
+            margin-left: 5px;
+        }
+
+        .text-xs { font-size: 6.5pt; line-height: 1.2; }
+    </style>
+</head>
+<body>
+
+    <table class="main-grid">
+        <!-- ==================== EN-TÊTE ==================== -->
+        <tr>
+            <td style="width: 22%;" class="font-bold">MINISTERE</td>
+            <td style="width: 15%;">21 MEF</td>
+            <td colspan="2" class="republique">REPUBLIQUE DE MADAGASCAR</td>
+            <td style="width: 20%;" rowspan="2">N° BE : <br><br><strong>{{ op.numero_be|default:"" }}</strong></td>
+        </tr>
+        <tr>
+            <td class="font-bold">ORDONNATEUR</td>
+            <td>00-22Y-8-00000</td>
+            <td style="width: 18%;">MISSION : <strong>220</strong></td>
+            <td style="width: 25%;">EXERCICE : <strong>{{ op.annee }}</strong></td>
+        </tr>
+        <tr>
+            <td class="font-bold">COMMUNE BENEFICIAIRE</td>
+            <td>00000</td>
+            <td colspan="2" class="text-center">BUDGET : <strong>00</strong> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CATEGORIE : <strong>3</strong></td>
+            <td rowspan="2" style="vertical-align: bottom; padding-bottom: 5px;">N° OP : <br><strong>{{ op.numero_op }}</strong></td>
+        </tr>
+        <tr>
+            <td class="font-bold">CODE CF</td>
+            <td>10101.220</td>
+            <td colspan="2" class="title-main">ORDRE DE PAIEMENT</td>
+        </tr>
+        <tr>
+            <td class="font-bold">TP ASSIGNATAIRE</td>
+            <td>10101.100</td>
+            <td colspan="2" class="text-center text-xs" style="padding: 4px;">
+                En vertu des crédits sur le paragraphe ci-dessous,<br>
+                l'ordonnateur soussigné mandate les créances ci-après
+            </td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="font-bold">PROGRAMME</td>
+            <td colspan="2">117</td>
+            <td colspan="2" style="text-align: right; padding-right: 5px;">SECT-CONV : 000<br>RESSOURCES PROPRES</td>
+        </tr>
+        <tr>
+            <td class="font-bold">ACTIVITE PROJET</td>
+            <td colspan="2">117-1-1-1-01</td>
+            <td colspan="2" style="text-align: right; padding-right: 5px;">FINANCEMENT : 10-001-001-A</td>
+        </tr>
+        <tr>
+            <td class="font-bold">IMPUTATION ADMINISTRATIVE - CDD</td>
+            <td colspan="2">00-21-T-223-00000</td>
+            <td colspan="2"></td>
+        </tr>
+        <tr>
+            <td class="font-bold">COMPTE</td>
+            <td colspan="4">6241 Indemnités de mission intérieure</td>
+        </tr>
+
+        <!-- ==================== CORPS (Ligne séparatrice des 2 colonnes) ==================== -->
+        <tr>
+            <!-- COLONNE GAUCHE (55%) -->
+            <td colspan="3" style="padding: 0; border-top: 1px solid #000; vertical-align: top;">
+                <table style="width: 100%; border-collapse: collapse; height: 100%;">
+                    <tr><td colspan="2" class="section-title">LIQUIDATION DE LA DEPENSE</td></tr>
+                    <tr>
+                        <td style="width: 40%;">Pièces justificatives :</td>
+                        <td>- Ordre de mission<br>- Etat de décompte</td>
+                    </tr>
+                    <tr><td class="bg-gray font-bold" style="width: 60%;">MONTANT LIQUIDE HT</td><td class="text-right font-bold">{{ op.montant_total|floatformat:2 }}</td></tr>
+                    <tr><td class="bg-gray font-bold">TAXES (TTL, DTI)</td><td class="text-right">-</td></tr>
+                    <tr><td class="bg-gray font-bold">MONTANT LIQUIDE</td><td class="text-right font-bold">{{ op.montant_total|floatformat:2 }}</td></tr>
+                    
+                    <tr><td colspan="2" class="section-title">DEPENSES EN DEVISES</td></tr>
+                    <tr><td class="bg-gray">MONTANT CONTRACTUEL</td><td></td></tr>
+                    <tr><td class="bg-gray">DEVISE</td><td></td></tr>
+                    <tr><td class="bg-gray">COURS</td><td></td></tr>
+
+                    <tr><td colspan="2" class="section-title">PERIODE LIQUIDEE</td></tr>
+                    <tr><td style="width: 50%;">DATE DEBUT</td><td>DATE FACTURATION</td></tr>
+                    <tr><td>DATE FIN</td><td></td></tr>
+
+                    <tr><td colspan="2" class="section-title">DISPONIBILITE SUR ENGAGEMENT : DEV / AR</td></tr>
+                    <tr><td class="bg-gray font-bold">ENGAGEMENT INITIAL</td><td></td></tr>
+                    <tr><td class="bg-gray font-bold">CUMUL MANDATE</td><td></td></tr>
+                    <tr><td class="bg-gray font-bold">MONTANT MANDATE</td><td></td></tr>
+                    <tr><td class="bg-gray font-bold">Disponible sur ENGAGEMENT</td><td></td></tr>
+                    
+                    <tr>
+                        <td colspan="2" style="height: 70px; padding: 6px;">
+                            <strong>Objet de la dépense :</strong><br>
+                            Paiement d'indemnité(s) de mission intérieure de garde permanente<br><br>
+                            a/n de <strong>{{ op.agent_beneficiaire.nom }} {{ op.agent_beneficiaire.prenoms }}</strong><br>
+                            au titre du mois de (d') <strong>{{ mois_str }}</strong><br><br>
+                            auprès de la PP Marovoay
+                        </td>
+                    </tr>
+                    
+                    <tr><td class="bg-gray font-bold">MONTANT MANDATE (A)</td><td class="text-right font-bold">{{ op.montant_total|floatformat:2 }}</td></tr>
+                    <tr><td class="bg-gray font-bold">A PRECOMPTER</td><td class="text-right">-</td></tr>
+                    <tr><td class="bg-gray font-bold">NET A PAYER</td><td class="text-right font-bold">{{ op.montant_total|floatformat:2 }}</td></tr>
+                    
+                    <tr>
+                        <td colspan="2" style="padding: 6px; height: 50px;">
+                            <strong>ARRETE par nous le présent ordre de paiement à la somme de (A) :</strong><br>
+                            <em>{{ op.montant_lettres|default:".................................................................................." }}</em>
+                        </td>
+                    </tr>
+                    
+                    <!-- La case "Fait à" prend tout l'espace restant -->
+                    <tr>
+                        <td colspan="2" style="vertical-align: top; padding: 6px;">
+                            Fait à Marovoay, le {{ op.date_emission|date:"d/m/Y"|default:op.date_creation|date:"d/m/Y" }}<br><br><br><br><br><br>
+                            (Signature et timbre du Chef de Poste)
+                        </td>
+                    </tr>
+                </table>
+            </td>
+
+            <!-- COLONNE DROITE (45%) -->
+            <td colspan="2" style="padding: 0; border-top: 1px solid #000; border-left: 1px solid #000; vertical-align: top;">
+                <table style="width: 100%; border-collapse: collapse; height: 100%;">
+                    <tr><td colspan="2" class="section-title">REGLEMENT DE LA CREANCE</td></tr>
+                    <tr><td colspan="2" class="bg-gray">(Modalités de REGLEMENT)</td></tr>
+                    <tr>
+                        <td style="width: 50%;"><span class="checkbox"></span> BON DE CAISSE</td>
+                        <td><span class="checkbox"></span> VIREMENT BANCAIRE</td>
+                    </tr>
+                    <tr>
+                        <td><span class="checkbox"></span> AUTRE VIREMENT</td>
+                        <td><span class="checkbox"></span> OPERATION D'ORDRE</td>
+                    </tr>
+                    <tr>
+                        <td>Descriptif de l'opération d'ordre</td>
+                        <td>Cadre réservé au comptable</td>
+                    </tr>
+                    <tr><td class="bg-gray font-bold">COMPTE A CREDITER</td><td></td></tr>
+                    <tr><td class="bg-gray font-bold">POSTE COMPTABLE</td><td></td></tr>
+
+                    <tr><td colspan="2" class="section-title">EN REGLEMENT</td></tr>
+                    <tr>
+                        <td><span class="checkbox"></span> Ordre de recette (OR)</td>
+                        <td><span class="checkbox"></span> Préc.</td>
+                    </tr>
+                    <tr>
+                        <td><span class="checkbox"></span> Dépenses à régul. (DAR)</td>
+                        <td><span class="checkbox"></span> AUTRE</td>
+                    </tr>
+                    <tr><td colspan="2" style="padding: 4px;">Préciser</td></tr>
+
+                    <tr><td colspan="2" class="section-title">VISA DU COMPTABLE</td></tr>
+                    
+                    <!-- L'espace pour le tampon : grande hauteur, texte collé en bas -->
+                    <tr>
+                        <td colspan="2" style="height: 150px; vertical-align: bottom; padding: 6px;">
+                            Numéro d'identification du TITULAIRE : <strong>{{ op.titulaire_numero|default:op.agent_beneficiaire.matricule }}</strong><br><br>
+                            TITULAIRE : <strong>{{ op.titulaire_nom|default:op.agent_beneficiaire.nom }} {{ op.titulaire_nom|yesno:",," }}{{ op.titulaire_nom|default:op.agent_beneficiaire.prenoms }}</strong><br><br>
+                            CIN : <strong>{{ op.agent_beneficiaire.cin|default:"" }}</strong><br><br>
+                            ADRESSE : <strong>{{ op.agent_beneficiaire.adresse|default:"CSP MAROVOAY" }}</strong>
+                        </td>
+                    </tr>
+                    
+                    <tr>
+                        <td colspan="2" class="bg-gray" style="height: 25px; vertical-align: middle; padding-left: 6px;">
+                            Pour acquit de la somme indiquée ci-contre (A)
+                        </td>
+                    </tr>
+                    
+                    <!-- L'espace pour signer l'acquit -->
+                    <tr>
+                        <td colspan="2" style="vertical-align: top; padding: 10px; height: 120px;">
+                            <div style="margin-top: 40px;">
+                                A<span class="dotted-line"></span>
+                            </div>
+                            <div style="margin-top: 25px;">
+                                Le<span class="dotted-line"></span>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+</body>
+</html>

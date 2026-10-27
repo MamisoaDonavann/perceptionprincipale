@@ -91,19 +91,25 @@ def creer_decompte(agent, annee, mois, user):
         date_heure_debut__lt=fin,
     ).count()
 
-    # Vérification préventive : gardes déjà utilisées dans un autre décompte.
-    if gardes_conformes:
-        ids = [g.pk for g in gardes_conformes]
-        deja_utilisees = list(
-            LigneDecompte.objects
-            .filter(garde_id__in=ids)
-            .values_list('garde_id', flat=True)
+    # 👇 CORRECTION ICI : On refuse la création si aucune garde conforme
+    if not gardes_conformes:
+        raise ValidationError(
+            f"Aucune garde conforme éligible pour l'agent {agent.matricule} "
+            f"sur le mois {mois:02d}/{annee}. Le décompte n'a pas été créé."
         )
-        if deja_utilisees:
-            raise ValidationError(
-                f"{len(deja_utilisees)} garde(s) déjà utilisée(s) dans "
-                f"un autre décompte. Vérifiez les décomptes existants."
-            )
+
+    # Vérification préventive : gardes déjà utilisées dans un autre décompte.
+    ids = [g.pk for g in gardes_conformes]
+    deja_utilisees = list(
+        LigneDecompte.objects
+        .filter(garde_id__in=ids)
+        .values_list('garde_id', flat=True)
+    )
+    if deja_utilisees:
+        raise ValidationError(
+            f"{len(deja_utilisees)} garde(s) déjà utilisée(s) dans "
+            f"un autre décompte. Vérifiez les décomptes existants."
+        )
 
     decompte = Decompte(
         agent=agent,
@@ -117,11 +123,6 @@ def creer_decompte(agent, annee, mois, user):
     )
 
     avertissements = []
-    if not gardes_conformes:
-        avertissements.append(
-            "Aucune garde conforme éligible pour cette période. "
-            "Le décompte est créé avec un montant de 0."
-        )
     if nb_non_conformes > 0:
         avertissements.append(
             f"{nb_non_conformes} garde(s) non conforme(s) exclue(s) "

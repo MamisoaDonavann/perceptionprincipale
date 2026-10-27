@@ -3,70 +3,90 @@
 {% block title %}Audit #{{ entry.pk }} — Perception Marovoay{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div class="page-header__titles">
-        <h1 class="page-title">Entrée d'audit #{{ entry.pk }}</h1>
-        <p class="page-subtitle">
-            {{ entry.get_action_display }} — {{ entry.date_action|date:"d/m/Y H:i:s" }}
-        </p>
-    </div>
-    <div><a href="{% url 'audit:list' %}" class="btn-secondary">Retour</a></div>
-</div>
+<!-- En-tête moderne -->
+{% url 'audit:list' as url_retour %}
+{% include "partials/page_header.html" with title="Entrée d'audit #"|add:entry.pk|stringformat:"s" subtitle=entry.get_action_display|add:" — "|add:entry.date_action|date:"d/m/Y H:i:s" icon="rapport" back_url=url_retour %}
 
-<div class="detail-grid">
-    <div>
+<div class="detail-grid" style="align-items: start;">
+    
+    <!-- Colonne de gauche : Informations -->
+    <div style="display: flex; flex-direction: column; gap: 20px;">
         <div class="detail-card">
-            <h2 class="detail-card__title">Informations</h2>
-            <dl class="detail-list">
+            <h2 class="detail-card__title">Informations générales</h2>
+            <div class="detail-list" style="grid-template-columns: 150px 1fr;">
+                
                 <dt>Utilisateur</dt>
-                <dd>{{ entry.id_utilisateur.get_full_name|default:entry.id_utilisateur.username }}</dd>
+                <dd>
+                    <div class="cell-user" style="gap: 6px;">
+                        <span class="avatar avatar--sm avatar--c1">
+                            {{ entry.id_utilisateur.username|slice:":1"|upper }}
+                        </span>
+                        <span>{{ entry.id_utilisateur.get_full_name|default:entry.id_utilisateur.username }}</span>
+                    </div>
+                </dd>
+                
                 <dt>Action</dt>
                 <dd>
                     {% if entry.action == 'CREATION' %}
-                        <span class="tag tag--valide">{{ entry.get_action_display }}</span>
+                        <span class="tag tag--actif">{{ entry.get_action_display }}</span>
                     {% elif entry.action == 'MODIFICATION' %}
                         <span class="tag tag--suspendu">{{ entry.get_action_display }}</span>
                     {% elif entry.action == 'ANNULATION' %}
-                        <span class="tag tag--annule">{{ entry.get_action_display }}</span>
+                        <span class="tag tag--radie">{{ entry.get_action_display }}</span>
                     {% elif entry.action == 'EXPORT' %}
-                        <span class="tag tag--paye">{{ entry.get_action_display }}</span>
+                        <span class="tag" style="background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe;">{{ entry.get_action_display }}</span>
                     {% else %}
-                        <span class="tag tag--actif">{{ entry.get_action_display }}</span>
+                        <span class="tag">{{ entry.get_action_display }}</span>
                     {% endif %}
                 </dd>
+                
                 <dt>Entité concernée</dt>
                 <dd><code>{{ entry.entite_concernee }}</code></dd>
+                
                 <dt>Identifiant</dt>
-                <dd>#{{ entry.id_entite_concernee }}</dd>
+                <dd><strong>#{{ entry.id_entite_concernee|default:"—" }}</strong></dd>
+                
                 <dt>Date de l'action</dt>
-                <dd>{{ entry.date_action|date:"d/m/Y H:i:s" }}</dd>
+                <dd>{{ entry.date_action|date:"d/m/Y à H:i:s" }}</dd>
+                
                 <dt>Adresse IP</dt>
                 <dd>{{ entry.adresse_ip|default:"—" }}</dd>
-            </dl>
+            </div>
         </div>
 
         {% if entry.commentaire %}
         <div class="detail-card">
             <h2 class="detail-card__title">Commentaire</h2>
-            <p>{{ entry.commentaire|linebreaks }}</p>
+            <p style="font-size: 13.5px; color: var(--text-2); margin: 0; line-height: 1.5;">
+                {{ entry.commentaire|linebreaksbr }}
+            </p>
         </div>
         {% endif %}
     </div>
 
-    <div>
+    <!-- Colonne de droite : Données techniques (JSON) -->
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+        
         {% if entry.valeurs_avant %}
         <div class="detail-card">
-            <h2 class="detail-card__title">Valeurs avant</h2>
-            <pre style="background: var(--surface-2); padding: 12px; border-radius: var(--r); font-size: 12px; overflow-x: auto; margin: 0;">{{ entry.valeurs_avant|pprint }}</pre>
+            <h2 class="detail-card__title">Valeurs avant (Anciennes)</h2>
+            <!-- Fond sombre pour faire ressortir le code JSON -->
+            <div style="background: #0f172a; border-radius: 8px; padding: 12px; overflow-x: auto;">
+                <pre style="margin: 0; font-family: 'Fira Code', 'Consolas', monospace; font-size: 12px; color: #e2e8f0; line-height: 1.4;">{{ entry.valeurs_avant|pprint }}</pre>
+            </div>
         </div>
         {% endif %}
 
         {% if entry.valeurs_apres %}
         <div class="detail-card">
-            <h2 class="detail-card__title">Valeurs après</h2>
-            <pre style="background: var(--surface-2); padding: 12px; border-radius: var(--r); font-size: 12px; overflow-x: auto; margin: 0;">{{ entry.valeurs_apres|pprint }}</pre>
+            <h2 class="detail-card__title">Valeurs après (Nouvelles)</h2>
+            <!-- Fond sombre pour faire ressortir le code JSON -->
+            <div style="background: #0f172a; border-radius: 8px; padding: 12px; overflow-x: auto;">
+                <pre style="margin: 0; font-family: 'Fira Code', 'Consolas', monospace; font-size: 12px; color: #e2e8f0; line-height: 1.4;">{{ entry.valeurs_apres|pprint }}</pre>
+            </div>
         </div>
         {% endif %}
+
     </div>
 </div>
 {% endblock %}

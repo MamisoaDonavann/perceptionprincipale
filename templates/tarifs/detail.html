@@ -131,7 +131,6 @@
             <tr>
                 <td>
                     <div class="cell-user">
-                        <!-- Petit avatar avec les initiales de l'agent -->
                         <span class="avatar avatar--sm {{ forloop.counter|avatar_color }}">
                             {{ g.agent.nom|slice:":1" }}{{ g.agent.prenoms|slice:":1" }}
                         </span>
@@ -146,6 +145,28 @@
             {% endfor %}
         </tbody>
     </table>
+
+    <!-- 👇 AJOUT DE LA PAGINATION ICI 👇 -->
+    {% if gardes_liees.has_other_pages %}
+    <div class="pagination" style="margin-top: 0; padding: 20px 0; border-top: 1px solid var(--border);">
+        {% if gardes_liees.has_previous %}
+            <a href="?page={{ gardes_liees.previous_page_number }}">← Précédent</a>
+        {% else %}
+            <span class="disabled">← Précédent</span>
+        {% endif %}
+        
+        <span class="current">{{ gardes_liees.number }} / {{ gardes_liees.paginator.num_pages }}</span>
+        
+        {% if gardes_liees.has_next %}
+            <a href="?page={{ gardes_liees.next_page_number }}">Suivant →</a>
+        {% else %}
+            <span class="disabled">Suivant →</span>
+        {% endif %}
+    </div>
+    <p class="pagination__info">{{ nb_gardes }} résultat{{ nb_gardes|pluralize }}</p>
+    {% endif %}
+    <!-- 👆 FIN DE LA PAGINATION 👆 -->
+
     {% else %}
     <div class="empty-state" style="padding: 40px 20px;">
         <div class="empty-state__icon">

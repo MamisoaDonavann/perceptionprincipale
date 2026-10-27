@@ -3,6 +3,44 @@
 {% block title %}{{ titre }} — Perception Marovoay{% endblock %}
 
 {% block content %}
+<!-- CSS de Tom Select -->
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+<style>
+    /* 1. Correction du design du champ de saisie */
+    .ts-wrapper .ts-control {
+        border-radius: var(--r) !important;
+        border: 1px solid var(--border) !important;
+        padding: 9px 12px !important;
+        font-size: 13.5px !important;
+        background: var(--surface) !important;
+        box-shadow: none !important;
+        transition: all var(--t);
+    }
+    .ts-wrapper.focus .ts-control {
+        border-color: var(--primary-400) !important;
+        box-shadow: 0 0 0 4px var(--primary-50) !important;
+    }
+
+    /* 2. Correction de la liste déroulante */
+    .ts-dropdown {
+        border-radius: var(--r) !important;
+        border: 1px solid var(--border) !important;
+        box-shadow: var(--sh-md) !important;
+        z-index: 1050 !important; /* Passe au-dessus de tout */
+        background: #ffffff !important; /* Fond blanc opaque */
+    }
+    
+    .ts-dropdown .option {
+        padding: 8px 12px !important;
+        font-size: 13.5px !important;
+    }
+
+    .ts-dropdown .option.active {
+        background-color: var(--primary-50) !important;
+        color: var(--primary-700) !important;
+    }
+</style>
+
 {% include "partials/page_header.html" with title=titre subtitle="Un partiel correspond à 12 heures (720 minutes)." icon="garde" back_url="/gardes/" %}
 
 <form method="post" novalidate class="form-card">
@@ -59,6 +97,20 @@
     {# ==================== SECTION : PÉRIODE DE LA GARDE ==================== #}
     <fieldset class="form-section">
         <legend>Période de la garde</legend>
+        
+        <!-- SÉLECTEUR DE DURÉE (Nettoyé) -->
+        <div class="form-group" style="margin-bottom: 20px;">
+            <label for="duree_garde" style="color: var(--primary-600); font-weight: 700;">
+                Calcul automatique de la fin (12h ou 24h)
+            </label>
+            <select id="duree_garde">
+                <option value="">Choisir une durée...</option>
+                <option value="12">Garde de 12 heures (1 partiel)</option>
+                <option value="24">Garde de 24 heures (2 partiels)</option>
+            </select>
+            <span class="help">Sélectionnez une durée pour remplir automatiquement la date de fin.</span>
+        </div>
+
         <div class="form-grid">
             <div class="form-group">
                 <label for="{{ form.date_heure_debut.id_for_label }}">{{ form.date_heure_debut.label }} <span class="required">*</span></label>
@@ -91,4 +143,73 @@
     </div>
 
 </form>
+
+<!-- SCRIPT DE CALCUL AUTOMATIQUE (12h/24h) -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // On attend un petit peu que Tom Select s'initialise pour attraper les bons éléments
+    setTimeout(function() {
+        const dureeSelect = document.getElementById("duree_garde");
+        const dateDebutInput = document.getElementById("id_date_heure_debut");
+        const dateFinInput = document.getElementById("id_date_heure_fin");
+
+        function calculerDateFin() {
+            const debutVal = dateDebutInput.value;
+            // Tom Select met la valeur dans l'input original
+            const dureeVal = parseInt(dureeSelect.value);
+
+            if (debutVal && !isNaN(dureeVal)) {
+                const dateDebut = new Date(debutVal);
+                const dateFin = new Date(dateDebut.getTime() + (dureeVal * 60 * 60 * 1000));
+                
+                const year = dateFin.getFullYear();
+                const month = String(dateFin.getMonth() + 1).padStart(2, '0');
+                const day = String(dateFin.getDate()).padStart(2, '0');
+                const hours = String(dateFin.getHours()).padStart(2, '0');
+                const minutes = String(dateFin.getMinutes()).padStart(2, '0');
+
+                dateFinInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+            } else if (!debutVal) {
+                dateFinInput.value = "";
+            }
+        }
+
+        // On écoute les changements sur le select (Tom Select déclenche 'change' sur l'original)
+        dureeSelect.addEventListener("change", calculerDateFin);
+        dateDebutInput.addEventListener("change", calculerDateFin); 
+        dateDebutInput.addEventListener("input", calculerDateFin); 
+    }, 100); // 100ms de délai
+});
+</script>
+
+<!-- INITIALISATION DE TOM SELECT (Recherche intelligente) -->
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        new TomSelect("#id_agent", {
+            create: false,
+            sortField: { field: "text", direction: "asc" },
+            placeholder: "Rechercher un agent..."
+        });
+
+        new TomSelect("#id_mission", {
+            create: false,
+            sortField: { field: "text", direction: "asc" },
+            placeholder: "Rechercher une mission..."
+        });
+
+        new TomSelect("#id_tarif", {
+            create: false,
+            sortField: { field: "text", direction: "asc" },
+            placeholder: "Rechercher un tarif..."
+        });
+
+        // 👇 AJOUT POUR LA DURÉE 👇
+        new TomSelect("#duree_garde", {
+            create: false,
+            sortField: { field: "text", direction: "asc" },
+            placeholder: "Choisir une durée..."
+        });
+    });
+</script>
 {% endblock %}

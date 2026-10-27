@@ -3,15 +3,75 @@
 {% block title %}{{ titre }} — Perception Marovoay{% endblock %}
 
 {% block content %}
-{% include "partials/page_header.html" with title=titre subtitle="Sélectionnez un agent et un ou plusieurs décomptes validés." icon="paiement" back_url="/paiements/" %}
+<!-- CSS de Tom Select -->
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+<style>
+    /* 1. Design du champ de saisie principal */
+    .ts-wrapper .ts-control {
+        border-radius: var(--r) !important;
+        border: 1px solid var(--border) !important;
+        padding: 9px 12px !important;
+        font-size: 13.5px !important;
+        background: var(--surface) !important;
+        box-shadow: none !important;
+        transition: all var(--t);
+    }
+    .ts-wrapper.focus .ts-control {
+        border-color: var(--primary-400) !important;
+        box-shadow: 0 0 0 4px var(--primary-50) !important;
+    }
 
-<form method="post" novalidate class="form-card">
+    /* 2. Design des "Tags" (Décomptes sélectionnés) */
+    .ts-wrapper .ts-control .item {
+        background-color: var(--primary-50) !important;
+        color: var(--primary-700) !important;
+        border: 1px solid var(--primary-200) !important;
+        border-radius: 6px !important;
+        font-weight: 500 !important;
+        margin: 2px 4px 2px 0 !important;
+    }
+    
+    /* 3. Bouton "x" pour retirer un tag */
+    .ts-wrapper .ts-control .item .remove {
+        border-left: 1px solid var(--primary-200) !important;
+        color: var(--primary-500) !important;
+        padding: 0 6px !important;
+    }
+    .ts-wrapper .ts-control .item .remove:hover {
+        background-color: var(--primary-100) !important;
+        color: var(--danger) !important;
+    }
+
+    /* 4. Design de la liste déroulante */
+    .ts-dropdown {
+        border-radius: var(--r) !important;
+        border: 1px solid var(--border) !important;
+        box-shadow: var(--sh-md) !important;
+        z-index: 9999 !important; /* 👈 Passe au-dessus de tout */
+        background: #ffffff !important;
+    }
+    .ts-dropdown .option {
+        padding: 8px 12px !important;
+        font-size: 13.5px !important;
+    }
+    .ts-dropdown .option.active {
+        background-color: var(--primary-50) !important;
+        color: var(--primary-700) !important;
+    }
+</style>
+
+<!-- En-tête moderne -->
+{% url 'paiements:list' as url_retour %}
+{% include "partials/page_header.html" with title="Nouvel ordre de paiement" subtitle="Sélectionnez un agent et un ou plusieurs décomptes validés." icon="paiement" back_url=url_retour %}
+
+<form method="post" novalidate class="form-card" style="max-width: 1000px; margin: 0 auto;">
     {% csrf_token %}
 
-    <div class="info-box info-box--info" style="margin-bottom: 24px;">
-        Un Ordre de Paiement concerne un seul agent bénéficiaire et peut regrouper
-        plusieurs décomptes validés du même agent. Les décomptes déjà réservés par
-        un autre OP actif ne sont pas affichés.
+    <div class="info-box info-box--info" style="margin-bottom: 24px; display: flex; align-items: flex-start; gap: 12px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <div>
+            Un Ordre de Paiement concerne un seul agent bénéficiaire et peut regrouper plusieurs décomptes validés du même agent. Les décomptes déjà réservés par un autre OP actif ne sont pas affichés.
+        </div>
     </div>
 
     {% if form.non_field_errors %}
@@ -24,12 +84,14 @@
     <fieldset class="form-section">
         <legend>Bénéficiaire et période</legend>
         <div class="form-grid">
+            
             <div class="form-group">
-                <label for="{{ form.agent.id_for_label }}">
-                    {{ form.agent.label }} <span class="required">*</span>
+                <label for="{{ form.numero_op.id_for_label }}">
+                    {{ form.numero_op.label }} <span class="required">*</span>
                 </label>
-                {{ form.agent }}
-                {% if form.agent.errors %}<div class="errors"><ul>{% for e in form.agent.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+                {{ form.numero_op }}
+                {% if form.numero_op.help_text %}<span class="help">{{ form.numero_op.help_text }}</span>{% endif %}
+                {% if form.numero_op.errors %}<div class="errors"><ul>{% for e in form.numero_op.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
             </div>
 
             <div class="form-group">
@@ -41,9 +103,23 @@
             </div>
 
             <div class="form-group form-grid__full">
-                <label for="{{ form.decomptes.id_for_label }}">
-                    {{ form.decomptes.label }} <span class="required">*</span>
+                <label for="{{ form.agent.id_for_label }}">
+                    {{ form.agent.label }} <span class="required">*</span>
                 </label>
+                {{ form.agent }}
+                {% if form.agent.errors %}<div class="errors"><ul>{% for e in form.agent.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+            </div>
+
+            <!-- BOUTON TOUT SÉLECTIONNER -->
+            <div class="form-group form-grid__full">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <label for="{{ form.decomptes.id_for_label }}" style="margin: 0;">
+                        {{ form.decomptes.label }} <span class="required">*</span>
+                    </label>
+                    <button type="button" id="btn-select-all" class="btn-action" style="font-size: 11px; padding: 4px 10px; background: var(--primary-50); color: var(--primary-700); border-color: var(--primary-200);">
+                        Tout sélectionner
+                    </button>
+                </div>
                 {{ form.decomptes }}
                 {% if form.decomptes.help_text %}<span class="help">{{ form.decomptes.help_text }}</span>{% endif %}
                 {% if form.decomptes.errors %}<div class="errors"><ul>{% for e in form.decomptes.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
@@ -90,7 +166,11 @@
             </div>
 
             <div class="form-group form-grid__full">
-                <label for="{{ form.modalite_reglement.id_for_label }}">{{ form.modalite_reglement.label }}</label>
+                <!-- 👇 AMÉLIORATION ICI : Icône SVG ajoutée à côté du label -->
+                <label for="{{ form.modalite_reglement.id_for_label }}" style="display: flex; align-items: center; gap: 6px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary-500);"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
+                    {{ form.modalite_reglement.label }}
+                </label>
                 {{ form.modalite_reglement }}
                 {% if form.modalite_reglement.errors %}<div class="errors"><ul>{% for e in form.modalite_reglement.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
             </div>
@@ -108,10 +188,147 @@
     </fieldset>
 
     {# ==================== ACTIONS ==================== #}
-    <div class="form-actions">
-        <button type="submit" class="btn-create">Créer l'OP</button>
-        <a href="{% url 'paiements:list' %}" class="btn-secondary">Annuler</a>
+    <div class="form-actions" style="margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border);">
+        <button type="submit" class="btn-create" style="padding: 10px 20px; font-size: 14px;">Créer l'OP</button>
+        <a href="{% url 'paiements:list' %}" class="btn-secondary" style="padding: 10px 20px; font-size: 14px;">Annuler</a>
     </div>
 
 </form>
+
+<!-- INITIALISATION DE TOM SELECT ET LOGIQUE JS -->
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        
+        // --- 1. Initialisation Tom Select pour l'Agent ---
+        const tomAgent = new TomSelect("#id_agent", {
+            create: false,
+            sortField: { field: "text", direction: "asc" },
+            placeholder: "Rechercher un agent..."
+        });
+
+        // --- 2. Initialisation Tom Select pour les Décomptes ---
+        const tomDecomptes = new TomSelect("#id_decomptes", {
+            plugins: ['remove_button'], 
+            create: false,
+            sortField: { field: "text", direction: "asc" },
+            placeholder: "Sélectionner un ou plusieurs décomptes...",
+            maxItems: null
+        });
+
+        // --- 3. Données des décomptes injectées par Django ---
+        const allDecomptes = [
+            {% for d in form.fields.decomptes.queryset %}
+            {
+                id: "{{ d.pk }}",
+                text: "{{ d.agent.matricule }} - {{ d.agent.nom }} | {{ d.mois|stringformat:'02d' }}/{{ d.annee }} — {{ d.montant_total|floatformat:0 }} Ar",
+                agentId: "{{ d.agent.pk }}",
+                montant: {{ d.montant_total|stringformat:"f"|default:"0" }}
+            },
+            {% endfor %}
+        ];
+
+        const decompteAmounts = {};
+        allDecomptes.forEach(d => decompteAmounts[d.id] = d.montant);
+
+        // --- 4. FILTRE DYNAMIQUE : Quand on change d'agent ---
+        tomAgent.on('change', function(agentId) {
+            tomDecomptes.clear();
+            tomDecomptes.clearOptions();
+            
+            const filtered = allDecomptes.filter(d => d.agentId === agentId);
+            
+            if (filtered.length > 0) {
+                filtered.forEach(d => tomDecomptes.addOption({ value: d.id, text: d.text }));
+            } else {
+                tomDecomptes.addOption({ value: '', text: 'Aucun décompte en attente pour cet agent.' });
+            }
+            updateMontantLettres();
+        });
+
+        // --- 5. BOUTON "TOUT SÉLECTIONNER" ---
+        document.getElementById("btn-select-all").addEventListener("click", function() {
+            const allIds = Object.keys(tomDecomptes.options);
+            if (allIds.length > 0 && allIds[0] !== "") {
+                tomDecomptes.addItems(allIds);
+            }
+        });
+
+        // --- 6. Fonction de conversion Nombre -> Lettres (Français) ---
+        function numberToFrenchWords(n) {
+            if (n === 0) return "zéro";
+            const units = ["", "un", "deux", "trois", "quatre", "cinq", "six", "sept", "huit", "neuf", "dix", "onze", "douze", "treize", "quatorze", "quinze", "seize", "dix-sept", "dix-huit", "dix-neuf"];
+            const tens = ["", "dix", "vingt", "trente", "quarante", "cinquante", "soixante", "soixante-dix", "quatre-vingt", "quatre-vingt-dix"];
+
+            function convertUnder100(num) {
+                if (num < 20) return units[num];
+                let ten = Math.floor(num / 10);
+                let unit = num % 10;
+                if (ten === 7 || ten === 9) { ten -= 1; unit += 10; }
+                let str = tens[ten];
+                if (unit === 1 && ten !== 8) str += " et un";
+                else if (unit > 0) str += "-" + units[unit];
+                return str;
+            }
+
+            function convertUnder1000(num) {
+                let hundred = Math.floor(num / 100);
+                let rest = num % 100;
+                let str = "";
+                if (hundred > 0) {
+                    if (hundred === 1) str += "cent";
+                    else str += units[hundred] + " cent";
+                    if (rest === 0) str += "s";
+                }
+                if (rest > 0) {
+                    if (str !== "") str += " ";
+                    str += convertUnder100(rest);
+                }
+                return str;
+            }
+
+            let str = "";
+            let milliards = Math.floor(n / 1000000000);
+            let millions = Math.floor((n % 1000000000) / 1000000);
+            let milliers = Math.floor((n % 1000000) / 1000);
+            let reste = n % 1000;
+
+            if (milliards > 0) str += convertUnder1000(milliards) + " milliard" + (milliards > 1 ? "s" : "") + " ";
+            if (millions > 0) str += convertUnder1000(millions) + " million" + (millions > 1 ? "s" : "") + " ";
+            if (milliers > 0) {
+                if (milliers === 1) str += "mille ";
+                else str += convertUnder1000(milliers) + " mille ";
+            }
+            if (reste > 0) str += convertUnder1000(reste);
+
+            return str.trim();
+        }
+
+        // --- 7. Mise à jour automatique du champ "Montant en lettres" ---
+        const montantLettresInput = document.getElementById("id_montant_lettres");
+
+        function updateMontantLettres() {
+            let total = 0;
+            const selectedValues = tomDecomptes.getValue();
+            const ids = Array.isArray(selectedValues) ? selectedValues : [selectedValues];
+
+            ids.forEach(id => {
+                if (decompteAmounts[id]) {
+                    total += parseFloat(decompteAmounts[id]);
+                }
+            });
+
+            if (total > 0) {
+                let text = numberToFrenchWords(total);
+                text = text.charAt(0).toUpperCase() + text.slice(1);
+                montantLettresInput.value = text + " Ariary";
+            } else {
+                montantLettresInput.value = "";
+            }
+        }
+
+        tomDecomptes.on('change', updateMontantLettres);
+        
+    });
+</script>
 {% endblock %}

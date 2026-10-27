@@ -4,7 +4,7 @@ Django settings for config project.
 Projet : Application de gestion des paiements des forces de l'ordre
          Perception Principale de Marovoay
 
-Environnement : Ubuntu, Python 3.10, Django 5.2.18, PostgreSQL 14.24
+Environnement : Ubuntu, Python 3.10, Django 5.2.18, SQLite (Mode Local)
 """
 
 from pathlib import Path
@@ -37,7 +37,7 @@ SECRET_KEY = env('SECRET_KEY')
 
 DEBUG = env('DEBUG')
 
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['127.0.0.1', 'localhost'])
 
 CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
 
@@ -47,10 +47,6 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 # ============================================================
 # APPLICATIONS
 # ============================================================
-# NOTE TEMPORAIRE :
-# Les applications 'core', 'accounts' et 'audit' sont commentées
-# car leurs dossiers n'existent pas encore.
-# Elles seront décommentées après leur création avec startapp.
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -71,7 +67,6 @@ INSTALLED_APPS = [
     'decomptes',
     'paiements',
     'rapports',
-
 ]
 
 
@@ -116,13 +111,16 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 
 # ============================================================
-# BASE DE DONNÉES
+# BASE DE DONNÉES (SQLITE POUR UTILISATION LOCALE)
 # ============================================================
-# La configuration est lue depuis DATABASE_URL dans le fichier .env.
-# Aucun mot de passe n'est écrit en dur dans ce fichier.
+# On utilise SQLite pour que l'application soit 100% autonome 
+# et facile à installer sur le PC Windows de votre supérieur.
 
 DATABASES = {
-    'default': env.db('DATABASE_URL'),
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
 
 
@@ -194,16 +192,19 @@ LOGOUT_REDIRECT_URL = 'login'
 # SÉCURITÉ EN PRODUCTION (à activer quand DEBUG=False)
 # ============================================================
 
+# ⚠️ ATTENTION : On a commenté les lignes de redirection HTTPS.
+# Si on les laisse, l'application sur Windows sans certificat SSL 
+# va faire une boucle de redirection infinie (ERR_TOO_MANY_REDIRECTS).
 if not DEBUG:
-    SECURE_SSL_REDIRECT = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
+    # SECURE_SSL_REDIRECT = True
+    # SESSION_COOKIE_SECURE = True
+    # CSRF_COOKIE_SECURE = True
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = 'DENY'
-    SECURE_HSTS_SECONDS = 31536000
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
+    # SECURE_HSTS_SECONDS = 31536000
+    # SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    # SECURE_HSTS_PRELOAD = True
 
 
 # ============================================================

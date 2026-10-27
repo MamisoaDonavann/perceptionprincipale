@@ -15,6 +15,10 @@ from gardes.models import Garde
 from .forms import TarifForm
 from .models import Tarif
 
+# 👇 IMPORTS POUR L'AUDIT 👇
+from audit.models import JournalAudit
+from audit.services import journaliser
+
 
 @login_required
 @permission_required('tarifs.view_tarif', raise_exception=True)
@@ -43,23 +47,31 @@ def tarif_list(request):
 @login_required
 @permission_required('tarifs.view_tarif', raise_exception=True)
 def tarif_detail(request, pk):
-    """Fiche détaillée d'un tarif."""
+    """Fiche détaillée d'un tarif avec pagination des gardes liées."""
     tarif = get_object_or_404(
         Tarif.objects.select_related('id_utilisateur_createur'), pk=pk
     )
 
-    gardes_liees = (
+    # 1. On récupère TOUTES les gardes liées à ce tarif
+    gardes_qs = (
         Garde.objects
         .filter(tarif=tarif)
         .select_related('agent', 'mission')
-        .order_by('-date_heure_debut')[:20]
+        .order_by('-date_heure_debut')
     )
-    nb_gardes = Garde.objects.filter(tarif=tarif).count()
+    
+    nb_gardes = gardes_qs.count()
     utilisable = nb_gardes == 0
+
+    # 2. On configure la pagination (10 par page par exemple)
+    paginator = Paginator(gardes_qs, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
 
     return render(request, 'tarifs/detail.html', {
         'tarif': tarif,
-        'gardes_liees': gardes_liees,
+        'gardes_liees': page_obj, # On passe l'objet paginé
+        'page_obj': page_obj,
         'nb_gardes': nb_gardes,
         'utilisable': utilisable,
     })
@@ -75,6 +87,16 @@ def tarif_create(request):
             tarif = form.save(commit=False)
             tarif.id_utilisateur_createur = request.user
             tarif.save()
+
+            journaliser(
+                user=request.user,
+                action=JournalAudit.ACTION_CREATION,
+                entite='tarifs.Tarif',
+                id_entite=tarif.pk,
+                apres={'montant_partiel': str(tarif.montant_partiel)},
+                commentaire=f"Création du tarif à {tarif.montant_partiel} Ar",
+            )
+
             messages.success(
                 request,
                 f"Tarif {tarif.montant_partiel} Ar créé."
@@ -96,8 +118,6 @@ def tarif_create(request):
 def tarif_update(request, pk):
     """
     Modification d'un tarif existant.
-
-    Interdit si le tarif est déjà utilisé par une ou plusieurs gardes.
     """
     tarif = get_object_or_404(Tarif, pk=pk)
 
@@ -113,6 +133,15 @@ def tarif_update(request, pk):
         form = TarifForm(request.POST, instance=tarif)
         if form.is_valid():
             tarif = form.save()
+
+            journaliser(
+                user=request.user,
+                action=JournalAudit.ACTION_MODIFICATION,
+                entite='tarifs.Tarif',
+                id_entite=tarif.pk,
+                commentaire=f"Modification du tarif #{tarif.pk} ({tarif.montant_partiel} Ar)",
+            )
+
             messages.success(
                 request,
                 f"Tarif {tarif.montant_partiel} Ar mis à jour."
@@ -139,6 +168,15 @@ def tarif_toggle_actif(request, pk):
     tarif.save(update_fields=['actif'])
 
     etat = "activé" if tarif.actif else "désactivé"
+    
+    journaliser(
+        user=request.user,
+        action=JournalAudit.ACTION_MODIFICATION,
+        entite='tarifs.Tarif',
+        id_entite=tarif.pk,
+        commentaire=f"Tarif {etat} ({tarif.montant_partiel} Ar)",
+    )
+
     messages.success(request, f"Tarif {etat}.")
 
     return redirect(reverse('tarifs:detail', args=[tarif.pk]))

@@ -19,15 +19,13 @@ MOIS_CHOICES = [
 class DecompteForm(forms.Form):
     """
     Formulaire de création d'un décompte mensuel.
-
-    Le service `creer_decompte` sélectionne automatiquement les gardes
-    conformes du mois et calcule les montants.
     """
 
     agent = forms.ModelChoiceField(
         queryset=Agent.objects.filter(actif=True),
         label="Agent",
         required=True,
+        empty_label="Sélectionner un agent...", # 👈 AJOUTÉ ICI
     )
     annee = forms.IntegerField(
         label="Année",

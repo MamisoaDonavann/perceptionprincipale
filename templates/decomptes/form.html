@@ -3,6 +3,43 @@
 {% block title %}{{ titre }} — Perception Marovoay{% endblock %}
 
 {% block content %}
+<!-- CSS de Tom Select -->
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+<style>
+    /* Design du champ de saisie */
+    .ts-wrapper .ts-control {
+        border-radius: var(--r) !important;
+        border: 1px solid var(--border) !important;
+        padding: 10px 14px !important;
+        font-size: 14px !important;
+        background: var(--surface) !important;
+        box-shadow: none !important;
+        transition: all var(--t);
+    }
+    .ts-wrapper.focus .ts-control {
+        border-color: var(--primary-400) !important;
+        box-shadow: 0 0 0 4px var(--primary-50) !important;
+    }
+
+    /* Design de la liste déroulante */
+    .ts-dropdown {
+        border-radius: var(--r) !important;
+        border: 1px solid var(--border) !important;
+        box-shadow: var(--sh-md) !important;
+        z-index: 1050 !important;
+        background: #ffffff !important;
+    }
+    .ts-dropdown .option {
+        padding: 8px 12px !important;
+        font-size: 14px !important;
+    }
+    .ts-dropdown .option.active {
+        background-color: var(--primary-50) !important;
+        color: var(--primary-700) !important;
+    }
+</style>
+
+<!-- En-tête moderne -->
 {% include "partials/page_header.html" with title=titre subtitle="Un décompte regroupe les gardes conformes d'un agent sur un mois civil." icon="decompte" back_url="/decomptes/" %}
 
 <form method="post" novalidate class="form-card">
@@ -58,4 +95,24 @@
     </div>
 
 </form>
+
+<!-- INITIALISATION DE TOM SELECT -->
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // 1. Recherche pour l'Agent
+        new TomSelect("#id_agent", {
+            create: false,
+            sortField: { field: "text", direction: "asc" },
+            placeholder: "Rechercher un agent..."
+        });
+
+        // 2. Design pour le Mois (pas de recherche nécessaire, juste le style)
+        new TomSelect("#id_mois", {
+            create: false,
+            sortField: { field: "text", direction: "asc" },
+            placeholder: "Sélectionner un mois..."
+        });
+    });
+</script>
 {% endblock %}

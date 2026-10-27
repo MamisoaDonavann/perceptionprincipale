@@ -35,10 +35,20 @@ def _apply_css(form):
 class OrdrePaiementForm(forms.Form):
     """Formulaire de création d'un ordre de paiement (BROUILLON)."""
 
+    # 👇 CHAMP NUMÉRO OP MANUEL 👇
+    numero_op = forms.CharField(
+        label="Numéro de l'OP",
+        max_length=50,
+        required=True,
+        help_text="Saisissez le numéro officiel (ex: OP-2026-0001).",
+        widget=forms.TextInput(attrs={'placeholder': 'OP-2026-XXXX'})
+    )
+
     agent = forms.ModelChoiceField(
         queryset=Agent.objects.filter(actif=True),
         label="Agent bénéficiaire",
         required=True,
+        empty_label="Sélectionner un agent...",
     )
     annee = forms.IntegerField(
         label="Année",
@@ -71,28 +81,32 @@ class OrdrePaiementForm(forms.Form):
         max_length=50,
         required=False,
     )
+    
+    # 👇 AMÉLIORATION DES TEXTES D'AIDE 👇
     titulaire_nom = forms.CharField(
         label="Nom du titulaire",
         max_length=200,
         required=False,
-        help_text="Laisser vide si le titulaire est l'agent bénéficiaire.",
+        help_text="À remplir uniquement si une autre personne vient retirer l'argent à la place de l'agent (ex: conjoint, ayant droit).",
     )
     titulaire_numero = forms.CharField(
         label="N° d'identification du titulaire",
         max_length=50,
         required=False,
-        help_text="Ex : F0035/484. Laisser vide si titulaire = bénéficiaire.",
+        help_text="CIN de la personne qui retire l'argent (si différente de l'agent).",
     )
+    # 👆 FIN DES MODIFICATIONS 👆
+
     montant_lettres = forms.CharField(
         label="Montant en lettres",
         required=False,
         widget=forms.Textarea(attrs={'rows': 2}),
-        help_text="Obligatoire si le montant total est positif.",
+        help_text="Rempli automatiquement selon les décomptes choisis.",
     )
     modalite_reglement = forms.ChoiceField(
         label="Modalité de règlement",
         required=False,
-        choices=[('', '— Non défini —')] + list(OrdrePaiement.MODALITES_CHOICES),
+        choices=[('', 'Sélectionner un mode de règlement...')] + list(OrdrePaiement.MODALITES_CHOICES),
     )
 
     def __init__(self, *args, **kwargs):
@@ -100,13 +114,27 @@ class OrdrePaiementForm(forms.Form):
         reserved_ids = PeriodePaiement.objects.filter(
             reservation_active=True
         ).values_list('decompte_id', flat=True)
-        self.fields['decomptes'].queryset = (
+        
+        qs = (
             Decompte.objects.filter(statut=Decompte.STATUT_VALIDE)
             .exclude(pk__in=reserved_ids)
             .select_related('agent')
             .order_by('-annee', '-mois')
         )
+        self.fields['decomptes'].queryset = qs
+
+        self.fields['decomptes'].label_from_instance = lambda obj: (
+            f"{obj.agent.matricule} - {obj.agent.nom} | {obj.mois:02d}/{obj.annee} — {obj.montant_total:,.0f} Ar".replace(",", " ")
+        )
+        
         _apply_css(self)
+
+    # 👇 SÉCURITÉ ANTI-DOUBLON 👇
+    def clean_numero_op(self):
+        numero_op = self.cleaned_data.get('numero_op')
+        if OrdrePaiement.objects.filter(numero_op=numero_op).exists():
+            raise forms.ValidationError("Ce numéro d'OP existe déjà. Veuillez en choisir un autre.")
+        return numero_op
 
     def clean(self):
         cleaned = super().clean()

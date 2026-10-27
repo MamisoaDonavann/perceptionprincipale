@@ -1,29 +1,61 @@
 {% extends "base.html" %}
-{% block title %}Clôturer l'OP {{ op.numero_op }}{% endblock %}
+{% load format_ar %}
+
+{% block title %}Clôturer l'OP {{ op.numero_op }} — Perception Marovoay{% endblock %}
+
 {% block content %}
-<div class="page-header">
-    <div class="page-header__titles">
-        <h1 class="page-title">Clôture administrative</h1>
-        <p class="page-subtitle">{{ op.numero_op }}</p>
-    </div>
-    <div><a href="{% url 'paiements:detail' op.pk %}" class="btn-secondary">Retour</a></div>
-</div>
+<!-- En-tête moderne -->
+{% url 'paiements:detail' op.pk as url_retour %}
+{% include "partials/page_header.html" with title="Clôture administrative" subtitle="Fermeture définitive de l'Ordre de Paiement "|add:op.numero_op icon="paiement" back_url=url_retour %}
 
-<div class="info-box info-box--warning">
-    La clôture exige que tous les paiements actifs aient une confirmation
-    de réception active. Action <strong>irréversible</strong> par les
-    opérations ordinaires.
-</div>
-
-<form method="post"
+<form method="post" class="form-card" style="max-width: 900px; margin: 0 auto;"
       data-confirm="La clôture administrative est définitive. Confirmez-vous ?"
       data-confirm-title="Clôturer l'OP {{ op.numero_op }} ?"
       data-confirm-label="Clôturer"
       data-confirm-variant="warning">
     {% csrf_token %}
-    <div class="form-actions">
-        <button type="submit" class="btn-create">Clôturer administrativement</button>
-        <a href="{% url 'paiements:detail' op.pk %}" class="btn-secondary">Annuler</a>
+
+    <!-- Alerte d'avertissement avec icône -->
+    <div class="info-box info-box--warning" style="margin-bottom: 24px; display: flex; align-items: flex-start; gap: 12px;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px; color: #d97706;">
+            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        <div>
+            <strong style="display: block; margin-bottom: 8px; font-size: 14px;">Action irréversible</strong>
+            La clôture exige que <strong>tous les paiements actifs aient une confirmation de réception active</strong>. 
+            Une fois clôturé, cet OP ne pourra plus être modifié ni annulé par les opérations ordinaires.
+        </div>
+    </div>
+
+    <!-- Récapitulatif de l'OP -->
+    <fieldset class="form-section" style="border-bottom: none; padding-bottom: 0; margin-bottom: 24px;">
+        <legend>Récapitulatif de l'ordre</legend>
+        <div class="detail-list" style="grid-template-columns: 150px 1fr; background: var(--surface-2); padding: 16px; border-radius: var(--r); border: 1px solid var(--border);">
+            <dt>Numéro d'OP</dt>
+            <dd style="font-weight: 700; color: var(--text);">{{ op.numero_op }}</dd>
+            
+            <dt>Agent bénéficiaire</dt>
+            <dd>{{ op.agent_beneficiaire.matricule }} — {{ op.agent_beneficiaire.nom }} {{ op.agent_beneficiaire.prenoms }}</dd>
+            
+            <dt>Montant total</dt>
+            <dd class="amount" style="font-size: 16px; font-weight: 700; color: var(--primary-700);">{{ op.montant_total|format_ar }} Ar</dd>
+        </div>
+    </fieldset>
+
+    <!-- Actions -->
+    <div class="form-actions" style="margin-top: 32px; display: flex; gap: 12px; border-top: none; padding-top: 0;">
+        <!-- Bouton de clôture (Violet) -->
+        <button type="submit" class="btn-create" style="padding: 10px 24px; font-size: 14px; display: inline-flex; align-items: center; gap: 8px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            Clôturer administrativement
+        </button>
+        
+        <!-- Bouton d'annulation (Blanc) -->
+        <a href="{% url 'paiements:detail' op.pk %}" class="btn-secondary" style="padding: 10px 24px; font-size: 14px;">
+            Annuler
+        </a>
     </div>
 </form>
 {% endblock %}

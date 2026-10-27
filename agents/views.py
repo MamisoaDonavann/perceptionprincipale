@@ -13,6 +13,10 @@ from django.views.decorators.http import require_POST
 from .forms import AgentForm
 from .models import Agent
 
+# On importe les outils d'audit
+from audit.models import JournalAudit
+from audit.services import journaliser
+
 
 @login_required
 @permission_required('agents.view_agent', raise_exception=True)
@@ -82,6 +86,17 @@ def agent_create(request):
         form = AgentForm(request.POST)
         if form.is_valid():
             agent = form.save()
+            
+            # 👇 AJOUT DE LA JOURNALISATION ICI 👇
+            journaliser(
+                user=request.user,
+                action=JournalAudit.ACTION_CREATION,
+                entite='agents.Agent',
+                id_entite=agent.pk,
+                apres={'matricule': agent.matricule, 'nom': agent.nom, 'prenoms': agent.prenoms},
+                commentaire=f"Création de l'agent {agent.matricule}",
+            )
+            
             messages.success(
                 request,
                 f"Agent {agent.matricule} — {agent.nom} {agent.prenoms} créé."
@@ -108,6 +123,16 @@ def agent_update(request, pk):
         form = AgentForm(request.POST, instance=agent)
         if form.is_valid():
             agent = form.save()
+            
+            # 👇 AJOUT DE LA JOURNALISATION ICI 👇
+            journaliser(
+                user=request.user,
+                action=JournalAudit.ACTION_MODIFICATION,
+                entite='agents.Agent',
+                id_entite=agent.pk,
+                commentaire=f"Modification de la fiche agent {agent.matricule}",
+            )
+            
             messages.success(
                 request,
                 f"Agent {agent.matricule} mis à jour."
@@ -130,13 +155,8 @@ def agent_update(request, pk):
 def agent_toggle_actif(request, pk):
     """
     Désactive ou réactive un agent.
-
-    Règles :
-    - Aucune suppression physique.
-    - Bascule de `actif` (True ↔ False).
-    - Réactivation interdite si statut_agent == 'RADIE'.
-    - Journalisation systématique.
     """
+    # Les imports locaux sont déjà là, on peut les garder.
     from audit.models import JournalAudit
     from audit.services import journaliser
 

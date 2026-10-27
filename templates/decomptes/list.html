@@ -28,13 +28,24 @@
         </div>
 
         {% if perms.decomptes.add_decompte %}
-        <a href="{% url 'decomptes:create' %}" class="btn-create" style="flex-shrink:0;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <line x1="12" y1="5" x2="12" y2="19"/>
-                <line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-            Nouveau décompte
-        </a>
+        <div style="display: flex; gap: 8px; flex-shrink: 0; flex-wrap: wrap;">
+            <!-- Bouton Principal : Génération en masse -->
+            <button type="button" class="btn-create" onclick="document.getElementById('bulk-modal').removeAttribute('hidden')" style="display: inline-flex; align-items: center; gap: 6px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2v20M2 12h20"/>
+                </svg>
+                Générer le mois
+            </button>
+            
+            <!-- Bouton Secondaire : Nouveau décompte individuel -->
+            <a href="{% url 'decomptes:create' %}" class="btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                Nouveau décompte
+            </a>
+        </div>
         {% endif %}
 
     </div>
@@ -58,6 +69,18 @@
         <label class="filters__label" for="annee">Année</label>
         <input type="number" id="annee" name="annee" value="{{ annee }}" placeholder="2026" min="1900" max="2200">
     </div>
+
+    <!-- 👇 NOUVEAU CHAMP : MOIS 👇 -->
+    <div class="filters__group">
+        <label class="filters__label" for="mois">Mois</label>
+        <select id="mois" name="mois">
+            <option value="">Tous</option>
+            {% for code, label in mois_choices %}
+                <option value="{{ code }}" {% if mois == code|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
     <div class="filters__actions">
         <button type="submit" class="btn-create">Filtrer</button>
         <a href="{% url 'decomptes:list' %}" class="btn-secondary">Réinitialiser</a>
@@ -125,12 +148,13 @@
 
 {% if page.has_other_pages %}
 <div class="pagination">
+    <!-- 👇 Liens mis à jour avec &mois={{ mois }} 👇 -->
     {% if page.has_previous %}
-        <a href="?page={{ page.previous_page_number }}&q={{ q }}&statut={{ statut }}&annee={{ annee }}">← Précédent</a>
+        <a href="?page={{ page.previous_page_number }}&q={{ q }}&statut={{ statut }}&annee={{ annee }}&mois={{ mois }}">← Précédent</a>
     {% else %}<span class="disabled">← Précédent</span>{% endif %}
     <span class="current">{{ page.number }} / {{ page.paginator.num_pages }}</span>
     {% if page.has_next %}
-        <a href="?page={{ page.next_page_number }}&q={{ q }}&statut={{ statut }}&annee={{ annee }}">Suivant →</a>
+        <a href="?page={{ page.next_page_number }}&q={{ q }}&statut={{ statut }}&annee={{ annee }}&mois={{ mois }}">Suivant →</a>
     {% else %}<span class="disabled">Suivant →</span>{% endif %}
 </div>
 <p class="pagination__info">{{ total }} résultat{{ total|pluralize }}</p>
@@ -146,8 +170,52 @@
             </svg>
         </div>
         <p class="empty-state__title">Aucun décompte trouvé</p>
-        <p class="empty-state__hint">Modifiez les filtres ou créez un nouveau décompte.</p>
+        <p class="empty-state__hint">Modifiez les filtres ou générez les décomptes du mois.</p>
     </div>
 </div>
 {% endif %}
+
+<!-- ==================== MODAL : GÉNÉRATION EN MASSE ==================== -->
+<div class="modal-overlay" id="bulk-modal" hidden>
+    <div class="modal" style="max-width: 480px; text-align: left;">
+        <h2 class="modal__title" style="text-align: center; margin-bottom: 12px;">Génération en masse</h2>
+        <p class="modal__message" style="text-align: center; margin-bottom: 24px; font-size: 13.5px; color: var(--text-2);">
+            Cette action va créer un décompte en brouillon pour <strong>tous les agents actifs</strong> ayant des gardes validées pour le mois choisi. Les décomptes déjà existants seront ignorés.
+        </p>
+        
+        <form method="post" action="{% url 'decomptes:generer_masse' %}">
+            {% csrf_token %}
+            <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="form-group">
+                    <label style="font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; display: block;">Mois</label>
+                    <select name="mois_masse" class="form-select" required>
+                        <option value="1">Janvier</option>
+                        <option value="2">Février</option>
+                        <option value="3">Mars</option>
+                        <option value="4">Avril</option>
+                        <option value="5">Mai</option>
+                        <option value="6">Juin</option>
+                        <option value="7">Juillet</option>
+                        <option value="8">Août</option>
+                        <option value="9">Septembre</option>
+                        <option value="10" selected>Octobre</option>
+                        <option value="11">Novembre</option>
+                        <option value="12">Décembre</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label style="font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; display: block;">Année</label>
+                    <input type="number" name="annee_masse" class="form-input" value="{% now 'Y' %}" required min="1900" max="2200">
+                </div>
+            </div>
+            
+            <div class="modal__actions" style="margin-top: 32px; display: flex; justify-content: center; gap: 12px;">
+                <button type="button" class="btn-secondary" onclick="document.getElementById('bulk-modal').setAttribute('hidden', '')">Annuler</button>
+                <button type="submit" class="btn-create">Lancer la génération</button>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- ==================== FIN DU MODAL ==================== -->
+
 {% endblock %}
